@@ -88,6 +88,7 @@ alias install="yay -S"
 alias remove="yay -R"
 alias update="yay -Syu"
 alias apagar="shutdown 0"
+alias dot="chezmoi cd"
 alias nv="nvim"
 alias ls='ls -l --color'
 alias la='ls -la --color'
