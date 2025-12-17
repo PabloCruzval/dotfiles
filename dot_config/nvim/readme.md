@@ -1,2 +1,2 @@
 # Neovim config
-use lua btw
+use lazy btw
