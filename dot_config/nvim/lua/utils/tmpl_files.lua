@@ -1,21 +1,19 @@
 vim.filetype.add({
 	extension = {
-		tmpl = function(path, bufnr)
+		tmpl = function(path, _bufnr)
 			local filename = vim.fn.fnamemodify(path, ":t")
-			local real_extension = filename:match(".*%.(.*)%.tmpl$")
-
-			if real_extension then
-				if real_extension == "conf" then
-					if filename:match("hyprland") then
-						return "hyprlang"
-					end
-					return "conf"
-				end
-
-				return real_extension
+			
+			local real_extension = filename:match("%.([^%.]+)%.tmpl$")
+			
+			if not real_extension then
+				return "gotmpl"
 			end
-
-			return "gotmpl"
+			
+			if real_extension == "conf" and filename:match("hypr") then
+				return "hyprlang"
+			end
+			
+			return real_extension
 		end,
 	},
 })
