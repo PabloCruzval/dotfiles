@@ -58,8 +58,7 @@ fi
 CONFIG_DIRS=( "$CHEZMOI_PATH/dot_config"/* )
 
 for dir in "${CONFIG_DIRS[@]}"; do
-	dir_name=${dir##*/}
-	backup "$HOME/.config/$dir_name"
+	backup "$HOME/.config/${dir##*/}"
 done
 
 printf "\nSetup done, for apply the config please run:\nchezmoi apply\n"
