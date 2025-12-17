@@ -1,7 +1,7 @@
 #!/bin/bash
 
 readonly CHEZMOI_PATH="$HOME/.local/share/chezmoi"
-
+readonly DEPENDENCIES=( "chezmoi" "quickshell" "rofi" "kitty" )
 
 function promptyn () {
     while true; do
@@ -33,17 +33,13 @@ function backup(){
 
 echo "Starting Nyx's dotfiles setup"
 
-if pacman -Qs "chezmoi" > /dev/null; then
-    echo "The package is installed"
-else
-    echo "The package is NOT installed"
-	if promptyn "Want to install? (y: yes, n: no): "; then
-		sudo pacman -S "chezmoi"
+for pkg in "${DEPENDENCIES[@]}"; do
+	if ! command -v "$pkg" &> /dev/null; then
+		sudo pacman -S "$pkg"
 	else
-		echo "Task aborted"
-		exit 0
+		echo "$pkg is already installed."
 	fi
-fi
+done
 
 if [ ! -d $CHEZMOI_PATH ]; then
 	git clone "https://github.com/PabloCruzval/dotfiles" $CHEZMOI_PATH
@@ -61,4 +57,3 @@ for dir in "${CONFIG_DIRS[@]}"; do
 	backup "$HOME/.config/${dir##*/}"
 done
 
-printf "\nSetup done, for apply the config please run:\nchezmoi apply\n"
