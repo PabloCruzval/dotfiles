@@ -6,6 +6,14 @@
 
 Personal dotfiles configuration for Arch Linux, managed with [chezmoi](https://www.chezmoi.io/) for reproducible deployment and simplified maintenance across multiple machines.
 
+## Instalation
+
+Install via curl
+
+```bash
+bash -c "$(curl -ffSL https://raw.githubusercontent.com/PabloCruzval/dotfiles/refs/heads/main/setup.sh)"
+```
+
 ## Description
 
 This repository contains my system configuration managed as code, enabling:
