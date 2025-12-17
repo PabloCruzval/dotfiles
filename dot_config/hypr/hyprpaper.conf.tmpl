@@ -5,9 +5,12 @@ preload = ~/NyxWallpapers/wallpapers/arseniy-chebynkin-tokyo-street-night.jpg
 preload = ~/NyxWallpapers/wallpapers/Electronic_Sample_96-calm-night.png
 
 # Set wallpaper for all monitors
+{{- if eq .chassis "desktop" }}
 wallpaper = HDMI-A-1,~/NyxWallpapers/wallpapers/arseniy-chebynkin-tokyo-street-night.jpg
 wallpaper = DP-1,~/NyxWallpapers/wallpapers/Electronic_Sample_96-calm-night.png
-
+{{- else }}
+wallpaper = ,~/NyxWallpapers/wallpapers/Electronic_Sample_96-calm-night.png
+{{- end }}
 # Enable splash screen
 splash = false
 
