@@ -1,0 +1,170 @@
+/*
+ * Purple Violet Theme for Rofi
+ * Matching Hyprland and Waybar theme
+ * Based on official rofi documentation structure
+ */
+
+configuration {
+    show-icons: true;
+    icon-theme: "Papirus";
+    display-drun: " ";
+    display-window: " ";
+    display-run: " ";
+    display-ssh: " ";
+    drun-display-format: "{name}";
+    window-format: "{w} · {c} · {t}";
+    font: "Ubuntu Nerd Font 11";
+    modi: "drun,window,run,ssh";
+    terminal: "kitty";
+    click-to-exit: true;
+}
+
+* {
+    /* Color scheme - Nord-inspired palette */
+    bg-color: #2E3440;
+    bg-alt: #3B4252;
+    bg-selected: #81A1C1;
+    fg-color: #D8DEE9;
+    fg-alt: #81A1C1;
+    fg-dim: #4C566A;
+    border-color: #81A1C1;
+    urgent-color: #BF616A;
+    
+    /* Reset all properties */
+    background-color: transparent;
+    text-color: @fg-color;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    spacing: 0;
+}
+
+window {
+    background-color: transparent;
+    border: 0;
+    border-radius: 25px;
+    width: 50%;
+    padding: 0;
+}
+
+mainbox {
+    background-color: transparent;
+    spacing: 8px;
+    padding: 0;
+    children: [inputbar, listview];
+}
+
+inputbar {
+    background-color: @bg-color;
+    text-color: @fg-color;
+    border: 4px;
+    border-color: @border-color;
+    border-radius: 25px;
+    padding: 16px 16px;
+    spacing: 8px;
+    margin: 0;
+    children: [prompt, entry];
+}
+
+prompt {
+    background-color: transparent;
+    text-color: @fg-alt;
+    font: "Ubuntu Nerd Font Bold 14";
+}
+
+entry {
+    background-color: transparent;
+    text-color: @fg-color;
+    placeholder: "Search...";
+    placeholder-color: @fg-dim;
+}
+
+listview {
+    background-color: rgba(46, 52, 64, 0.95);
+    border: 0;
+    border-radius: 25px;
+    padding: 8px 0;
+    margin: 0;
+    columns: 1;
+    lines: 5;
+    spacing: 8px;
+    scrollbar: false;
+    fixed-height: false;
+    dynamic: true;
+}
+
+element {
+    background-color: transparent;
+    text-color: @fg-color;
+    border-radius: 25px;
+    padding: 10px 16px;
+    spacing: 12px;
+    children: [element-icon, element-text];
+}
+
+element normal.normal {
+    background-color: transparent;
+    text-color: @fg-color;
+}
+
+element normal.urgent {
+    background-color: rgba(255, 107, 107, 0.9);
+    text-color: @fg-color;
+}
+
+element normal.active {
+    background-color: rgba(59, 66, 82, 0.7);
+    text-color: @fg-alt;
+}
+
+element selected.normal {
+    background-color: @bg-selected;
+    text-color: @fg-color;
+    border-radius: 25px;
+}
+
+element selected.urgent {
+    background-color: @urgent-color;
+    text-color: @fg-color;
+    border-radius: 25px;
+}
+
+element selected.active {
+    background-color: @bg-selected;
+    text-color: @fg-color;
+    border-radius: 25px;
+}
+
+/* Elementos alternados - mismo color que normales para evitar efecto zebra */
+element alternate.normal {
+    background-color: transparent;
+    text-color: @fg-color;
+}
+
+element alternate.urgent {
+    background-color: rgba(255, 107, 107, 0.9);
+    text-color: @fg-color;
+}
+
+element alternate.active {
+    background-color: rgba(59, 66, 82, 0.7);
+    text-color: @fg-alt;
+}
+
+element selected.alternate {
+    background-color: @bg-selected;
+    text-color: @fg-color;
+    border-radius: 25px;
+}
+
+element-icon {
+    background-color: transparent;
+    text-color: inherit;
+    size: 1.2em;
+}
+
+element-text {
+    background-color: transparent;
+    text-color: inherit;
+    vertical-align: 0.5;
+}
