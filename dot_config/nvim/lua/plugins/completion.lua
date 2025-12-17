@@ -1,6 +1,4 @@
--- Code completion plugins
 return {
-	-- Autocompletion engine
 	{
 		"hrsh7th/nvim-cmp",
 		event = "InsertEnter",
@@ -37,7 +35,6 @@ return {
 			})
 		end
 	},
-	-- GitHub Copilot
 	{
 		"github/copilot.vim",
 		lazy = true,
