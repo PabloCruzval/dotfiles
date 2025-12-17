@@ -1,0 +1,16 @@
+# Hyprland configuration for Desktop PC
+# Import modular configurations
+source = ~/.config/hypr/modules/env.conf
+source = ~/.config/hypr/modules/input.conf
+source = ~/.config/hypr/modules/general.conf
+source = ~/.config/hypr/modules/keybinds.conf
+source = ~/.config/hypr/modules/startup.conf
+{{- if eq .chassis "desktop" }}
+	source = ~/.config/hypr/modules/monitors-desktop.conf
+{{- else if eq .chassis "laptop"}}
+	source = ~/.config/hypr/modules/monitors-laptop.conf
+{{- else }}
+	monitor = ,auto,auto,1
+{{- end }}
+# Quickshell integration
+source = ~/.config/hypr/modules/quickshell.conf
