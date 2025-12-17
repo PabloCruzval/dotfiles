@@ -1,5 +1,9 @@
 # Nyx's Arch Linux Dotfiles
 
+![Desktop Screen Shot](./DesktopImage.jpeg)
+
+> Wallpaper from this [repo](https://github.com/DenverCoder1/minimalistic-wallpaper-collection).
+
 Personal dotfiles configuration for Arch Linux, managed with [chezmoi](https://www.chezmoi.io/) for reproducible deployment and simplified maintenance across multiple machines.
 
 ## Description
