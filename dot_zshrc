@@ -34,7 +34,6 @@ zinit snippet OMZP::sudo
 zinit snippet OMZP::command-not-found
 
 # Load completions
-autoload ~/.dotfiles/zsh/completion-gh.sh
 autoload -U compinit && compinit
 
 zinit cdreplay -q
