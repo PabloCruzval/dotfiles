@@ -16,9 +16,12 @@ Scope {
                 const totalScreens = Quickshell.screens.length;
                 const currentIndex = Quickshell.screens.indexOf(modelData);
                 return totalScreens - 1 - currentIndex;
-            }
+			}
+			{{- if eq .chassis "desktop" }}
             readonly property int workspaceOffset: monitorIndex * Config.workspacesPerMonitor
-
+			{{- else }}
+			readonly property int workspaceOffset: 0
+			{{- end }}
             Modules.Border {
                 monitor: scopeItem.modelData
             }

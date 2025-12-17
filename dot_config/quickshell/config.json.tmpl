@@ -18,7 +18,11 @@
         }
     },
     "workspaces": {
+		{{- if eq .chassis "desktop"}}
         "perMonitor": 5,
+		{{- else}}
+        "perMonitor": 10,
+		{{- end }}
         "size": 8,
         "spacing": 8
     },
