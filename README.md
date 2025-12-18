@@ -10,6 +10,10 @@ Personal dotfiles configuration for Arch Linux, managed with [chezmoi](https://w
 
 Install via curl
 
+> [!NOTE]
+> Only for archlinux. If a configuration of `hypr`, `quickshell`, `kitty`, `nvim` or `rofi` is found during installation, it will be moved to `$HOME/.local/share/chezmoi/.backup`
+
+
 ```bash
 bash -c "$(curl -ffSL https://raw.githubusercontent.com/PabloCruzval/dotfiles/refs/heads/main/setup.sh)"
 ```
