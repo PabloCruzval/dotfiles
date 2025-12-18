@@ -125,4 +125,5 @@ case ":$PATH:" in
 esac
 # pnpm end
 
+# bob neovim path
 export PATH="$HOME/.local/share/bob/nvim-bin:$PATH"
