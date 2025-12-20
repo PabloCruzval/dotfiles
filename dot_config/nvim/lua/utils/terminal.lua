@@ -13,11 +13,13 @@ local SplitTerminal = function()
 		vim.cmd "botright split"
 		vim.api.nvim_set_current_buf(states.buff)
 		states.win = vim.api.nvim_get_current_win()
+		vim.cmd "startinsert"
 	else
 		vim.cmd "botright split"
 		vim.cmd "terminal"
 		states.buff = vim.api.nvim_get_current_buf()
 		states.win = vim.api.nvim_get_current_win()
+		vim.cmd "startinsert"
 	end
 end
 
