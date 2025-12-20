@@ -1,6 +1,6 @@
 local capabilities = require "cmp_nvim_lsp".default_capabilities()
 
-local lsps = { "lua_ls", "rust_analyzer", "tailwindcss", "qmlls", "tsserver" }
+local lsps = { "lua_ls", "rust_analyzer", "tailwindcss", "qmlls", "ts_ls" }
 
 vim.lsp.config("lua_ls", {
 	settings = {
