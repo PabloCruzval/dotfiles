@@ -1,6 +1,7 @@
 local map = vim.keymap.set
 
 vim.g.mapleader = " "
+map('t', '<ESC>', "<C-\\><C-n>", {remap = true})
 
 -- Core
 map('n', '<leader>so', ':update<CR> :source<CR>')
@@ -13,6 +14,7 @@ map('n', '<C-j>', '<C-w>j', { desc = "Move to window below" })
 map('n', '<C-k>', '<C-w>k', { desc = "Move to window above" })
 map('n', '<C-l>', '<C-w>l', { desc = "Move to right window" })
 map('n', '<leader>ll', require "utils.lazy_picker")
+map('n', '<leader>ts', require "utils.terminal")
 -- Comment
 map('n', '<leader>/', "gcc", {remap = true})
 map('v', '<leader>/', "gc", {remap = true})
