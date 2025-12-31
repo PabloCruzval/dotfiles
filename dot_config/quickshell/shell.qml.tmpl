@@ -17,7 +17,7 @@ Scope {
                 const currentIndex = Quickshell.screens.indexOf(modelData);
                 return totalScreens - 1 - currentIndex;
 			}
-			{{- if eq .chassis "desktop" }}
+			{{- if eq .machinename "cnyx" }}
             readonly property int workspaceOffset: monitorIndex * Config.workspacesPerMonitor
 			{{- else }}
 			readonly property int workspaceOffset: 0

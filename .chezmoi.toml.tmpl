@@ -1,7 +1,7 @@
-{{- $chassisType := "desktop" }}
+{{- $hostname := "desktop" }}
 {{- if (eq .chezmoi.os "linux")}}
-	{{- $chassisType = output "hostnamectl" "chassis" | trim}}
+	{{- $hostname = output "hostnamectl" "hostname" | trim}}
 {{- end }}
 
 [data]
-	chassis = {{ $chassisType | quote }}
+	machinename = {{ $hostname | quote }}
