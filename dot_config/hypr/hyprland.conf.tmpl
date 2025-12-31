@@ -6,9 +6,9 @@ source = ~/.config/hypr/modules/animations_decorations.conf
 source = ~/.config/hypr/modules/windowrules.conf
 source = ~/.config/hypr/modules/keybinds.conf
 source = ~/.config/hypr/modules/startup.conf
-{{- if eq .chassis "desktop" }}
+{{- if eq .machinename "cnyx" }}
 source = ~/.config/hypr/modules/monitors-desktop.conf
-{{- else if eq .chassis "laptop"}}
+{{- else if eq .machinename "lnyx"}}
 source = ~/.config/hypr/modules/monitors-laptop.conf
 {{- else }}
 monitor = ,auto,auto,1

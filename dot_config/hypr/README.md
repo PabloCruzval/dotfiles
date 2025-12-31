@@ -56,7 +56,7 @@ Custom "Diablo-1" animation preset with:
 
 ### Device-Specific Configuration
 
-The configuration adapts based on the `chassis` variable set in chezmoi:
+The configuration adapts based on the `machinename` variable set in chezmoi:
 
 #### Desktop Setup
 - **Primary monitor**: DP-1 (1920x1080@144Hz)

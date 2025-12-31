@@ -154,9 +154,9 @@ The dotfiles use chezmoi templates to handle differences between machines:
 
 **Example from [dot_config/hypr/hyprland.conf.tmpl](dot_config/hypr/hyprland.conf.tmpl)**:
 ```conf
-{{- if eq .chassis "desktop" }}
+{{- if eq .machinename "desktop" }}
 source = ~/.config/hypr/modules/monitors-desktop.conf
-{{- else if eq .chassis "laptop"}}
+{{- else if eq .machinename "laptop"}}
 source = ~/.config/hypr/modules/monitors-laptop.conf
 {{- else }}
 monitor = ,auto,auto,1

@@ -5,9 +5,15 @@ preload = ~/NyxWallpapers/arseniy-chebynkin-tokyo-street-night.jpg
 preload = ~/NyxWallpapers/Electronic_Sample_96-calm-night.png
 
 # Set wallpaper for all monitors
-{{- if eq .chassis "desktop" }}
-wallpaper = HDMI-A-1,~/NyxWallpapers/arseniy-chebynkin-tokyo-street-night.jpg
-wallpaper = DP-1,~/NyxWallpapers/Electronic_Sample_96-calm-night.png
+{{- if eq .machinename "cnyx" }}
+wallpaper {
+	monitor = HDMI-A-1
+	path = ~/NyxWallpapers/arseniy-chebynkin-tokyo-street-night.jpg
+}
+wallpaper {
+	monitor = DP-1
+	path = ~/NyxWallpapers/Electronic_Sample_96-calm-night.png
+}
 {{- else }}
 wallpaper = ,~/NyxWallpapers/Electronic_Sample_96-calm-night.png
 {{- end }}
