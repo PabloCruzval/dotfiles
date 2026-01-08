@@ -1,8 +1,7 @@
-local capabilities = require "cmp_nvim_lsp".default_capabilities()
+local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
-local lsps = { "lua_ls", "rust_analyzer", "tailwindcss", "qmlls", "ts_ls" }
+vim.lsp.config("*", {capabilities = capabilities,})
 
-for i = 1, #lsps do
-	vim.lsp.config(lsps[i], {capabilities = capabilities})
-	vim.lsp.enable(lsps[i])
-end
+local servers = { "lua_ls", "tailwindcss", "qmlls", "ts_ls"}
+
+vim.lsp.enable(servers)
