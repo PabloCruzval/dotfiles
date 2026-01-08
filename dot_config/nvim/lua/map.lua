@@ -21,8 +21,9 @@ map('v', '<leader>/', "gc", {remap = true})
 
 -- Pick files & Oil
 local Oil = require "oil"
-map('n', '<leader>f', ':Pick files<CR>')
+map('n', '<leader>pf', ':Pick files<CR>')
 map('n', '<leader>ph', ':Pick help<CR>')
+map('n', '<leader>pb', ':Pick buffers<CR>')
 map('n', '<leader>gl', ':Pick grep_live<CR>')
 map('n', '<leader>e', ':Oil<CR>')
 map('n', '<S-h>', Oil.toggle_hidden)
