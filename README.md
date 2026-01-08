@@ -10,8 +10,11 @@ Personal dotfiles configuration for Arch Linux, managed with [chezmoi](https://w
 
 Install via curl
 
-> [!NOTE]
-> Only for archlinux. If a configuration of `hypr`, `quickshell`, `kitty`, `nvim` or `rofi` is found during installation, it will be moved to `$HOME/.local/share/chezmoi/.backup`
+>[!IMPORTANT]
+> Only for archlinux. 
+
+>[!NOTE]
+> If a configuration of `hypr`, `quickshell`, `kitty`, `nvim` or `rofi` is found during installation, it will be moved to `$HOME/.local/share/chezmoi/.backup`
 > The script was made for my machines, it may not work for yours.
 
 
