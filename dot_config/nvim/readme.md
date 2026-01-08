@@ -27,14 +27,16 @@ nvim/
 │   │   ├── dap.lua             # Debug Adapter Protocol
 │   │   ├── dependencies.lua    # Plugin dependencies
 │   │   ├── editing.lua         # Autopairs + autotag
-│   │   ├── mason.lua           # LSP server installer
+│   │   ├── lsp.lua             # LSP, Mason, null-ls
 │   │   ├── navigation.lua      # Oil + Mini.pick
 │   │   ├── nvim-treesitter.lua # Syntax highlighting
 │   │   ├── rustaceanvim.lua    # Rust tooling
+│   │   ├── themes.lua          # Color schemes
 │   │   ├── tools.lua           # Git, Markdown, Chezmoi
-│   │   └── ui.lua              # Theme + transparency
+│   │   └── ui.lua              # Transparency
 │   └── utils/
 │       ├── lazy_picker.lua     # Plugin picker utility
+│       ├── terminal.lua        # Terminal utility
 │       └── tmpl_files.lua      # Template file handling
 └── readme.md                   # This file
 ```
@@ -46,6 +48,7 @@ nvim/
 - **Tabs**: 4 spaces, no swap files
 - **Sign column**: Always visible for diagnostics
 - **Status line**: Transparent background
+- **Treesitter**: Auto-enabled for all file types with size limit (500KB)
 
 ### Plugins by Category
 
@@ -56,18 +59,26 @@ nvim/
 
 #### Navigation
 - **Oil.nvim**: Edit filesystem like a buffer
-- **Mini.pick**: Fuzzy finder for files, grep, help
+- **Mini.pick**: Fuzzy finder for files, buffers, grep, help
+
+#### Debugging (DAP)
+- **nvim-dap**: Debug Adapter Protocol support
+- **nvim-dap-ui**: UI for debugging
+- **mason-nvim-dap**: Auto-install debuggers (debugpy, js-debug, codelldb)
 
 #### Language Support
-- **Native LSP**: Lua, Rust, TypeScript, QML, Tailwind, Astro
-- **Mason**: Automatic LSP server management
-- **Treesitter**: Advanced syntax highlighting
-- **Rustaceanvim**: Enhanced Rust development
+- **Native LSP**: Lua, Rust, TypeScript, QML, Tailwind, Astro, Emmet
+- **Mason**: Automatic LSP server and tool management
+- **Mason-lspconfig**: LSP server auto-installation bridge
+- **null-ls**: Formatting with prettierd
+- **Lazydev**: Enhanced Lua development for Neovim configs
+- **Treesitter**: Advanced syntax highlighting (TypeScript, TSX, JavaScript, HTML, Rust, Python)
+- **Rustaceanvim**: Enhanced Rust development with DAP integration
 
 #### Editing
 - **nvim-autopairs**: Auto-close brackets and quotes
-- **nvim-ts-autotag**: Auto-close/rename HTML/JSX tags
-- **Mini.comment**: Smart code commenting
+- **nvim-ts-autotag**: Auto-close/rename HTML/JSX/TSX tags
+- **Built-in commenting**: Smart code commenting with gcc/gc
 
 #### Tools
 - **Gitsigns**: Inline Git status and actions
@@ -75,7 +86,9 @@ nvim/
 - **Chezmoi**: Template syntax support for .tmpl files
 
 #### UI
-- **Nord**: Clean, dark color scheme
+- **Kanagawa**: Primary color scheme (active)
+- **Nord**: Alternative dark color scheme
+- **Onedark**: Alternative color scheme
 - **Transparent.nvim**: Background transparency
 
 ## Keybindings
@@ -86,11 +99,13 @@ For a complete reference of all keybindings, see [keybindings.md](keybindings.md
 
 Quick reference for most common actions:
 - `<leader>w` - Save file
-- `<leader>f` - Find files
+- `<leader>pf` - Find files
+- `<leader>pb` - Find buffers
 - `<leader>e` - File explorer (Oil)
 - `<leader>gl` - Live grep
 - `<leader>lf` - Format code
 - `<leader>/` - Toggle comment
+- `<leader>ts` - Toggle terminal
 
 > **Note**: Some plugin-specific keybindings (like completion shortcuts) are defined within their respective plugin files due to lazy loading.
 
@@ -127,6 +142,9 @@ The configuration auto-installs these LSP servers via Mason:
 - `astro` - Astro
 - `emmet_ls` - Emmet
 
+And these tools:
+- `prettierd` - Fast code formatter for JavaScript/TypeScript/HTML/CSS
+
 ### First Launch
 
 1. Open Neovim - plugins will auto-install:
@@ -160,26 +178,29 @@ return {
 
 ### Changing Theme
 
-Edit [lua/plugins/ui.lua](lua/plugins/ui.lua):
+Edit [lua/plugins/themes.lua](lua/plugins/themes.lua) to add new themes:
 ```lua
 return {
-    {
-        "your-preferred-theme/theme-name"
-    }
+    "your-preferred-theme/theme-name",
 }
 ```
 
-Update [init.lua](init.lua):
+Update [init.lua](init.lua) to activate it:
 ```lua
 vim.cmd([[colorscheme your-theme]])
 ```
 
+Currently available: `kanagawa`, `nord`, `onedark`
+
 ### Adding LSP Servers
 
-Edit [lua/plugins/mason.lua](lua/plugins/mason.lua) to add to `ensure_installed`:
+Edit [lua/plugins/lsp.lua](lua/plugins/lsp.lua) to add to `ensure_installed` in mason-lspconfig:
 ```lua
-opts = {
-    ensure_installed = { "lua_ls", "your_new_server" }
+{
+    "mason-org/mason-lspconfig.nvim",
+    opts = {
+        ensure_installed = { "lua_ls", "your_new_server" },
+    },
 }
 ```
 

@@ -16,6 +16,7 @@ Complete reference for all keybindings in this Neovim configuration.
 | `<leader>s` | Normal/Visual/Select | Switch to alternate buffer |
 | `<leader>y` | Normal/Visual/Select | Yank to system clipboard |
 | `<leader>d` | Normal/Visual/Select | Delete to system clipboard |
+| `<ESC>` | Terminal | Exit terminal mode |
 | `<A-j>` | Normal/Insert | Move current line down |
 | `<A-k>` | Normal/Insert | Move current line up |
 | `<A-j>` | Visual/Select | Move selected lines down |
@@ -34,7 +35,8 @@ Complete reference for all keybindings in this Neovim configuration.
 
 | Key | Mode | Action |
 |-----|------|--------|
-| `<leader>f` | Normal | Find files (Mini.pick) |
+| `<leader>pf` | Normal | Find files (Mini.pick) |
+| `<leader>pb` | Normal | Find buffers (Mini.pick) |
 | `<leader>gl` | Normal | Live grep search |
 | `<leader>ph` | Normal | Search help documentation |
 | `<leader>e` | Normal | Open Oil file explorer |
@@ -85,6 +87,12 @@ Complete reference for all keybindings in this Neovim configuration.
 |-----|------|--------|
 | `<leader>ll` | Normal | Open lazy.nvim plugin picker |
 
+## Terminal
+
+| Key | Mode | Action |
+|-----|------|--------|
+| `<leader>ts` | Normal | Toggle terminal |
+
 ## Plugin-Specific Keybindings
 
 These keybindings are defined within their respective plugin configuration files:
@@ -101,7 +109,10 @@ Defined in: [lua/plugins/completion.lua](lua/plugins/completion.lua)
 ### DAP (Debug Adapter Protocol)
 Defined in: [lua/plugins/dap.lua](lua/plugins/dap.lua)
 
-Check the plugin file for debugging-specific keybindings.
+| Key | Mode | Action |
+|-----|------|--------|
+| `<leader>dt` | Normal | Toggle breakpoint |
+| `<leader>dc` | Normal | Continue/Start debugging |
 
 ## Customizing Keybindings
 
