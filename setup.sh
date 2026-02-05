@@ -4,10 +4,10 @@
 # Configuration and Variables
 # ==========================================
 readonly CHEZMOI_PATH="$HOME/.local/share/chezmoi"
-readonly PKGLIST="pkglist"
-readonly AURLIST="aurlist"
 readonly REPO_URL="https://github.com/PabloCruzval/dotfiles"
 readonly BACKUP_DIR="$HOME/.backups_dotfiles/$(date +%Y%m%d_%H%M%S)"
+readonly PKGLIST="$CHEZMOI_PATH/pkglist"
+readonly AURLIST="$CHEZMOI_PATH/aurlist"
 
 # Colors
 green=$(tput setaf 2)
@@ -37,6 +37,23 @@ function backup_config() {
     fi
 }
 
+function backup_and_clone_repo() {
+    local backup_path="$BACKUP_DIR/chezmoi_backup"
+    mkdir -p "$BACKUP_DIR"
+    log_info "Backing up existing directory to $backup_path"
+    mv "$CHEZMOI_PATH" "$backup_path"
+    
+    log_info "Cloning repository from $REPO_URL..."
+    git clone "$REPO_URL" "$CHEZMOI_PATH"
+}
+
+function is_correct_repo() {
+    [ ! -d "$CHEZMOI_PATH/.git" ] && return 1
+    
+    local current_remote=$(git -C "$CHEZMOI_PATH" remote get-url origin 2>/dev/null || echo "")
+    [ "$current_remote" = "$REPO_URL" ] || [ "$current_remote" = "${REPO_URL}.git" ]
+}
+
 # ==========================================
 # 1. Startup and Dependencies
 # ==========================================
@@ -46,19 +63,57 @@ log_info "Updating system and installing base tools..."
 sudo pacman -Syu --needed --noconfirm git base-devel unzip wget curl
 
 # ==========================================
-# 2. Bootstrapping Yay
+# 2. Clone and Setup Chezmoi Repository
+# ==========================================
+log_info "Checking chezmoi repository..."
+
+if ! exists chezmoi; then
+    log_info "Installing chezmoi..."
+    sudo pacman -S --needed --noconfirm chezmoi
+fi
+
+# If directory doesn't exist, clone and exit section
+if [ ! -d "$CHEZMOI_PATH" ]; then
+    log_info "Cloning repository from $REPO_URL..."
+    git clone "$REPO_URL" "$CHEZMOI_PATH"
+    cd "$CHEZMOI_PATH" || exit 1
+    log_info "Working directory changed to $CHEZMOI_PATH"
+    # Continue to next section
+elif is_correct_repo; then
+    # Correct repository already exists, just update
+    log_info "Correct repository already cloned. Updating..."
+    git -C "$CHEZMOI_PATH" pull
+    cd "$CHEZMOI_PATH" || exit 1
+    log_info "Working directory changed to $CHEZMOI_PATH"
+else
+    # Wrong repository or not a git directory - backup and clone
+    if [ -d "$CHEZMOI_PATH/.git" ]; then
+        current_remote=$(git -C "$CHEZMOI_PATH" remote get-url origin 2>/dev/null || echo "unknown")
+        log_warn "Found different chezmoi repository at $CHEZMOI_PATH"
+        log_warn "Current remote: $current_remote"
+    else
+        log_warn "Found non-git directory at $CHEZMOI_PATH"
+    fi
+    
+    backup_and_clone_repo
+    cd "$CHEZMOI_PATH" || exit 1
+    log_info "Working directory changed to $CHEZMOI_PATH"
+fi
+
+# ==========================================
+# 3. Bootstrapping Yay
 # ==========================================
 if ! exists yay; then
     log_info "Installing Yay..."
     git clone https://aur.archlinux.org/yay-bin.git /tmp/yay-bin
     cd /tmp/yay-bin || exit
     makepkg -si --noconfirm
-    cd - || exit
+    cd "$CHEZMOI_PATH" || exit 1
     rm -rf /tmp/yay-bin
 fi
 
 # ==========================================
-# 3. Package Installation
+# 4. Package Installation
 # ==========================================
 if [ -f "$PKGLIST" ]; then
     log_info "Installing official packages..."
@@ -67,11 +122,14 @@ fi
 
 if [ -f "$AURLIST" ]; then
     log_info "Installing AUR packages..."
-    yay -S --needed --noconfirm - < <(sed 's/#.*//; /^[[:space:]]*$/d' "$AURLIST")
+    aur_list=$(grep -vE "^\s*#" "$AURLIST" | tr '\n' ' ')
+    if [ ! -z "$aur_list" ]; then
+        yay -S --needed --noconfirm $aur_list
+    fi
 fi
 
 # ==========================================
-# 4. Git Configuration
+# 5. Git Configuration
 # ==========================================
 log_info "Checking Git configuration..."
 
@@ -114,23 +172,24 @@ else
 fi
 
 # ==========================================
-# 5. Chezmoi Initialization
+# 6. Verify Repository is Ready
 # ==========================================
-if ! exists chezmoi; then
-    sudo pacman -S --needed --noconfirm chezmoi
+log_info "Verifying repository files..."
+
+if [ ! -f "$PKGLIST" ]; then
+    log_error "pkglist file not found at $PKGLIST"
+    exit 1
 fi
 
-log_info "Syncing dotfiles repository..."
-
-if [ ! -d "$CHEZMOI_PATH" ]; then
-    chezmoi init "$REPO_URL"
-else
-    log_info "Updating local repo..."
-    git -C "$CHEZMOI_PATH" pull
+if [ ! -f "$AURLIST" ]; then
+    log_error "aurlist file not found at $AURLIST"
+    exit 1
 fi
 
+log_info "Repository files verified successfully"
+
 # ==========================================
-# 6. Automatic Backup
+# 7. Automatic Backup
 # ==========================================
 log_info "Checking for conflicts and creating backups..."
 
@@ -150,7 +209,7 @@ if [ -d "$BACKUP_DIR" ]; then
 fi
 
 # ==========================================
-# 7. Apply Changes
+# 8. Apply Changes
 # ==========================================
 log_info "Applying dotfiles with Chezmoi..."
 chezmoi apply
