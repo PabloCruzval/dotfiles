@@ -8,8 +8,10 @@ rofi-wayland
 hyprland
 hyprpaper
 hyprpolkitagent
-rofi
 hyprshutdown
+hyprlock
+hypridle
+rofi
 grim
 slurp
 wl-clipboard
@@ -22,18 +24,13 @@ wget
 curl
 npm
 ripgrep
-
-# zsh
 zsh
 fzf
 zoxide
-
-# fonts
 noto-fonts-cjk
 noto-fonts-emoji
 noto-fonts
-
-# keyring
 gnome-keyring
 seahorse
 libsecret
+obsidian
