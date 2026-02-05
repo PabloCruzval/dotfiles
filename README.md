@@ -14,7 +14,7 @@ Install via curl
 > Only for archlinux. 
 
 >[!NOTE]
-> If a configuration of `hypr`, `quickshell`, `kitty`, `nvim` or `rofi` is found during installation, it will be moved to `$HOME/.local/share/chezmoi/.backup`
+> If a configuration of `hypr`, `quickshell`, `kitty`, `nvim` or `rofi` is found during installation, it will be moved to `$HOME/.backups_dotfiles/<timestamp>`
 > The script was made for my machines, it may not work for yours.
 
 
