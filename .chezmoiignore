@@ -4,3 +4,4 @@
 ./setup.sh
 ./aurlist
 ./pkglist
+./troubleshoot.md

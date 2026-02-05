@@ -214,4 +214,5 @@ fi
 log_info "Applying dotfiles with Chezmoi..."
 chezmoi apply
 
+log_warn "If you encounter any issues, read the troubleshooting guide at: $CHEZMOI_PATH/troubleshoot.md or open an issue on the GitHub repository."
 log_info "Installation completed successfully!"
