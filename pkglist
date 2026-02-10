@@ -22,6 +22,7 @@ thunar
 unzip
 wget
 curl
+less
 npm
 ripgrep
 zsh
