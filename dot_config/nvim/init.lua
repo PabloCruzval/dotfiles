@@ -1,6 +1,6 @@
 local o = vim.opt
 
-o.wrap = false
+o.wrap = true
 o.tabstop = 4
 o.shiftwidth = 4
 o.signcolumn = "yes"
