@@ -48,7 +48,7 @@ PanelWindow {
 
         Item { Layout.fillHeight: true }
 
-        // Bottom section: Tray and Keyboard Layout
+        // Bottom section: Tray, Keyboard Layout, and Battery
         BarComponents.TrayWidget {
             Layout.alignment: Qt.AlignBottom | Qt.AlignHCenter
             Layout.bottomMargin: Root.Config.barPadding
@@ -58,5 +58,11 @@ PanelWindow {
             Layout.alignment: Qt.AlignBottom | Qt.AlignHCenter
             Layout.bottomMargin: Root.Config.barPadding
         }
+		{{- if eq .machinename "lnyx"}}
+        BarComponents.BatteryWidget {
+            Layout.alignment: Qt.AlignBottom | Qt.AlignHCenter
+            Layout.bottomMargin: Root.Config.barPadding
+		}
+		{{- end }}
     }
 }
