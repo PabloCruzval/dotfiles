@@ -108,6 +108,7 @@ eval "$(zoxide init --cmd cd zsh)"
 
 # Export
 export EDITOR='nvim'
+export PATH="$HOME/.local/bin:$PATH"
 export PATH="/home/nyx/.cargo/bin/:$PATH"
 
 # bun completions

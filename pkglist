@@ -11,6 +11,8 @@ hyprpolkitagent
 hyprshutdown
 hyprlock
 hypridle
+xdg-desktop-portal-gtk
+xdg-desktop-portal-hyprland
 rofi
 grim
 slurp
