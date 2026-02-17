@@ -1,0 +1,10 @@
+[Unit]
+Description=Switch to dark theme
+After=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/theme-toggle dark
+
+[Install]
+WantedBy=default.target

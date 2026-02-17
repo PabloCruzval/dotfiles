@@ -1,0 +1,10 @@
+[Unit]
+Description=Switch to light theme
+After=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/theme-toggle light
+
+[Install]
+WantedBy=default.target
