@@ -1,28 +1,31 @@
 # Hyprpaper configuration
 
 # Preload wallpaper from wallpapers directory
-preload = ~/NyxWallpapers/arseniy-chebynkin-tokyo-street-night.jpg
-preload = ~/NyxWallpapers/Electronic_Sample_96-calm-night.png
+# preload = ~/.local/share/chezmoi/NyxWallpapers/arseniy-chebynkin-tokyo-street-night.jpg
+# preload = ~/.local/share/chezmoi/NyxWallpapers/Electronic_Sample_96-calm-night.png
+
+preload = ~/.local/share/chezmoi/NyxWallpapers/wallhaven-8gk7ry.jpg
+{{- if eq .machinename "cnyx"}}
+preload = ~/.local/share/chezmoi/NyxWallpapers/wallhaven-gw5xv7.jpg
+{{- end }}
 
 # Set wallpaper for all monitors
 {{- if eq .machinename "cnyx" }}
 wallpaper {
-	monitor = HDMI-A-1
-	path = ~/NyxWallpapers/arseniy-chebynkin-tokyo-street-night.jpg
+	monitor = DP-1
+	path = ~/.local/share/chezmoi/NyxWallpapers/wallhaven-8gk7ry.jpg
 }
 wallpaper {
-	monitor = DP-1
-	path = ~/NyxWallpapers/Electronic_Sample_96-calm-night.png
+	monitor = HDMI-A-1
+		path = ~/.local/share/chezmoi/NyxWallpapers/wallhaven-gw5xv7.jpg
 }
 {{- else }}
 
 wallpaper {
 	monitor = 
-	path = ~/NyxWallpapers/Electronic_Sample_96-calm-night.png
+	path = ~/.local/share/chezmoi/NyxWallpapers/wallhaven-8gk7ry.jpg
 }
 {{- end }}
-# Enable splash screen
-splash = false
 
-# Enable IPC
+splash = false
 ipc = on
