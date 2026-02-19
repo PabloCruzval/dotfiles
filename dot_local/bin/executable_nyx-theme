@@ -1,0 +1,120 @@
+#!/bin/bash
+
+mkdir -p "$CACHE_DIR"
+
+apply_theme() {
+    local THEME_NAME="$1"
+    local THEME_FILE="$THEME_DIR/${THEME_NAME}.json"
+
+    if [ ! -f "$THEME_FILE" ]; then
+        echo "Error: The theme '$THEME_NAME' does not exist in $THEME_DIR"
+        echo "Available themes:"
+        ls -1 "$THEME_DIR" 2>/dev/null | sed 's/\.json$//' | sed 's/^/  - /'
+        exit 1
+    fi
+
+    echo "Applying theme: $THEME_NAME..."
+
+    cp "$THEME_FILE" "$CACHE_DIR/current.json"
+
+    quickshell ipc call theme applyColors "$(cat "$CACHE_DIR/current.json")"
+
+    ACTIVE_HEX=$(jq -r '.colors.active_border' "$THEME_FILE" | tr -d '#')
+    INACTIVE_HEX=$(jq -r '.colors.inactive_border' "$THEME_FILE" | tr -d '#')
+    SHADOW_HEX=$(jq -r '.colors.shadow' "$THEME_FILE" | tr -d '#')
+    cat <<EOF > "$CACHE_DIR/hyprland_colors.conf"
+\$active_border = rgba(${ACTIVE_HEX}ff)
+\$inactive_border = rgba(${INACTIVE_HEX}ff)
+\$shadow_color = rgba(${SHADOW_HEX}ee)
+EOF
+
+    hyprctl reload > /dev/null
+
+    THEME_TYPE=$(jq -r '.type' "$THEME_FILE")
+    if [ "$THEME_TYPE" = "dark" ]; then
+        gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"
+        gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
+        ICON="weather-clear-night"
+        echo "Applied dark mode"
+    else
+        gsettings set org.gnome.desktop.interface color-scheme "prefer-light"
+        gsettings set org.gnome.desktop.interface gtk-theme "Adwaita"
+        ICON="weather-clear"
+        echo "Applied light mode"
+    fi
+
+    notify-send "Theme Manager" "Theme '$THEME_NAME' applied successfully" -i "$ICON"
+}
+
+toggle_theme() {
+    local CURRENT_THEME_FILE="$CACHE_DIR/current.json"
+
+    if [ ! -f "$CURRENT_THEME_FILE" ]; then
+        apply_theme "dark_green"
+    else
+        CURRENT_TYPE=$(jq -r '.type' "$CURRENT_THEME_FILE" 2>/dev/null)
+        
+        if [ "$CURRENT_TYPE" = "dark" ]; then
+            apply_theme "light_green"
+        else
+            apply_theme "dark_green"
+        fi
+    fi
+}
+
+sync_theme() {
+    local MINUTES=$(( $(date +%H) * 60 + $(date +%M) ))
+    
+    if [ "$MINUTES" -ge 360 ] && [ "$MINUTES" -le 1229 ]; then
+        THEME="light_green"
+    else
+        THEME="dark_green"
+    fi
+
+    apply_theme "$THEME"
+}
+
+show_usage() {
+    cat <<EOF
+Usage: nyx-theme <command> [arguments]
+
+Commands:
+  apply <name>    Apply a specific theme by name
+  toggle          Toggle between light and dark themes
+  sync            Sync theme based on current time of day
+
+Examples:
+  nyx-theme apply dark_green
+  nyx-theme toggle
+  nyx-theme sync
+
+Available themes:
+$(ls -1 "$THEME_DIR" 2>/dev/null | sed 's/\.json$//' | sed 's/^/  - /')
+EOF
+}
+
+case "$1" in
+    apply)
+        if [ -z "$2" ]; then
+            echo "Error: Theme name required"
+            echo "Usage: nyx-theme apply <theme-name>"
+            exit 1
+        fi
+        apply_theme "$2"
+        ;;
+    toggle)
+        toggle_theme
+        ;;
+    sync)
+        sync_theme
+        ;;
+    -h|--help|help)
+        show_usage
+        ;;
+    *)
+        echo "Error: Unknown command '$1'"
+        echo
+        show_usage
+        exit 1
+        ;;
+esac
