@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Configuration
+THEME_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/themes"
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/theme"
+
 mkdir -p "$CACHE_DIR"
 
 apply_theme() {

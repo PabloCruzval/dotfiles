@@ -1,15 +1,15 @@
 {
-  "name": "Light Green",
-  "type": "light",
-  "colors": {
-    "bg": "#D9D6CC",
-    "fg": "#111312",
-    "primary": "#7bb63b",
-    "surface": "#ccd0da",
-    "occupiedWs": "#aab798",
-    "unusedWs": "#374f43",
-    "active_border": "#7bb63b",
-    "inactive_border": "#ccd0da",
-    "shadow": "#9ca0b0"
-  }
+    "name": "Light Green",
+    "type": "light",
+    "colors": {
+        "bg": "#D9D6CC",
+        "fg": "#111312",
+        "primary": "#7bb63b",
+        "surface": "#ccd0da",
+        "occupiedWs": "#7e8c85",
+        "unusedWs": "#aab798",
+        "active_border": "#7bb63b",
+        "inactive_border": "#ccd0da",
+        "shadow": "#9ca0b0"
+    }
 }
