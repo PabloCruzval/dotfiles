@@ -1,0 +1,15 @@
+pragma Singleton
+import QtQuick
+import Quickshell
+
+Singleton {
+	id: config 
+
+    {{- if eq .machinename "cnyx" }}
+	property bool isLaptop: false
+	property string primaryMonitor: "DP-1"
+    {{- else}}
+	property bool isLaptop: true
+	property string primaryMonitor: "eDP-1"
+    {{- end }}
+}
