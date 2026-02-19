@@ -3,7 +3,7 @@ import Quickshell
 import Quickshell.Hyprland
 import qs.core
 import qs.services
-import qs.components
+import qs.components.widgets
 
 PanelWindow {
     id: root 
