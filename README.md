@@ -1,6 +1,6 @@
 # Nyx's Arch Linux Dotfiles
 
-![Desktop Screen Shot](./DesktopImage.jpeg)
+![Desktop Screen Shot](./DesktopImage.png)
 
 > Wallpaper from this [repo](https://github.com/DenverCoder1/minimalistic-wallpaper-collection).
 
