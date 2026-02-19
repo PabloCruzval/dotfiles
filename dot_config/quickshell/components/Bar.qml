@@ -1,8 +1,9 @@
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
-import qs.services
 import qs.core
+import qs.services
+import qs.components
 
 PanelWindow {
     id: root 
@@ -14,12 +15,37 @@ PanelWindow {
         left: true
         right: true
     }
+    
     implicitHeight: 35
     color: Appearance.bg
+    exclusiveZone: implicitHeight 
+
+    // ==========================================
+    // LEFT SECTION
+    // ==========================================
+    Row {
+        id: leftSection
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.leftMargin: 12
+        spacing: 12
+
+        WorkspacesWidget {
+            targetScreen: root.modelData
+            anchors.verticalCenter: parent.verticalCenter
+        }
+        
+    }
+
+    // ==========================================
+    // CENTER SECTION 
+    // ==========================================
     Item {
         id: centerSection
         anchors.centerIn: parent
-        width: activeWindowTitle.implicitWidth
+        
+        width: activeWindowTitle.implicitWidth 
         height: parent.height
 
         Text {
@@ -31,46 +57,27 @@ PanelWindow {
         }
     }
 
-    Item {
-        id: leftSection
-		anchors {
-			left: parent.left
-            right: centerSection.left
-            top: parent.top
-            bottom: parent.bottom
-        }
-        clip: true
-
-        WorkspacesWidget {
-            anchors.left: parent.left
-            anchors.verticalCenter: parent.verticalCenter
-			anchors.leftMargin: 12
-			targetScreen: root.modelData
-        }
-    }
-
-    Item {
+    // ==========================================
+    // RIGHT SECTION 
+    // ==========================================
+    Row {
         id: rightSection
-        anchors {
-            left: centerSection.right
-            right: parent.right
-            top: parent.top
-            bottom: parent.bottom
-        }
-        clip: true
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.rightMargin: 12
+        spacing: 12
 
-        Row {
-            anchors.right: parent.right
+        Text {
             anchors.verticalCenter: parent.verticalCenter
-			anchors.rightMargin: 12
-			spacing: 12
-			ClockWidget {}
-            Text {
-                text: KeyboardService.currentLayoutCode
-                color: Appearance.fg
-                font.pixelSize: 14
-                font.bold: true
-            }
+            text: KeyboardService.currentLayoutCode
+            color: Appearance.fg
+            font.pixelSize: 14
+            font.bold: true
+        }
+
+        ClockWidget {
+            anchors.verticalCenter: parent.verticalCenter
         }
     }
 }
