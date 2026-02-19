@@ -79,7 +79,7 @@ The repository is organized with chezmoi naming conventions:
 | **Kitty** | `dot_config/kitty/` | Terminal emulator config |
 | **Rofi** | `dot_config/rofi/` | Application launcher |
 | **Themes** | `dot_config/themes/` | Theme definitions (JSON) |
-| **Scripts** | `dot_local/bin/` | Utility scripts (theme-toggle, etc.) |
+| **Scripts** | `dot_local/bin/` | Utility scripts (nyx-theme) |
 | **Wallpapers** | `NyxWallpapers/` | Wallpaper collection |
 
 > 💡 **Chezmoi naming**: `dot_` → `.` (hidden files), `.tmpl` → template, `executable_` → executable bit
@@ -93,17 +93,32 @@ The repository is organized with chezmoi naming conventions:
 
 <br>
 
-Custom theme system that synchronizes colors across:
-- Hyprland (borders, shadows)
-- Quickshell (bar colors)
-- GTK applications
-- System notifications
+Automated theme system with time-based switching and manual toggle support.
+
+**Features:**
+- 🌅 **Auto Light/Dark** - Switches automatically at 6am (light) and 8:30pm (dark)
+- 🔄 **Login Sync** - Applies correct theme based on current time at startup
+- ⌨️ **Quick Toggle** - `SUPER + T` to manually switch themes
+- 🎯 **System-Wide** - Affects Hyprland, Quickshell, GTK apps, and notifications
+
+**Available Themes:**
+- `dark_green` - Dark theme with green accents
+- `light_green` - Light theme with green accents
 
 **Usage:**
 ```bash
-theme-toggle dark_green  # Switch to dark green theme
-theme-toggle light_green # Switch to light green theme
+nyx-theme apply dark_green   # Apply specific theme
+nyx-theme toggle             # Toggle between light/dark
+nyx-theme sync               # Sync theme based on current time
 ```
+
+**Automatic Switching:**
+```bash
+# Enable systemd timers for automatic theme changes
+systemctl --user enable --now theme-light.timer theme-dark.timer
+```
+
+> 📖 For detailed documentation, see [Theme System README](dot_config/themes/README.md)
 
 </details>
 
@@ -214,7 +229,7 @@ Each major component has detailed documentation:
 **Change themes:**
 ```bash
 nvim ~/.config/themes/dark_green.json
-theme-toggle dark_green
+nyx-theme apply dark_green
 ```
 
 **Adjust monitors:**
@@ -225,7 +240,7 @@ chezmoi apply
 
 **Modify keybindings:**
 ```bash
-nvim ~/.local/share/chezmoi/dot_config/hypr/modules/keybinds.conf
+nvim ~/.local/share/chezmoi/dot_config/hypr/modules/keybindings.conf
 chezmoi apply
 ```
 

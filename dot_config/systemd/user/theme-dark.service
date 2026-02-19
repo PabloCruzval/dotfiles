@@ -1,10 +1,10 @@
 [Unit]
-Description=Switch to dark theme
+Description=Switch to dark green theme
 After=graphical-session.target
 
 [Service]
 Type=oneshot
-ExecStart=%h/.local/bin/theme-toggle dark
+ExecStart=%h/.local/bin/nyx-theme apply dark_green
 
 [Install]
 WantedBy=default.target
