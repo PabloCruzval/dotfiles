@@ -1,15 +1,15 @@
 {
-  "name": "Green Dark",
-  "type": "dark",
-  "colors": {
-    "bg": "#191D1C",
-    "fg": "#CCCDBC",
-    "primary": "#4DAB4E",
-    "surface": "#313244",
-    "occupiedWs": "#A1AF89",
-    "unusedWs": "#202824",
-    "active_border": "#4DAB4E",
-    "inactive_border": "#202824",
-    "shadow": "#111312"
-  }
+    "name": "Green Dark",
+    "type": "dark",
+    "colors": {
+        "bg": "#191D1C",
+        "fg": "#CCCDBC",
+        "primary": "#4DAB4E",
+        "surface": "#313244",
+        "occupiedWs": "#A1AF89",
+        "unusedWs": "#202824",
+        "active_border": "#4DAB4E",
+        "inactive_border": "#202824",
+        "shadow": "#111312"
+    }
 }
