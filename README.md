@@ -1,210 +1,277 @@
-# Nyx's Arch Linux Dotfiles
+<h1 align="center">Pablo Dotfiles 💽</h1>
+
+<div align="center">
+
+![GitHub last commit](https://img.shields.io/github/last-commit/PabloCruzval/dotfiles?style=for-the-badge&labelColor=1e1e2e&color=89b4fa)
+![GitHub repo size](https://img.shields.io/github/repo-size/PabloCruzval/dotfiles?style=for-the-badge&labelColor=1e1e2e&color=a6e3a1)
+![License](https://img.shields.io/github/license/PabloCruzval/dotfiles?style=for-the-badge&labelColor=1e1e2e&color=fab387)
+
+</div>
+
+---
 
 ![Desktop Screen Shot](./DesktopImage.png)
 
-> Wallpaper from this [repo](https://github.com/DenverCoder1/minimalistic-wallpaper-collection).
-
-Personal dotfiles configuration for Arch Linux, managed with [chezmoi](https://www.chezmoi.io/) for reproducible deployment and simplified maintenance across multiple machines.
-
-## Instalation
-
-Install via curl
-
->[!IMPORTANT]
-> Only for archlinux. 
-
->[!NOTE]
-> If a configuration of `hypr`, `quickshell`, `kitty`, `nvim` or `rofi` is found during installation, it will be moved to `$HOME/.backups_dotfiles/<timestamp>`
-> The script was made for my machines, it may not work for yours.
+> Wallpapers info [here](./NyxWallpapers/README.md).
 
 
-```bash
-bash -c "$(curl -ffSL https://raw.githubusercontent.com/PabloCruzval/dotfiles/refs/heads/main/setup.sh)"
-```
+Personal dotfiles for Arch Linux featuring a modern Hyprland setup with dynamic theming, managed by [chezmoi](https://www.chezmoi.io/) for consistent deployment across multiple machines.
 
-## Description
+## ✨ Features
 
-This repository contains my system configuration managed as code, enabling:
-- **Versioned management** of configuration files
-- **Consistent deployment** across different machines (desktop/laptop)
-- **Dynamic templates** that adapt based on the device
+- **🎨 Dynamic Theming** - Automatic light/dark mode with system-wide color synchronization
+- **🖥️ Multi-Monitor Support** - Separate configurations for desktop and laptop setups
+- **📦 Modular Configuration** - Clean, organized configs split by functionality
+- **🔄 Template-Based** - Machine-specific configs generated automatically via chezmoi
+- **⚡ Modern Wayland Stack** - Hyprland compositor with custom Quickshell bar
+- **🛠️ Developer-Focused** - Neovim with LSP, DAP, and modern plugin ecosystem
+- **🔧 One-Command Setup** - Automated installation with backup of existing configs
 
-## What is Chezmoi?
+## 📦 What's Inside
 
-Chezmoi is a dotfiles manager that allows you to:
-- Use templates for machine-specific configurations
-- Apply changes safely with preview
-- Manage files in their correct system locations
-- Handle secrets and private configurations
-
-### Naming Conventions
-
-Chezmoi uses special prefixes in file names:
-
-- `dot_` → converts to `.` (hidden files)
-  - Example: `dot_zshrc` → `~/.zshrc`
-- `dot_config/` → `~/.config/`
-- `.tmpl` → template file that gets processed
-  - Example: `hyprland.conf.tmpl` → `hyprland.conf`
-
-## Repository Structure
-
-```
-.
-├── dot_zshrc                          # ~/.zshrc - Zsh configuration
-├── dot_config/
-│   ├── hypr/                          # Modular Hyprland configuration
-│   │   ├── hyprland.conf.tmpl         # Main file with templates
-│   │   ├── hyprpaper.conf.tmpl        # Wallpaper configuration
-│   │   └── modules/                   # Modules separated by functionality
-│   │       ├── env.conf               # Environment variables
-│   │       └── ...                    # Other files
-│   ├── kitty/                         # Kitty terminal
-│   │   └── kitty.conf
-│   ├── nvim/                          # Neovim editor (see separate README)
-│   │   ├── init.lua
-│   │   ├── lua/
-│   │   └── readme.md
-│   ├── quickshell/                    # Custom status bar (see separate README)
-│   │   ├── Config.qml
-│   │   ├── shell.qml
-│   │   ├── modules/
-│   │   └── README.md
-│   └── rofi/                          # Application launcher
-│       └── config.rasi
-└── NyxWallpapers/                     # Wallpaper collection
-    └── README.md
-```
-
-## Configured Applications
-
-This dotfile manages the configuration for:
-
-- **Hyprland** - Wayland compositor ([see README](dot_config/hypr/README.md))
-- **Neovim** - Text editor ([see README](dot_config/nvim/readme.md))
-- **Quickshell** - Status bar ([see README](dot_config/quickshell/README.md))
-- **Kitty** - Terminal emulator
-- **Zsh** - Shell with Powerlevel10k, Zinit, and plugins
+- **[Hyprland](dot_config/hypr/README.md)** - Wayland compositor with modular configuration
+- **[Neovim](dot_config/nvim/readme.md)** - Modern IDE setup with LSP, Treesitter, and debugging
+- **[Quickshell](dot_config/quickshell/README.md)** - Custom QML-based status bar
+- **Kitty** - GPU-accelerated terminal emulator
+- **Zsh** - Shell with Powerlevel10k and Zinit plugin manager
 - **Rofi** - Application launcher
 
-> **Note**: Applications marked have their own README with detailed documentation.
+> 📚 Applications with their own detailed README are linked above.
 
-## Usage
+## 🚀 Quick Start
 
-### Managing Your Dotfiles
+### One-Line Installation
 
-#### View Current Status
+>[!IMPORTANT]
+> Only for Arch Linux. The script was made for my machines and may require adjustments for yours.
+
+>[!NOTE]
+> Existing configurations for `hypr`, `quickshell`, `kitty`, `nvim`, or `rofi` will be backed up to `$HOME/.backups_dotfiles/<timestamp>`
+
 ```bash
-# See which files chezmoi manages
-chezmoi managed
-
-# Check for differences between repository and system
-chezmoi diff
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/PabloCruzval/dotfiles/refs/heads/main/setup.sh)"
 ```
 
-#### Making Changes
+### What the installer does:
+1. Installs required packages from `pkglist` and `aurlist`
+2. Installs chezmoi if not present
+3. Backs up existing configurations
+4. Initializes chezmoi with this repository
+5. Applies configurations with machine-specific templates
 
-**Recommended Method: Edit source files directly**
+## 📋 Requirements
+
+- **OS**: Arch Linux
+- **Display Server**: Wayland
+- **Package Managers**: `pacman` and an AUR helper (`yay` or `paru`)
+- **Fonts**: Nerd Fonts (installed automatically)
+- **Dependencies**: Listed in `pkglist` and `aurlist`
+
+## 📁 Structure
+
+The repository is organized with chezmoi naming conventions:
+
+| What | Where | Description |
+|------|-------|-------------|
+| **Hyprland** | `dot_config/hypr/` | Modular Wayland compositor config with templates |
+| **Neovim** | `dot_config/nvim/` | LSP, DAP, and plugin configurations |
+| **Quickshell** | `dot_config/quickshell/` | Custom QML status bar with services |
+| **Kitty** | `dot_config/kitty/` | Terminal emulator config |
+| **Rofi** | `dot_config/rofi/` | Application launcher |
+| **Themes** | `dot_config/themes/` | Theme definitions (JSON) |
+| **Scripts** | `dot_local/bin/` | Utility scripts (theme-toggle, etc.) |
+| **Wallpapers** | `NyxWallpapers/` | Wallpaper collection |
+
+> 💡 **Chezmoi naming**: `dot_` → `.` (hidden files), `.tmpl` → template, `executable_` → executable bit
+
+---
+
+## 🎯 Key Features
+
+<details>
+<summary><b>🎨 Dynamic Theming</b></summary>
+
+<br>
+
+Custom theme system that synchronizes colors across:
+- Hyprland (borders, shadows)
+- Quickshell (bar colors)
+- GTK applications
+- System notifications
+
+**Usage:**
 ```bash
-# Navigate to chezmoi's source directory
-chezmoi cd
-
-# Edit your files with your preferred editor
-nvim dot_zshrc
-# or
-nvim dot_config/hypr/hyprland.conf.tmpl
-
-# Apply changes to the system
-chezmoi apply
-
-# Commit and push to repository
-git add .
-git commit -m "Update configuration"
-git push
+theme-toggle dark_green  # Switch to dark green theme
+theme-toggle light_green # Switch to light green theme
 ```
 
-**Alternative: Quick edit with chezmoi edit**
-```bash
-# Edit the source file in chezmoi's directory
-chezmoi edit ~/.zshrc
+</details>
 
-# Apply changes to the system
-chezmoi apply
-```
+<details>
+<summary><b>🖥️ Multi-Machine Support</b></summary>
 
-#### Update from Repository
-```bash
-# Pull latest changes from repository
-chezmoi update
+<br>
 
-# Or manually:
-cd ~/.local/share/chezmoi
-git pull
-chezmoi apply
-```
+Chezmoi templates automatically adapt configurations based on machine name:
 
-#### Adding New Files
-```bash
-# Add a new file to chezmoi management
-chezmoi add ~/.config/some-app/config.conf
-
-# This creates the file in ~/.local/share/chezmoi with appropriate naming
-```
-
-### Templates and Machine-Specific Configuration
-
-The dotfiles use chezmoi templates to handle differences between machines:
-
-**Example from [dot_config/hypr/hyprland.conf.tmpl](dot_config/hypr/hyprland.conf.tmpl)**:
 ```conf
-{{- if eq .machinename "desktop" }}
+{{- if eq .machinename "cnyx" }}
 source = ~/.config/hypr/modules/monitors-desktop.conf
-{{- else if eq .machinename "laptop"}}
+{{- else}}
 source = ~/.config/hypr/modules/monitors-laptop.conf
-{{- else }}
-monitor = ,auto,auto,1
 {{- end }}
 ```
 
-This allows the same source to generate different configurations based on the device type.
+Same source, different output per machine!
 
-### Syncing Across Machines
+</details>
 
-1. **On the first machine**:
-   ```bash
-   cd ~/.local/share/chezmoi
-   git add .
-   git commit -m "Update configurations"
-   git push
-   ```
+---
 
-2. **On the second machine**:
-   ```bash
-   chezmoi update
-   ```
+## 🔧 Managing Your Dotfiles
 
-Chezmoi will automatically handle machine-specific differences through templates.
+<details>
+<summary><b>📝 Making Changes</b></summary>
 
-## Project Structure
+<br>
 
-- **Modular configuration**: Large configs (Hyprland, Neovim) are split into logical modules
-- **Template-based**: Uses `.tmpl` files for machine-specific configurations
-- **Documentation**: Each major application has its own README
-- **Version controlled**: All changes tracked with Git
+**Direct editing (recommended):**
+```bash
+chezmoi cd                               # Navigate to source
+nvim dot_config/hypr/hyprland.conf.tmpl  # Edit files
+chezmoi apply                            # Apply changes
+git add . && git commit -m "Update"      # Commit
+git push                                 # Push
+```
 
-## Contributing
+**Quick edit:**
+```bash
+chezmoi edit ~/.config/hypr/hyprland.conf
+chezmoi apply
+```
 
-This is a personal dotfiles repository, but contributions are welcome!
+</details>
 
-If you find issues or have suggestions:
+<details>
+<summary><b>🔄 Syncing Across Machines</b></summary>
 
+<br>
+
+**Machine A (send changes):**
+```bash
+cd ~/.local/share/chezmoi
+git add . && git commit -m "Update" && git push
+```
+
+**Machine B (receive updates):**
+```bash
+chezmoi update  # Pulls and applies changes
+```
+
+</details>
+
+<details>
+<summary><b>➕ Adding New Files</b></summary>
+
+<br>
+
+```bash
+chezmoi add ~/.config/app/config.conf
+# Creates: ~/.local/share/chezmoi/dot_config/app/config.conf
+```
+
+</details>
+
+<details>
+<summary><b>🔍 Quick Reference</b></summary>
+
+<br>
+
+```bash
+chezmoi managed   # List all managed files
+chezmoi diff      # Show differences
+chezmoi apply     # Apply changes
+chezmoi update    # Pull and apply
+chezmoi cd        # Go to source directory
+```
+
+</details>
+
+---
+
+## 🎨 Customization
+
+Each major component has detailed documentation:
+- **[Hyprland](dot_config/hypr/README.md)** - Compositor, keybindings, modules
+- **[Neovim](dot_config/nvim/readme.md)** - Plugins, LSP, DAP
+- **[Quickshell](dot_config/quickshell/README.md)** - Bar, widgets, services
+
+<details>
+<summary><b>Common Tasks</b></summary>
+
+<br>
+
+**Change themes:**
+```bash
+nvim ~/.config/themes/dark_green.json
+theme-toggle dark_green
+```
+
+**Adjust monitors:**
+```bash
+nvim ~/.local/share/chezmoi/dot_config/hypr/modules/monitors-desktop.conf
+chezmoi apply
+```
+
+**Modify keybindings:**
+```bash
+nvim ~/.local/share/chezmoi/dot_config/hypr/modules/keybinds.conf
+chezmoi apply
+```
+
+</details>
+
+---
+
+## 🤝 Contributing
+
+While this is a personal configuration, contributions are welcome!
+
+If you find bugs or have suggestions:
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/improvement`)
 3. Commit your changes (`git commit -am 'Add improvement'`)
 4. Push to the branch (`git push origin feature/improvement`)
 5. Open a Pull Request
 
-## License
+---
+
+## 🙏 Credits
+
+This configuration draws inspiration from the excellent work of the community:
+
+- **[@end-4](https://github.com/end-4)** - For the amazing [dots-hyprland](https://github.com/end-4/dots-hyprland) which inspired the Quickshell architecture and provided the foundation for KeyboardService
+- **[@caelestia](https://github.com/caelestia-dots)** - For additional Quickshell design patterns and inspiration from [caelestia-shell](https://github.com/caelestia-dots/shell). also inspired the look and feel of this Readme file.
+
+Special thanks to the Hyprland and Quickshell communities for their continuous support and excellent tools!
+
+---
+
+## ⚠️ Important Notes
+
+**Before using these dotfiles:**
+- These configurations are tailored to my workflow and hardware
+- You may need to adjust:
+  - Monitor configurations and resolutions
+  - Input device settings
+  - Application paths and preferences
+  - Machine names in templates
+
+**Disclaimer:** Don't blindly use these settings. Review and understand what each configuration does before applying.
+
+---
+
+## 📄 License
 
 This project is open source and available under the [MIT License](LICENSE).
 
@@ -212,7 +279,12 @@ You are free to use, modify, and distribute these configurations. Attribution is
 
 ---
 
-**Note**: This configuration is tailored to my personal workflow. You may need to adjust:
-- Hardware-specific settings (monitor configurations, input devices)
-- Application preferences
-- Paths and usernames
+<div align="center">
+
+**Maintained by [@PabloCruzval](https://github.com/PabloCruzval)**
+
+For issues or questions, feel free to [open an issue](https://github.com/PabloCruzval/dotfiles/issues)
+
+⭐ Star this repo if you find it useful!
+
+</div>
