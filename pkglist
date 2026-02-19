@@ -1,39 +1,71 @@
+# Development Tools
 git
 base-devel
-chezmoi
 neovim
+npm
+ripgrep
+
+# Dotfiles Management
+chezmoi
+
+# Shell
 zsh
+fzf
+zoxide
+
+# Terminal Emulator
 kitty
-rofi-wayland
+
+# Hyprland
 hyprland
 hyprpaper
 hyprpolkitagent
 hyprshutdown
 hyprlock
 hypridle
+hyprpicker
+
+# XDG Desktop Portals
 xdg-desktop-portal-gtk
 xdg-desktop-portal-hyprland
+
+# Application Launcher
 rofi
+rofi-wayland
+
+# Screenshot Tools
 grim
 slurp
+
+# Wayland/System Utilities
 wl-clipboard
+brightnessctl
+
+# Audio/Media
 playerctl
 wireplumber
-brightnessctl
+
+# File Manager
 thunar
+
+# System Utilities
 unzip
 wget
 curl
 less
-npm
-ripgrep
-zsh
-fzf
-zoxide
+
+# Fonts
 noto-fonts-cjk
 noto-fonts-emoji
 noto-fonts
+
+# Keyring/Security
 gnome-keyring
 seahorse
 libsecret
+
+# Applications
 obsidian
+
+# Database
+unixodbc
