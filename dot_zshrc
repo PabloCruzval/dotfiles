@@ -86,7 +86,7 @@ zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
 # Alias:
 alias install="yay -S"
 alias remove="yay -R"
-alias update="yay -Syu"
+alias update="yay -Syyu --needed --noconfirm"
 alias apagar="shutdown 0"
 alias dot="chezmoi cd"
 alias nv="nvim"
