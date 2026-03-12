@@ -11,7 +11,7 @@ return {
 	{
 		"mason-org/mason-lspconfig.nvim",
 		opts = {
-			ensure_installed = { "lua_ls", "tailwindcss", "qmlls", "ts_ls", "astro", "emmet_ls" },
+			ensure_installed = { "lua_ls", "tailwindcss", "qmlls", "ts_ls", "astro", "emmet_ls", "clangd"},
 		},
 	},
 	{
