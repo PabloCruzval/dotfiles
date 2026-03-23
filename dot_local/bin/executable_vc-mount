@@ -1,0 +1,43 @@
+#!/bin/bash
+
+mnt() {
+    local VC_PASS VC_PARTUUID
+
+    if [[ "$(stat -c '%a' ~/.local/share/chezmoi/.env)" != "600" ]]; then
+        echo "Error: .env has insecure permissions" >&2
+        return 1
+    fi
+
+    source ~/.local/share/chezmoi/.env
+
+    printf '%s' "$VC_PASS" | sudo veracrypt \
+        -t --non-interactive --stdin \
+        --pim=0 --keyfiles="" \
+        --fs-options="umask=002,uid=$(id -u),gid=$(id -g)" \
+        --mount /dev/disk/by-partuuid/"$VC_PARTUUID" \
+        /home/nyx/WS-E || {
+            echo "Error mounting the volume" >&2
+            unset VC_PASS VC_PARTUUID
+            return 1
+        }
+
+    unset VC_PASS VC_PARTUUID
+    echo "Volume properly mounted."
+}
+
+umnt() {
+    sudo veracrypt -t -d /home/nyx/WS-E
+}
+
+case "$1" in
+	"mnt")
+		mnt
+		;;
+	"umnt")
+		umnt
+		;;
+	*)
+		echo "use mnt or umnt"
+		exit 1
+		;;
+esac
