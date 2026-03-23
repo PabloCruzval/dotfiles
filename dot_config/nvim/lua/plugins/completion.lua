@@ -24,8 +24,6 @@ return {
 					{ name = "nvim_lsp" },
 					{ name = "buffer" },
 					{ name = "path" }
-				}, {
-					{ name = "buffer" }
 				}),
 				mapping = cmp.mapping.preset.insert({
 					["<C-k>"] = cmp.mapping.select_prev_item(),
