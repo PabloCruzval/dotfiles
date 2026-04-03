@@ -4,7 +4,7 @@ After=graphical-session.target
 
 [Service]
 Type=oneshot
-ExecStart=%h/.local/bin/nyx-theme sync_theme
+ExecStart=%h/.local/bin/nyx-theme sync
 
 [Install]
 WantedBy=default.target
