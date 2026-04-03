@@ -10,7 +10,11 @@
 
 ---
 
-![Desktop Screen Shot](./DesktopImage.png)
+
+
+https://github.com/user-attachments/assets/adce3f51-be9a-433b-9a28-7132e8fb3eb2
+
+
 
 > Wallpapers info [here](./NyxWallpapers/README.md).
 
