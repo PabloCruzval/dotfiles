@@ -15,7 +15,7 @@
 > Wallpapers info [here](./NyxWallpapers/README.md).
 
 
-Personal dotfiles for Arch Linux featuring a modern Hyprland setup with dynamic theming, managed by [chezmoi](https://www.chezmoi.io/) for consistent deployment across multiple machines.
+Personal dotfiles for Arch Linux featuring a modern Hyprland setup where [Noctalia Shell](https://noctalia.dev/) defines the visual feel of the desktop, while [chezmoi](https://www.chezmoi.io/) manages the dotfiles for consistent deployment across multiple machines.
 
 ## ✨ Features
 
@@ -23,7 +23,7 @@ Personal dotfiles for Arch Linux featuring a modern Hyprland setup with dynamic 
 - **🖥️ Multi-Monitor Support** - Separate configurations for desktop and laptop setups
 - **📦 Modular Configuration** - Clean, organized configs split by functionality
 - **🔄 Template-Based** - Machine-specific configs generated automatically via chezmoi
-- **⚡ Modern Wayland Stack** - Hyprland compositor with custom Quickshell bar
+- **⚡ Modern Wayland Stack** - Hyprland compositor with Noctalia Shell as the desktop layer that drives the overall feel
 - **🛠️ Developer-Focused** - Neovim with LSP, DAP, and modern plugin ecosystem
 - **🔧 One-Command Setup** - Automated installation with backup of existing configs
 
@@ -31,7 +31,7 @@ Personal dotfiles for Arch Linux featuring a modern Hyprland setup with dynamic 
 
 - **[Hyprland](dot_config/hypr/README.md)** - Wayland compositor with modular configuration
 - **[Neovim](dot_config/nvim/readme.md)** - Modern IDE setup with LSP, Treesitter, and debugging
-- **[Quickshell](dot_config/quickshell/README.md)** - Custom QML-based status bar
+- **[Noctalia](https://noctalia.dev/)** - Wayland desktop shell and the component that defines the look, feel, and interaction model of the desktop
 - **Kitty** - GPU-accelerated terminal emulator
 - **Zsh** - Shell with Powerlevel10k and Zinit plugin manager
 - **Rofi** - Application launcher
@@ -46,7 +46,7 @@ Personal dotfiles for Arch Linux featuring a modern Hyprland setup with dynamic 
 > Only for Arch Linux. The script was made for my machines and may require adjustments for yours.
 
 >[!NOTE]
-> Existing configurations for `hypr`, `quickshell`, `kitty`, `nvim`, or `rofi` will be backed up to `$HOME/.backups_dotfiles/<timestamp>`
+> Existing configurations for `hypr`, `noctalia`, `kitty`, `nvim`, or `rofi` will be backed up to `$HOME/.backups_dotfiles/<timestamp>`
 
 ```bash
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/PabloCruzval/dotfiles/refs/heads/main/setup.sh)"
@@ -75,10 +75,10 @@ The repository is organized with chezmoi naming conventions:
 |------|-------|-------------|
 | **Hyprland** | `dot_config/hypr/` | Modular Wayland compositor config with templates |
 | **Neovim** | `dot_config/nvim/` | LSP, DAP, and plugin configurations |
-| **Quickshell** | `dot_config/quickshell/` | Custom QML status bar with services |
+| **Noctalia** | `dot_config/noctalia/` | Desktop shell and UI components |
 | **Kitty** | `dot_config/kitty/` | Terminal emulator config |
 | **Rofi** | `dot_config/rofi/` | Application launcher |
-| **Themes** | `dot_config/themes/` | Theme definitions (JSON) |
+| **Themes** | `dot_config/noctalia/colorschemes/` | Noctalia theme definitions with dark and light variants |
 | **Scripts** | `dot_local/bin/` | Utility scripts (nyx-theme) |
 | **Wallpapers** | `NyxWallpapers/` | Wallpaper collection |
 
@@ -88,37 +88,38 @@ The repository is organized with chezmoi naming conventions:
 
 ## 🎯 Key Features
 
+Noctalia Shell is the layer that ties the dotfiles together visually: it controls the desktop shell, the accent colors, and the overall pacing of the interface.
+
 <details>
 <summary><b>🎨 Dynamic Theming</b></summary>
 
 <br>
 
-Automated theme system with time-based switching and manual toggle support.
+Automated Noctalia theme system with per-theme dark and light variants.
 
 **Features:**
-- 🌅 **Auto Light/Dark** - Switches automatically at 6am (light) and 8:30pm (dark)
-- 🔄 **Login Sync** - Applies correct theme based on current time at startup
-- ⌨️ **Quick Toggle** - `SUPER + T` to manually switch themes
-- 🎯 **System-Wide** - Affects Hyprland, Quickshell, GTK apps, and notifications
+- 🌅 **Auto Mode Switch** - Switches the active mode automatically at 6am (light) and 7:30pm (dark)
+- 🔄 **Login Sync** - Applies the correct mode at startup
+- ⌨️ **Quick Toggle** - `SUPER + T` switches dark/light for the current theme
+- 🎯 **Per-Theme Variants** - Each theme provides its own dark and light palette
 
 **Available Themes:**
-- `dark_green` - Dark theme with green accents
-- `light_green` - Light theme with green accents
+- `Green` - Theme with both dark and light variants stored in one JSON file
 
 **Usage:**
 ```bash
-nyx-theme apply dark_green   # Apply specific theme
-nyx-theme toggle             # Toggle between light/dark
-nyx-theme sync               # Sync theme based on current time
+nyx-theme apply Green        # Apply the current mode of a theme
+nyx-theme toggle             # Toggle dark/light for the current theme
+nyx-theme sync               # Sync the current mode based on time of day
 ```
 
 **Automatic Switching:**
 ```bash
-# Enable systemd timers for automatic theme changes
-systemctl --user enable --now theme-light.timer theme-dark.timer
+# Enable the systemd timer for automatic mode changes
+systemctl --user enable --now theme.timer
 ```
 
-> 📖 For detailed documentation, see [Theme System README](dot_config/themes/README.md)
+> 📖 For detailed documentation, see [Noctalia Theme README](dot_config/noctalia/README.md)
 
 </details>
 
@@ -219,7 +220,6 @@ chezmoi cd        # Go to source directory
 Each major component has detailed documentation:
 - **[Hyprland](dot_config/hypr/README.md)** - Compositor, keybindings, modules
 - **[Neovim](dot_config/nvim/readme.md)** - Plugins, LSP, DAP
-- **[Quickshell](dot_config/quickshell/README.md)** - Bar, widgets, services
 
 <details>
 <summary><b>Common Tasks</b></summary>
@@ -228,8 +228,9 @@ Each major component has detailed documentation:
 
 **Change themes:**
 ```bash
-nvim ~/.config/themes/dark_green.json
-nyx-theme apply dark_green
+nvim ~/.config/noctalia/colorschemes/Green/Green.json
+nyx-theme apply Green
+nyx-theme toggle
 ```
 
 **Adjust monitors:**
@@ -261,14 +262,15 @@ If you find bugs or have suggestions:
 
 ---
 
-## 🙏 Credits
+## 🙏 Acknowledgements
 
-This configuration draws inspiration from the excellent work of the community:
+These dotfiles include ideas, patterns, and tools from several great open-source projects:
 
-- **[@end-4](https://github.com/end-4)** - For the amazing [dots-hyprland](https://github.com/end-4/dots-hyprland) which inspired the Quickshell architecture and provided the foundation for KeyboardService
-- **[@caelestia](https://github.com/caelestia-dots)** - For additional Quickshell design patterns and inspiration from [caelestia-shell](https://github.com/caelestia-dots/shell). also inspired the look and feel of this Readme file.
+- **[Noctalia](https://github.com/noctalia-dev/noctalia)** - Desktop shell and UI tooling used in this setup.
+- **[Hyprland](https://github.com/hyprwm/Hyprland)** - Core Wayland compositor powering this environment.
+- **[chezmoi](https://github.com/twpayne/chezmoi)** - Dotfile manager used to template and deploy this configuration.
 
-Special thanks to the Hyprland and Quickshell communities for their continuous support and excellent tools!
+Thanks to all maintainers and contributors behind these projects.
 
 ---
 

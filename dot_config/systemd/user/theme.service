@@ -1,10 +1,10 @@
 [Unit]
-Description=Switch to light green theme
+Description=Sync theme based on time
 After=graphical-session.target
 
 [Service]
 Type=oneshot
-ExecStart=%h/.local/bin/nyx-theme apply light_green
+ExecStart=%h/.local/bin/nyx-theme sync
 
 [Install]
 WantedBy=default.target
