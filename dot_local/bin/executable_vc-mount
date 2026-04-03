@@ -1,32 +1,79 @@
 #!/bin/bash
 
-mnt() {
-    local VC_PASS VC_PARTUUID
-
+check_env_permissions() {
     if [[ "$(stat -c '%a' ~/.local/share/chezmoi/.env)" != "600" ]]; then
-        echo "Error: .env has insecure permissions" >&2
+        echo "Error: ~/.local/share/chezmoi/.env has insecure permissions" >&2
         return 1
     fi
+    return 0
+}
 
+mnt() {
+    local VC_PASS VC_PARTUUID VC_MOUNT_POINT
+
+    if ! check_env_permissions; then
+        return 1
+    fi
     source ~/.local/share/chezmoi/.env
+
+    if [[ -z "$VC_PASS" || -z "$VC_PARTUUID" || -z "$VC_MOUNT_POINT" ]]; then
+        echo "Error: Missing required environment variables" >&2
+        unset VC_PASS VC_PARTUUID VC_MOUNT_POINT
+        return 1
+    fi
 
     printf '%s' "$VC_PASS" | sudo veracrypt \
         -t --non-interactive --stdin \
         --pim=0 --keyfiles="" \
         --fs-options="umask=002,uid=$(id -u),gid=$(id -g)" \
         --mount /dev/disk/by-partuuid/"$VC_PARTUUID" \
-        /home/nyx/WS-E || {
+        "$VC_MOUNT_POINT" || {
             echo "Error mounting the volume" >&2
-            unset VC_PASS VC_PARTUUID
+            unset VC_PASS VC_PARTUUID VC_MOUNT_POINT
             return 1
         }
 
-    unset VC_PASS VC_PARTUUID
+    unset VC_PASS VC_PARTUUID VC_MOUNT_POINT
     echo "Volume properly mounted."
 }
 
 umnt() {
-    sudo veracrypt -t -d /home/nyx/WS-E
+    local VC_MOUNT_POINT
+    source ~/.local/share/chezmoi/.env
+
+    if [[ -z "$VC_MOUNT_POINT" ]]; then
+        echo "Error: Missing required environment variable VC_MOUNT_POINT" >&2
+        return 1
+    fi
+
+    if ! check_env_permissions; then
+        return 1
+    fi
+
+    sudo veracrypt -t -d "$VC_MOUNT_POINT"
+    unset VC_MOUNT_POINT
+}
+
+toggle() {
+    local VC_MOUNT_POINT
+    source ~/.local/share/chezmoi/.env
+
+    if [[ -z "$VC_MOUNT_POINT" ]]; then
+        echo "Error: Missing required environment variable VC_MOUNT_POINT" >&2
+        return 1
+    fi
+
+    if ! check_env_permissions; then
+        return 1
+    fi
+
+    if mountpoint -q "$VC_MOUNT_POINT"; then
+        umnt
+    else
+        mnt
+    fi
+
+    unset VC_MOUNT_POINT
 }
 
 case "$1" in
@@ -36,8 +83,11 @@ case "$1" in
 	"umnt")
 		umnt
 		;;
+	"toggle")
+		toggle
+		;;
 	*)
-		echo "use mnt or umnt"
+        echo "use mnt, umnt or toggle"
 		exit 1
 		;;
 esac

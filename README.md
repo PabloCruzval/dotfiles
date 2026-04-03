@@ -253,6 +253,65 @@ chezmoi apply
 
 ---
 
+## 🔐 VeraCrypt Volume Mounting
+
+This setup includes a helper script to mount and unmount a VeraCrypt volume quickly.
+
+### Setup
+
+1. Create your local environment file from the example:
+
+```bash
+cp ~/.local/share/chezmoi/.env.example ~/.local/share/chezmoi/.env
+```
+
+2. Edit `~/.local/share/chezmoi/.env` and set your real values:
+
+```bash
+VC_PASS="your_veracrypt_password"
+VC_PARTUUID="your_device_partuuid"
+VC_MOUNT_POINT="/mnt/your_mount_point"
+```
+
+3. Restrict permissions (required by the script):
+
+```bash
+chmod 600 ~/.local/share/chezmoi/.env
+```
+
+> The mount helper refuses to run if `.env` permissions are not `600`.
+
+### Usage
+
+The script is managed by chezmoi as `dot_local/bin/executable_vc-mount` and is available as `vc-mount` after apply.
+
+```bash
+# Mount the VeraCrypt volume
+vc-mount mnt
+
+# Unmount the VeraCrypt volume
+vc-mount umnt
+
+# Toggle state: mount if unmounted, unmount if mounted
+vc-mount toggle
+```
+
+### What it does
+
+- Validates `.env` permissions before reading secrets
+- Reads `VC_PASS`, `VC_PARTUUID`, and `VC_MOUNT_POINT`
+- Mounts `/dev/disk/by-partuuid/<VC_PARTUUID>` with user ownership (`uid`/`gid`)
+- Supports `toggle` mode by checking whether the mount point is currently mounted
+- Clears sensitive shell variables after execution
+
+### Security Notes
+
+- Never commit your real `.env` file
+- Keep `.env` permissions as `600`
+- Consider replacing plain password storage with keyfiles or an external secret manager if your threat model requires stronger protection
+
+---
+
 ## 🤝 Contributing
 
 While this is a personal configuration, contributions are welcome!
