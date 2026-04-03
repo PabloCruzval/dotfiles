@@ -23,7 +23,7 @@ Personal dotfiles for Arch Linux featuring a modern Hyprland setup with dynamic 
 - **🖥️ Multi-Monitor Support** - Separate configurations for desktop and laptop setups
 - **📦 Modular Configuration** - Clean, organized configs split by functionality
 - **🔄 Template-Based** - Machine-specific configs generated automatically via chezmoi
-- **⚡ Modern Wayland Stack** - Hyprland compositor with custom Quickshell bar
+- **⚡ Modern Wayland Stack** - Hyprland compositor with Noctalia shell
 - **🛠️ Developer-Focused** - Neovim with LSP, DAP, and modern plugin ecosystem
 - **🔧 One-Command Setup** - Automated installation with backup of existing configs
 
@@ -31,7 +31,7 @@ Personal dotfiles for Arch Linux featuring a modern Hyprland setup with dynamic 
 
 - **[Hyprland](dot_config/hypr/README.md)** - Wayland compositor with modular configuration
 - **[Neovim](dot_config/nvim/readme.md)** - Modern IDE setup with LSP, Treesitter, and debugging
-- **[Quickshell](dot_config/quickshell/README.md)** - Custom QML-based status bar
+- **[Noctalia](https://noctalia.dev/)** - Wayland desktop shell environment
 - **Kitty** - GPU-accelerated terminal emulator
 - **Zsh** - Shell with Powerlevel10k and Zinit plugin manager
 - **Rofi** - Application launcher
@@ -46,7 +46,7 @@ Personal dotfiles for Arch Linux featuring a modern Hyprland setup with dynamic 
 > Only for Arch Linux. The script was made for my machines and may require adjustments for yours.
 
 >[!NOTE]
-> Existing configurations for `hypr`, `quickshell`, `kitty`, `nvim`, or `rofi` will be backed up to `$HOME/.backups_dotfiles/<timestamp>`
+> Existing configurations for `hypr`, `noctalia`, `kitty`, `nvim`, or `rofi` will be backed up to `$HOME/.backups_dotfiles/<timestamp>`
 
 ```bash
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/PabloCruzval/dotfiles/refs/heads/main/setup.sh)"
@@ -75,7 +75,7 @@ The repository is organized with chezmoi naming conventions:
 |------|-------|-------------|
 | **Hyprland** | `dot_config/hypr/` | Modular Wayland compositor config with templates |
 | **Neovim** | `dot_config/nvim/` | LSP, DAP, and plugin configurations |
-| **Quickshell** | `dot_config/quickshell/` | Custom QML status bar with services |
+| **Noctalia** | `dot_config/noctalia/` | Desktop shell and UI components |
 | **Kitty** | `dot_config/kitty/` | Terminal emulator config |
 | **Rofi** | `dot_config/rofi/` | Application launcher |
 | **Themes** | `dot_config/themes/` | Theme definitions (JSON) |
@@ -99,7 +99,7 @@ Automated theme system with time-based switching and manual toggle support.
 - 🌅 **Auto Light/Dark** - Switches automatically at 6am (light) and 8:30pm (dark)
 - 🔄 **Login Sync** - Applies correct theme based on current time at startup
 - ⌨️ **Quick Toggle** - `SUPER + T` to manually switch themes
-- 🎯 **System-Wide** - Affects Hyprland, Quickshell, GTK apps, and notifications
+- 🎯 **System-Wide** - Affects Hyprland, Noctalia, GTK apps, and notifications
 
 **Available Themes:**
 - `dark_green` - Dark theme with green accents
@@ -219,7 +219,6 @@ chezmoi cd        # Go to source directory
 Each major component has detailed documentation:
 - **[Hyprland](dot_config/hypr/README.md)** - Compositor, keybindings, modules
 - **[Neovim](dot_config/nvim/readme.md)** - Plugins, LSP, DAP
-- **[Quickshell](dot_config/quickshell/README.md)** - Bar, widgets, services
 
 <details>
 <summary><b>Common Tasks</b></summary>
@@ -261,14 +260,15 @@ If you find bugs or have suggestions:
 
 ---
 
-## 🙏 Credits
+## 🙏 Acknowledgements
 
-This configuration draws inspiration from the excellent work of the community:
+These dotfiles include ideas, patterns, and tools from several great open-source projects:
 
-- **[@end-4](https://github.com/end-4)** - For the amazing [dots-hyprland](https://github.com/end-4/dots-hyprland) which inspired the Quickshell architecture and provided the foundation for KeyboardService
-- **[@caelestia](https://github.com/caelestia-dots)** - For additional Quickshell design patterns and inspiration from [caelestia-shell](https://github.com/caelestia-dots/shell). also inspired the look and feel of this Readme file.
+- **[Noctalia](https://github.com/noctalia-dev/noctalia)** - Desktop shell and UI tooling used in this setup.
+- **[Hyprland](https://github.com/hyprwm/Hyprland)** - Core Wayland compositor powering this environment.
+- **[chezmoi](https://github.com/twpayne/chezmoi)** - Dotfile manager used to template and deploy this configuration.
 
-Special thanks to the Hyprland and Quickshell communities for their continuous support and excellent tools!
+Thanks to all maintainers and contributors behind these projects.
 
 ---
 
