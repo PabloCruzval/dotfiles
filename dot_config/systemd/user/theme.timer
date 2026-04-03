@@ -1,8 +1,9 @@
 [Unit]
-Description=Switch to dark theme at 7:30pm
+Description=Sync theme at 17:30 and 06:00
 
 [Timer]
 OnCalendar=*-*-* 17:30:00
+OnCalendar=*-*-* 06:00:00
 Persistent=true
 
 [Install]
