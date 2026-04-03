@@ -38,11 +38,14 @@ apply_theme() {
     ACTIVE_HEX=$(jq -r ".$CURRENT_MODE.mPrimary" "$THEME_FILE" | tr -d '#')
     INACTIVE_HEX=$(jq -r ".$CURRENT_MODE.mOutline" "$THEME_FILE" | tr -d '#')
     SHADOW_HEX=$(jq -r ".$CURRENT_MODE.mShadow" "$THEME_FILE" | tr -d '#')
-    cat <<EOF > "$CACHE_DIR/hyprland_colors.conf"
+
+    TMP_HYPR_COLORS=$(mktemp "$CACHE_DIR/hyprland_colors.conf.XXXXXX")
+    cat <<EOF > "$TMP_HYPR_COLORS"
 \$active_border = rgba(${ACTIVE_HEX}ff)
 \$inactive_border = rgba(${INACTIVE_HEX}ff)
 \$shadow_color = rgba(${SHADOW_HEX}ee)
 EOF
+    mv "$TMP_HYPR_COLORS" "$CACHE_DIR/hyprland_colors.conf"
 
     echo "{\"theme\": \"$THEME_NAME\", \"mode\": \"$CURRENT_MODE\"}" > "$CACHE_DIR/status.json"  
     hyprctl reload > /dev/null
