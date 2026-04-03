@@ -89,7 +89,7 @@ sync_theme() {
     local THEME=$(jq -r '.theme' "$CURRENT_THEME_FILE" 2>/dev/null)
     local MODE=$(jq -r '.mode' "$CURRENT_THEME_FILE" 2>/dev/null)
 
-    if [ "$MINUTES" -ge 360 ] && [ "$MINUTES" -le 1229 ]; then
+    if [ "$MINUTES" -ge 360 ] && [ "$MINUTES" -le 1170 ]; then
         apply_theme "$THEME" "light"
     else
         apply_theme "$THEME" "dark"
