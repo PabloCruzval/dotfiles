@@ -4,6 +4,8 @@
 THEME_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/themes"
 CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/theme"
 
+
+
 mkdir -p "$CACHE_DIR"
 
 apply_theme() {
@@ -38,16 +40,15 @@ EOF
     if [ "$THEME_TYPE" = "dark" ]; then
         gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"
         gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
-        ICON="weather-clear-night"
+        qs -c noctalia-shell ipc call darkMode setDark
         echo "Applied dark mode"
     else
         gsettings set org.gnome.desktop.interface color-scheme "prefer-light"
         gsettings set org.gnome.desktop.interface gtk-theme "Adwaita"
-        ICON="weather-clear"
+        qs -c noctalia-shell ipc call darkMode setLight
         echo "Applied light mode"
     fi
 
-    notify-send "Theme Manager" "Theme '$THEME_NAME' applied successfully" -i "$ICON"
 }
 
 toggle_theme() {
