@@ -3,6 +3,7 @@
 # Configuration
 CACHE_DIR="$HOME/.cache/theme"
 NOCTALIA_DIR="$HOME/.config/noctalia/colorschemes/"
+NOCTALIA_SETTINGS="$HOME/.config/noctalia/settings.json"
 
 
 
@@ -13,19 +14,18 @@ apply_theme() {
     local NEW_MODE="$2"
     local THEME_DIR="$NOCTALIA_DIR/${THEME_NAME}"
     local THEME_FILE="$THEME_DIR/${THEME_NAME}.json"
-    local CURRENT_MODE=$(jq -r '.mode' "$CACHE_DIR/status.json")
+    local DARK_MODE=$(jq -r '.colorSchemes.darkMode' "$NOCTALIA_SETTINGS" 2>/dev/null)
+    local CURRENT_MODE="dark"
+
+    if [ "$DARK_MODE" = "false" ]; then
+        CURRENT_MODE="light"
+    fi
 
     if [ ! -d "$THEME_DIR" -o ! -f "$THEME_FILE" ]; then
         echo "Error: The theme '$THEME_NAME' does not exist in $NOCTALIA_DIR"
         echo "Available themes:"
         ls -1 "$NOCTALIA_DIR" 2>/dev/null | sed 's/\.json$//' | sed 's/^/  - /'
         exit 1
-    fi
-
-    # Initialize status.json if it doesn't exist
-    if [ ! -f "$CACHE_DIR/status.json" ]; then
-        echo '{"theme": "Green", "mode": "dark"}' > "$CACHE_DIR/status.json"
-        CURRENT_MODE="dark"
     fi
 
     if [ -n "$NEW_MODE" ]; then
@@ -47,7 +47,6 @@ apply_theme() {
 EOF
     mv "$TMP_HYPR_COLORS" "$CACHE_DIR/hyprland_colors.conf"
 
-    echo "{\"theme\": \"$THEME_NAME\", \"mode\": \"$CURRENT_MODE\"}" > "$CACHE_DIR/status.json"  
     hyprctl reload > /dev/null
 
     if [ "$CURRENT_MODE" = "dark" ]; then
@@ -65,32 +64,32 @@ EOF
 }
 
 toggle_theme() {
-    local CURRENT_THEME_FILE="$CACHE_DIR/status.json"
+    local CURRENT_MODE="dark"
+    local DARK_MODE=$(jq -r '.colorSchemes.darkMode' "$NOCTALIA_SETTINGS" 2>/dev/null)
+    local CURRENT_THEME=$(jq -r '.colorSchemes.predefinedScheme' "$NOCTALIA_SETTINGS" 2>/dev/null)
 
-    if [ ! -f "$CURRENT_THEME_FILE" ]; then
-        cat '{"theme": "Green", "mode": "dark"}' > "$CURRENT_THEME_FILE"
-        apply_theme "Green"
+    if [ "$DARK_MODE" = "false" ]; then
+        CURRENT_MODE="light"
+    fi
+
+    if [ -z "$CURRENT_THEME" ] || [ "$CURRENT_THEME" = "null" ]; then
+        CURRENT_THEME="Green"
+    fi
+
+    if [ "$CURRENT_MODE" = "dark" ]; then
+        apply_theme "$CURRENT_THEME" "light"
     else
-        CURRENT_MODE=$(jq -r '.mode' "$CURRENT_THEME_FILE" 2>/dev/null)
-        
-        if [ "$CURRENT_MODE" = "dark" ]; then
-            apply_theme "Green" "light"
-        else
-            apply_theme "Green" "dark"
-        fi
+        apply_theme "$CURRENT_THEME" "dark"
     fi
 }
 
 sync_theme() {
     local MINUTES=$(( $(date +%H) * 60 + $(date +%M) ))
-    local CURRENT_THEME_FILE="$CACHE_DIR/status.json"
+    local THEME=$(jq -r '.colorSchemes.predefinedScheme' "$NOCTALIA_SETTINGS" 2>/dev/null)
 
-    if [ ! -f "$CURRENT_THEME_FILE" ]; then
-        cat '{"theme": "Green", "mode": "dark"}' > "$CURRENT_THEME_FILE"
+    if [ -z "$THEME" ] || [ "$THEME" = "null" ]; then
+        THEME="Green"
     fi
-
-    local THEME=$(jq -r '.theme' "$CURRENT_THEME_FILE" 2>/dev/null)
-    local MODE=$(jq -r '.mode' "$CURRENT_THEME_FILE" 2>/dev/null)
 
     if [ "$MINUTES" -ge 360 ] && [ "$MINUTES" -le 1170 ]; then
         apply_theme "$THEME" "light"
