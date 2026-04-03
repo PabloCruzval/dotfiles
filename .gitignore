@@ -1,3 +1,4 @@
 .ArchConf/
 .backup/
 .env
+./dot_config/noctalia/colors.json
