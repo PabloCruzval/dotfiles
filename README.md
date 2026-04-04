@@ -16,9 +16,6 @@ https://github.com/user-attachments/assets/adce3f51-be9a-433b-9a28-7132e8fb3eb2
 
 
 
-> Wallpapers info [here](./NyxWallpapers/README.md).
-
-
 Personal dotfiles for Arch Linux featuring a modern Hyprland setup where [Noctalia Shell](https://noctalia.dev/) defines the visual feel of the desktop, while [chezmoi](https://www.chezmoi.io/) manages the dotfiles for consistent deployment across multiple machines.
 
 ## ✨ Features
@@ -84,7 +81,6 @@ The repository is organized with chezmoi naming conventions:
 | **Rofi** | `dot_config/rofi/` | Application launcher |
 | **Themes** | `dot_config/noctalia/colorschemes/` | Noctalia theme definitions with dark and light variants |
 | **Scripts** | `dot_local/bin/` | Utility scripts (nyx-theme) |
-| **Wallpapers** | `NyxWallpapers/` | Wallpaper collection |
 
 > 💡 **Chezmoi naming**: `dot_` → `.` (hidden files), `.tmpl` → template, `executable_` → executable bit
 
