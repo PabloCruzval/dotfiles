@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Configuration
 CACHE_DIR="$HOME/.cache/theme"
 NOCTALIA_DIR="$HOME/.config/noctalia/"
 NOCTALIA_SETTINGS="$NOCTALIA_DIR/settings.json"
@@ -105,7 +104,7 @@ Commands:
   sync [time|nocatalia]  Sync hyprland colors based on the actual time or Noctalia colors
 
 Examples:
-  nyx-theme apply 'light'
+  nyx-theme apply light
   nyx-theme toggle
   nyx-theme sync
 
@@ -125,14 +124,9 @@ case "$1" in
         toggle_theme
         ;;
     sync)
-		if [ -z "$2" ]; then
-            echo "Error: argument is required"
-            echo "Usage: nyx-theme synx [time|noctalia]"
-            exit 1
-		fi
-		if ! [[ "$2" =~ ^(time|noctalia)$ ]]; then
+		if [[ -z "$2" ]] || ! [[ "$2" =~ ^(time|noctalia)$ ]]; then
             echo "Error: argument is not time or noctalia"
-            echo "Usage: nyx-theme synx [time|noctalia]"
+            echo "Usage: nyx-theme sync [time|noctalia]"
             exit 1
 		fi
         sync_theme "$2"
