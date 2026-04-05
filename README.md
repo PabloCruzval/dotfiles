@@ -20,7 +20,7 @@ Personal dotfiles for Arch Linux featuring a modern Hyprland setup where [Noctal
 
 ## ✨ Features
 
-- **🎨 Dynamic Theming** - Automatic light/dark mode with system-wide color synchronization
+- **🎨 Dynamic Theming** - Automatic light/dark mode with Hyprland colors synced from Noctalia-generated files
 - **🖥️ Multi-Monitor Support** - Separate configurations for desktop and laptop setups
 - **📦 Modular Configuration** - Clean, organized configs split by functionality
 - **🔄 Template-Based** - Machine-specific configs generated automatically via chezmoi
@@ -76,10 +76,8 @@ The repository is organized with chezmoi naming conventions:
 |------|-------|-------------|
 | **Hyprland** | `dot_config/hypr/` | Modular Wayland compositor config with templates |
 | **Neovim** | `dot_config/nvim/` | LSP, DAP, and plugin configurations |
-| **Noctalia** | `dot_config/noctalia/` | Desktop shell and UI components |
 | **Kitty** | `dot_config/kitty/` | Terminal emulator config |
 | **Rofi** | `dot_config/rofi/` | Application launcher |
-| **Themes** | `dot_config/noctalia/colorschemes/` | Noctalia theme definitions with dark and light variants |
 | **Scripts** | `dot_local/bin/` | Utility scripts (nyx-theme) |
 
 > 💡 **Chezmoi naming**: `dot_` → `.` (hidden files), `.tmpl` → template, `executable_` → executable bit
@@ -88,29 +86,29 @@ The repository is organized with chezmoi naming conventions:
 
 ## 🎯 Key Features
 
-Noctalia Shell is the layer that ties the dotfiles together visually: it controls the desktop shell, the accent colors, and the overall pacing of the interface.
+Noctalia Shell is still the layer that ties the desktop together visually, but its own configuration is intentionally not managed in this repository.
 
 <details>
 <summary><b>🎨 Dynamic Theming</b></summary>
 
 <br>
 
-Automated Noctalia theme system with per-theme dark and light variants.
+Automated theme sync that reads Noctalia's generated files and applies matching Hyprland + GTK mode changes.
 
 **Features:**
 - 🌅 **Auto Mode Switch** - Switches the active mode automatically at 6am (light) and 7:30pm (dark)
 - 🔄 **Login Sync** - Applies the correct mode at startup
-- ⌨️ **Quick Toggle** - `SUPER + T` switches dark/light for the current theme
-- 🎯 **Per-Theme Variants** - Each theme provides its own dark and light palette
-
-**Available Themes:**
-- `Green` - Theme with both dark and light variants stored in one JSON file
+- ⌨️ **Quick Toggle** - `SUPER + T` switches dark/light
+- 🎨 **Color Sync** - Hyprland border/shadow colors are read from `~/.config/noctalia/colors.json`
+- 🧭 **Mode Source** - Dark/light state is read from `~/.config/noctalia/settings.json`
 
 **Usage:**
 ```bash
-nyx-theme apply Green        # Apply the current mode of a theme
-nyx-theme toggle             # Toggle dark/light for the current theme
-nyx-theme sync               # Sync the current mode based on time of day
+nyx-theme apply dark         # Force dark mode
+nyx-theme apply light        # Force light mode
+nyx-theme toggle             # Toggle dark/light mode
+nyx-theme sync noctalia      # Sync colors/mode from Noctalia generated files
+nyx-theme sync time          # Sync mode according to your timer workflow
 ```
 
 **Automatic Switching:**
@@ -119,7 +117,7 @@ nyx-theme sync               # Sync the current mode based on time of day
 systemctl --user enable --now theme.timer
 ```
 
-> 📖 For detailed documentation, see [Noctalia Theme README](dot_config/noctalia/README.md)
+> ℹ️ Noctalia config/themes are no longer versioned in this repo. Configure them directly in Noctalia config panel.
 
 </details>
 
@@ -228,8 +226,8 @@ Each major component has detailed documentation:
 
 **Change themes:**
 ```bash
-nvim ~/.config/noctalia/colorschemes/Green/Green.json
-nyx-theme apply Green
+nvim ~/.config/noctalia/settings.json
+nyx-theme sync noctalia
 nyx-theme toggle
 ```
 
