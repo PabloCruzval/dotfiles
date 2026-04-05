@@ -2,30 +2,19 @@
 
 # Configuration
 CACHE_DIR="$HOME/.cache/theme"
-NOCTALIA_DIR="$HOME/.config/noctalia/colorschemes/"
-NOCTALIA_SETTINGS="$HOME/.config/noctalia/settings.json"
-
-
+NOCTALIA_DIR="$HOME/.config/noctalia/"
+NOCTALIA_SETTINGS="$NOCTALIA_DIR/settings.json"
+THEME_FILE="$NOCTALIA_DIR/colors.json"
 
 mkdir -p "$CACHE_DIR"
 
 apply_theme() {
-    local THEME_NAME="$1"
-    local NEW_MODE="$2"
-    local THEME_DIR="$NOCTALIA_DIR/${THEME_NAME}"
-    local THEME_FILE="$THEME_DIR/${THEME_NAME}.json"
-    local DARK_MODE=$(jq -r '.colorSchemes.darkMode' "$NOCTALIA_SETTINGS" 2>/dev/null)
+    local NEW_MODE="$1"
+    local ACTUAL_MODE=$(jq -r '.colorSchemes.darkMode' "$NOCTALIA_SETTINGS" 2>/dev/null)
     local CURRENT_MODE="dark"
 
-    if [ "$DARK_MODE" = "false" ]; then
+    if [ "$ACTUAL_MODE" = "false" ]; then
         CURRENT_MODE="light"
-    fi
-
-    if [ ! -d "$THEME_DIR" -o ! -f "$THEME_FILE" ]; then
-        echo "Error: The theme '$THEME_NAME' does not exist in $NOCTALIA_DIR"
-        echo "Available themes:"
-        ls -1 "$NOCTALIA_DIR" 2>/dev/null | sed 's/\.json$//' | sed 's/^/  - /'
-        exit 1
     fi
 
     if [ -n "$NEW_MODE" ]; then
@@ -33,11 +22,51 @@ apply_theme() {
         CURRENT_MODE="$NEW_MODE"
     fi
 
-    echo "Applying theme: $THEME_NAME..."
+    echo "Applying theme: $CURRENT_MODE mode..."
 
-    ACTIVE_HEX=$(jq -r ".$CURRENT_MODE.mPrimary" "$THEME_FILE" | tr -d '#')
-    INACTIVE_HEX=$(jq -r ".$CURRENT_MODE.mOutline" "$THEME_FILE" | tr -d '#')
-    SHADOW_HEX=$(jq -r ".$CURRENT_MODE.mShadow" "$THEME_FILE" | tr -d '#')
+	if [ "$CURRENT_MODE" = "dark" ]; then
+		gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"
+		gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
+		qs -c noctalia-shell ipc call darkMode setDark
+		echo "Applied dark mode"
+	else
+		gsettings set org.gnome.desktop.interface color-scheme "prefer-light"
+		gsettings set org.gnome.desktop.interface gtk-theme "Adwaita"
+		qs -c noctalia-shell ipc call darkMode setLight
+		echo "Applied light mode"
+	fi
+	sleep 1.25
+    ACTIVE_HEX=$(jq -r ".mPrimary" "$THEME_FILE" | tr -d '#')
+    INACTIVE_HEX=$(jq -r ".mOutline" "$THEME_FILE" | tr -d '#')
+    SHADOW_HEX=$(jq -r ".mShadow" "$THEME_FILE" | tr -d '#')
+
+    TMP_HYPR_COLORS=$(mktemp "$CACHE_DIR/hyprland_colors.conf.XXXXXX")
+    cat <<EOF > "$TMP_HYPR_COLORS"
+\$active_border = rgba(${ACTIVE_HEX}ff)
+\$inactive_border = rgba(${INACTIVE_HEX}ff)
+\$shadow_color = rgba(${SHADOW_HEX}ee)
+EOF
+    mv "$TMP_HYPR_COLORS" "$CACHE_DIR/hyprland_colors.conf"
+
+    hyprctl reload > /dev/null
+}
+
+sync_theme(){
+	local TYPE="$1"
+
+	if [[ -n "$1" ]]; then
+		local ACTUAL_MODE=$(jq -r '.colorSchemes.darkMode' "$NOCTALIA_SETTINGS" 2>/dev/null)
+		local CURRENT_MODE="dark"
+		if [ "$ACTUAL_MODE" = "false" ]; then
+			CURRENT_MODE="light"
+		fi
+		apply_theme "$CURRENT_MODE"
+		return 0
+	fi
+
+	ACTIVE_HEX=$(jq -r ".mPrimary" "$THEME_FILE" | tr -d '#')
+    INACTIVE_HEX=$(jq -r ".mOutline" "$THEME_FILE" | tr -d '#')
+    SHADOW_HEX=$(jq -r ".mShadow" "$THEME_FILE" | tr -d '#')
 
     TMP_HYPR_COLORS=$(mktemp "$CACHE_DIR/hyprland_colors.conf.XXXXXX")
     cat <<EOF > "$TMP_HYPR_COLORS"
@@ -49,52 +78,20 @@ EOF
 
     hyprctl reload > /dev/null
 
-    if [ "$CURRENT_MODE" = "dark" ]; then
-        gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"
-        gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
-        qs -c noctalia-shell ipc call darkMode setDark
-        echo "Applied dark mode"
-    else
-        gsettings set org.gnome.desktop.interface color-scheme "prefer-light"
-        gsettings set org.gnome.desktop.interface gtk-theme "Adwaita"
-        qs -c noctalia-shell ipc call darkMode setLight
-        echo "Applied light mode"
-    fi
-
 }
 
 toggle_theme() {
     local CURRENT_MODE="dark"
     local DARK_MODE=$(jq -r '.colorSchemes.darkMode' "$NOCTALIA_SETTINGS" 2>/dev/null)
-    local CURRENT_THEME=$(jq -r '.colorSchemes.predefinedScheme' "$NOCTALIA_SETTINGS" 2>/dev/null)
 
     if [ "$DARK_MODE" = "false" ]; then
         CURRENT_MODE="light"
     fi
 
-    if [ -z "$CURRENT_THEME" ] || [ "$CURRENT_THEME" = "null" ]; then
-        CURRENT_THEME="Green"
-    fi
-
     if [ "$CURRENT_MODE" = "dark" ]; then
-        apply_theme "$CURRENT_THEME" "light"
+        apply_theme "light"
     else
-        apply_theme "$CURRENT_THEME" "dark"
-    fi
-}
-
-sync_theme() {
-    local MINUTES=$(( $(date +%H) * 60 + $(date +%M) ))
-    local THEME=$(jq -r '.colorSchemes.predefinedScheme' "$NOCTALIA_SETTINGS" 2>/dev/null)
-
-    if [ -z "$THEME" ] || [ "$THEME" = "null" ]; then
-        THEME="Green"
-    fi
-
-    if [ "$MINUTES" -ge 360 ] && [ "$MINUTES" -le 1170 ]; then
-        apply_theme "$THEME" "light"
-    else
-        apply_theme "$THEME" "dark"
+        apply_theme "dark"
     fi
 }
 
@@ -103,39 +100,42 @@ show_usage() {
 Usage: nyx-theme <command> [arguments]
 
 Commands:
-  apply <name> [mode]   Apply a specific theme by name, optionally specifying 'light' or 'dark' mode
-  toggle                Toggle between light and dark themes
-  sync                  Sync theme based on current time of day
+  apply [mode]			 Apply 'light' or 'dark' mode
+  toggle				 Toggle between light and dark themes
+  sync [time|nocatalia]  Sync hyprland colors based on the actual time or Noctalia colors
 
 Examples:
-  nyx-theme apply Green
+  nyx-theme apply 'light'
   nyx-theme toggle
   nyx-theme sync
 
-Available themes:
-$(ls -1 "$NOCTALIA_DIR" 2>/dev/null | sed 's/^/  - /')
 EOF
 }
 
 case "$1" in
     apply)
         if [ -z "$2" ]; then
-            echo "Error: Theme name required"
-            echo "Usage: nyx-theme apply <theme-name>"
+            echo "Error: Theme mode is required"
+            echo "Usage: nyx-theme apply <mode>"
             exit 1
         fi
-        if [[ -n "$3" && "$3" != "light" && "$3" != "dark" ]]; then
-            echo "Error: Invalid mode '$3'. Use 'light' or 'dark'."
-            echo "Usage: nyx-theme apply <theme-name> [light|dark]"
-            exit 1
-        fi
-        apply_theme "$2" "$3"
+        apply_theme "$2"
         ;;
     toggle)
         toggle_theme
         ;;
     sync)
-        sync_theme
+		if [ -z "$2" ]; then
+            echo "Error: argument is required"
+            echo "Usage: nyx-theme synx [time|noctalia]"
+            exit 1
+		fi
+		if ! [[ "$2" =~ ^(time|noctalia)$ ]]; then
+            echo "Error: argument is not time or noctalia"
+            echo "Usage: nyx-theme synx [time|noctalia]"
+            exit 1
+		fi
+        sync_theme "$2"
         ;;
     -h|--help|help)
         show_usage
