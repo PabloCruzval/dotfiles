@@ -34,7 +34,7 @@ apply_theme() {
 		qs -c noctalia-shell ipc call darkMode setLight
 		echo "Applied light mode"
 	fi
-	sleep 1.25
+	sleep 1.5
     ACTIVE_HEX=$(jq -r ".mPrimary" "$THEME_FILE" | tr -d '#')
     INACTIVE_HEX=$(jq -r ".mOutline" "$THEME_FILE" | tr -d '#')
     SHADOW_HEX=$(jq -r ".mShadow" "$THEME_FILE" | tr -d '#')
@@ -53,10 +53,10 @@ EOF
 sync_theme(){
 	local TYPE="$1"
 
-	if [[ -n "$1" ]]; then
-		local ACTUAL_MODE=$(jq -r '.colorSchemes.darkMode' "$NOCTALIA_SETTINGS" 2>/dev/null)
+	if [[ "$1" == "time" ]]; then
+		local MINUTES=$(( $(date +%H) * 60 + $(date +%M) ))
 		local CURRENT_MODE="dark"
-		if [ "$ACTUAL_MODE" = "false" ]; then
+		if [ "$MINUTES" -ge 360 ] && [ "$MINUTES" -le 1170 ]; then
 			CURRENT_MODE="light"
 		fi
 		apply_theme "$CURRENT_MODE"
@@ -113,9 +113,9 @@ EOF
 
 case "$1" in
     apply)
-        if [ -z "$2" ]; then
+		if [[ -z "$2" ]] || ! [[ "$2" =~ ^(light|dark)$ ]]; then
             echo "Error: Theme mode is required"
-            echo "Usage: nyx-theme apply <mode>"
+            echo "Usage: nyx-theme apply [light|dark]"
             exit 1
         fi
         apply_theme "$2"
