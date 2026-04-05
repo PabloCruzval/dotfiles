@@ -8,6 +8,8 @@ o.swapfile = false
 o.fillchars = { eob = "." }
 o.relativenumber = true
 o.number = true
+o.termguicolors = true
+
 vim.cmd(":hi statusline guibg=NONE")
 
 require("lazy_config")
