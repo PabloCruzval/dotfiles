@@ -36,7 +36,7 @@ brightnessctl
 playerctl
 wireplumber
 # File Manager
-thunar
+dolphin
 tumbler
 # System Utilities
 unzip
