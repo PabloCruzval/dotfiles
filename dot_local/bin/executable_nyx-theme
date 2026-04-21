@@ -7,7 +7,75 @@ THEME_FILE="$NOCTALIA_DIR/colors.json"
 
 mkdir -p "$CACHE_DIR"
 
-apply_theme() {
+apply_hypr_theme()
+{
+	local ACTIVE_HEX=$(jq -r ".mPrimary" "$THEME_FILE" | tr -d '#')
+    local INACTIVE_HEX=$(jq -r ".mOutline" "$THEME_FILE" | tr -d '#')
+    local SHADOW_HEX=$(jq -r ".mShadow" "$THEME_FILE" | tr -d '#')
+	local TMP_HYPR_COLORS=$(mktemp "$CACHE_DIR/hyprland_colors.conf.XXXXXX")
+    cat <<EOF > "$TMP_HYPR_COLORS"
+\$active_border = rgba(${ACTIVE_HEX}ff)
+\$inactive_border = rgba(${INACTIVE_HEX}ff)
+\$shadow_color = rgba(${SHADOW_HEX}ee)
+EOF
+    mv "$TMP_HYPR_COLORS" "$CACHE_DIR/hyprland_colors.conf"
+
+    hyprctl reload > /dev/null
+}
+
+apply_kitty_theme()
+{
+    local PRIMARY=$(jq -r ".mPrimary" "$THEME_FILE")
+    local SECONDARY=$(jq -r ".mSecondary" "$THEME_FILE")
+    local ON_SECONDARY=$(jq -r ".mOnSecondary" "$THEME_FILE")
+    local TERTIARY=$(jq -r ".mTertiary" "$THEME_FILE")
+    local HOVER=$(jq -r ".mHover" "$THEME_FILE")
+    local ERROR=$(jq -r ".mError" "$THEME_FILE")
+    local SURFACE=$(jq -r ".mSurface" "$THEME_FILE")
+    local ON_SURFACE=$(jq -r ".mOnSurface" "$THEME_FILE")
+    local SURFACE_VARIANT=$(jq -r ".mSurfaceVariant" "$THEME_FILE")
+    local ON_SURFACE_VARIANT=$(jq -r ".mOnSurfaceVariant" "$THEME_FILE")
+    local OUTLINE=$(jq -r ".mOutline" "$THEME_FILE")
+
+    local TMP_KITTY_COLORS=$(mktemp "$CACHE_DIR/kitty_colors.conf.XXXXXX")
+    cat <<EOF > "$TMP_KITTY_COLORS"
+foreground              $ON_SURFACE
+background              $SURFACE
+color0                  $SURFACE_VARIANT
+color8                  $OUTLINE
+color1                  $ERROR
+color9                  $ERROR
+color2                  $SECONDARY
+color10                 $SECONDARY
+color3                  $TERTIARY
+color11                 $TERTIARY
+color4                  $PRIMARY
+color12                 $PRIMARY
+color5                  $HOVER
+color13                 $HOVER
+color6                  $ON_SECONDARY
+color14                 $ON_SECONDARY
+color7                  $ON_SURFACE_VARIANT
+color15                 $ON_SURFACE
+cursor                  $ON_SURFACE
+cursor_text_color       $SURFACE
+selection_foreground    $ON_SURFACE
+selection_background    $SURFACE_VARIANT
+inactive_tab_background $SURFACE
+active_tab_background   $SURFACE
+inactive_tab_foreground $OUTLINE
+active_tab_foreground   $PRIMARY
+tab_bar_margin_color    $SURFACE
+url_color               $PRIMARY
+EOF
+    mv "$TMP_KITTY_COLORS" "$CACHE_DIR/kitty_colors.conf"
+	pkill -USR1 kitty
+}
+
+
+
+apply_theme() 
+{
     local NEW_MODE="$1"
     local ACTUAL_MODE=$(jq -r '.colorSchemes.darkMode' "$NOCTALIA_SETTINGS" 2>/dev/null)
     local CURRENT_MODE="dark"
@@ -24,30 +92,24 @@ apply_theme() {
     echo "Applying theme: $CURRENT_MODE mode..."
 
 	if [ "$CURRENT_MODE" = "dark" ]; then
+		qs -c noctalia-shell ipc call darkMode setDark
+		sleep 1.75
 		gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"
 		gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
-		qs -c noctalia-shell ipc call darkMode setDark
+		sleep 0.5
+		sync_theme "noctalia"
 		echo "Applied dark mode"
 	else
+		qs -c noctalia-shell ipc call darkMode setLight
+		sleep 1.75
 		gsettings set org.gnome.desktop.interface color-scheme "prefer-light"
 		gsettings set org.gnome.desktop.interface gtk-theme "Adwaita"
-		qs -c noctalia-shell ipc call darkMode setLight
+		sleep 0.5
+		sync_theme "noctalia"
 		echo "Applied light mode"
 	fi
-	sleep 1.5
-    ACTIVE_HEX=$(jq -r ".mPrimary" "$THEME_FILE" | tr -d '#')
-    INACTIVE_HEX=$(jq -r ".mOutline" "$THEME_FILE" | tr -d '#')
-    SHADOW_HEX=$(jq -r ".mShadow" "$THEME_FILE" | tr -d '#')
 
-    TMP_HYPR_COLORS=$(mktemp "$CACHE_DIR/hyprland_colors.conf.XXXXXX")
-    cat <<EOF > "$TMP_HYPR_COLORS"
-\$active_border = rgba(${ACTIVE_HEX}ff)
-\$inactive_border = rgba(${INACTIVE_HEX}ff)
-\$shadow_color = rgba(${SHADOW_HEX}ee)
-EOF
-    mv "$TMP_HYPR_COLORS" "$CACHE_DIR/hyprland_colors.conf"
-
-    hyprctl reload > /dev/null
+	exit 0
 }
 
 sync_theme(){
@@ -60,26 +122,17 @@ sync_theme(){
 			CURRENT_MODE="light"
 		fi
 		apply_theme "$CURRENT_MODE"
-		return 0
+		exit 0
+	else
+		apply_hypr_theme
+		apply_kitty_theme
 	fi
 
-	ACTIVE_HEX=$(jq -r ".mPrimary" "$THEME_FILE" | tr -d '#')
-    INACTIVE_HEX=$(jq -r ".mOutline" "$THEME_FILE" | tr -d '#')
-    SHADOW_HEX=$(jq -r ".mShadow" "$THEME_FILE" | tr -d '#')
-
-    TMP_HYPR_COLORS=$(mktemp "$CACHE_DIR/hyprland_colors.conf.XXXXXX")
-    cat <<EOF > "$TMP_HYPR_COLORS"
-\$active_border = rgba(${ACTIVE_HEX}ff)
-\$inactive_border = rgba(${INACTIVE_HEX}ff)
-\$shadow_color = rgba(${SHADOW_HEX}ee)
-EOF
-    mv "$TMP_HYPR_COLORS" "$CACHE_DIR/hyprland_colors.conf"
-
-    hyprctl reload > /dev/null
 
 }
 
-toggle_theme() {
+toggle_theme() 
+{
     local CURRENT_MODE="dark"
     local DARK_MODE=$(jq -r '.colorSchemes.darkMode' "$NOCTALIA_SETTINGS" 2>/dev/null)
 
@@ -94,7 +147,8 @@ toggle_theme() {
     fi
 }
 
-show_usage() {
+show_usage() 
+{
     cat <<EOF
 Usage: nyx-theme <command> [arguments]
 
