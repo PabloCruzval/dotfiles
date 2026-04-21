@@ -190,9 +190,10 @@ Secure and beautiful lock screen:
 | Keybind | Action |
 |---------|--------|
 | `SUPER + Return` | Launch terminal (Kitty) |
-| `SUPER + SUPER_L` | Application launcher (Rofi) |
+| `SUPER + R` | Application launcher (`$launcher`) |
+| `SUPER + SUPER_L` | Control center (`$menu`) |
 | `SUPER + B` | Browser (Brave) |
-| `SUPER + E` | File manager (Thunar) |
+| `SUPER + E` | File manager (Dolphin) |
 | `SUPER + O` | Notion |
 | `SUPER + .` | Emoji picker (Emote) |
 
@@ -264,7 +265,7 @@ Automatic workspace assignment for common applications:
 | Brave | 2 |
 | Visual Studio Code | 3 |
 | Obsidian | 4 |
-| Thunar | 4 |
+| Dolphin | 4 |
 | Discord | 5 |
 | Telegram | 5 |
 
@@ -310,7 +311,7 @@ Configured in [modules/env.conf](modules/env.conf):
 |------|-------------|
 | Terminal | Kitty |
 | Browser | Brave |
-| File Manager | Thunar |
+| File Manager | Dolphin |
 | Launcher | Rofi |
 | Cursor Theme | Bibata-Modern-Classic |
 | GTK Theme | Adwaita:dark |
