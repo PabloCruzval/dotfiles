@@ -44,6 +44,7 @@ map('n', '<leader>lf', vim.lsp.buf.format)
 map('n', '<leader>lD', vim.diagnostic.open_float)
 map('n', '<leader>ld', vim.lsp.buf.definition)
 map('n', '<leader>lr', vim.lsp.buf.rename)
+map('n', '<leader>lh', vim.lsp.buf.hover)
 
 -- Git
 local gitsigns = require "gitsigns"
