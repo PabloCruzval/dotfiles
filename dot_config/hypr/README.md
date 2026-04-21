@@ -190,7 +190,8 @@ Secure and beautiful lock screen:
 | Keybind | Action |
 |---------|--------|
 | `SUPER + Return` | Launch terminal (Kitty) |
-| `SUPER + SUPER_L` | Application launcher (Rofi) |
+| `SUPER + R` | Application launcher (`$launcher`) |
+| `SUPER + SUPER_L` | Control center (`$menu`) |
 | `SUPER + B` | Browser (Brave) |
 | `SUPER + E` | File manager (Dolphin) |
 | `SUPER + O` | Notion |
