@@ -10,11 +10,7 @@
 
 ---
 
-
-
 https://github.com/user-attachments/assets/adce3f51-be9a-433b-9a28-7132e8fb3eb2
-
-
 
 Personal dotfiles for Arch Linux featuring a modern Hyprland setup where [Noctalia Shell](https://noctalia.dev/) defines the visual feel of the desktop, while [chezmoi](https://www.chezmoi.io/) manages the dotfiles for consistent deployment across multiple machines.
 
@@ -26,7 +22,7 @@ Personal dotfiles for Arch Linux featuring a modern Hyprland setup where [Noctal
 - **🔄 Template-Based** - Machine-specific configs generated automatically via chezmoi
 - **⚡ Modern Wayland Stack** - Hyprland compositor with Noctalia Shell as the desktop layer that drives the overall feel
 - **🛠️ Developer-Focused** - Neovim with LSP, DAP, and modern plugin ecosystem
-- **🔧 One-Command Setup** - Automated installation with backup of existing configs
+- **🔧 Interactive Modular Setup** - Clean, step-by-step interactive installation flow inspired by [Symphony](https://github.com/vyrx-dev/symphony).
 
 ## 📦 What's Inside
 
@@ -41,7 +37,7 @@ Personal dotfiles for Arch Linux featuring a modern Hyprland setup where [Noctal
 
 ## 🚀 Quick Start
 
-### One-Line Installation
+### Interactive Installation
 
 >[!IMPORTANT]
 > Only for Arch Linux. The script was made for my machines and may require adjustments for yours.
@@ -50,23 +46,24 @@ Personal dotfiles for Arch Linux featuring a modern Hyprland setup where [Noctal
 > Existing configurations for `hypr`, `noctalia`, `kitty`, `nvim`, or `rofi` will be backed up to `$HOME/.backups_dotfiles/<timestamp>`
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/PabloCruzval/dotfiles/refs/heads/main/setup.sh)"
+bash -c "$(curl -fsSL [https://raw.githubusercontent.com/PabloCruzval/dotfiles/refs/heads/main/setup.sh](https://raw.githubusercontent.com/PabloCruzval/dotfiles/refs/heads/main/setup.sh))"
 ```
 
 ### What the installer does:
-1. Installs required packages from `pkglist` and `aurlist`
-2. Installs chezmoi if not present
-3. Backs up existing configurations
-4. Initializes chezmoi with this repository
-5. Applies configurations with machine-specific templates
+The setup script acts as an orchestrator, allowing you to choose exactly what to install:
+1. **Base System:** Installs core tools (Git, base-devel, Chezmoi) and sets up Yay.
+2. **Packages:** Installs official and AUR packages from defined lists.
+3. **Git Config:** Interactive global Git user configuration.
+4. **Services:** Enables necessary system and user services (NetworkManager, Bluetooth, custom timers).
+5. **Dotfiles:** Safely applies Chezmoi configurations with automatic conflict backups.
 
 ## 📋 Requirements
 
 - **OS**: Arch Linux
 - **Display Server**: Wayland
-- **Package Managers**: `pacman` and an AUR helper (`yay` or `paru`)
+- **Package Managers**: `pacman` and an AUR helper `yay`
 - **Fonts**: Nerd Fonts (installed automatically)
-- **Dependencies**: Listed in `pkglist` and `aurlist`
+- **Dependencies**: Listed in `install/pkgs.sh`.
 
 ## 📁 Structure
 
@@ -74,10 +71,10 @@ The repository is organized with chezmoi naming conventions:
 
 | What | Where | Description |
 |------|-------|-------------|
+| **Installer**| `install/` | Modular setup scripts (`utils.sh`, `base.sh`, `pkgs.sh`, etc.) |
 | **Hyprland** | `dot_config/hypr/` | Modular Wayland compositor config with templates |
 | **Neovim** | `dot_config/nvim/` | LSP, DAP, and plugin configurations |
 | **Kitty** | `dot_config/kitty/` | Terminal emulator config |
-| **Rofi** | `dot_config/rofi/` | Application launcher |
 | **Scripts** | `dot_local/bin/` | Utility scripts (nyx-theme) |
 
 > 💡 **Chezmoi naming**: `dot_` → `.` (hidden files), `.tmpl` → template, `executable_` → executable bit
@@ -323,6 +320,7 @@ If you find bugs or have suggestions:
 
 These dotfiles include ideas, patterns, and tools from several great open-source projects:
 
+- **[Symphony](https://github.com/vyrx-dev/symphony)** - Huge inspiration for the clean, modular, and interactive bash installation flow used in this setup.
 - **[Noctalia](https://github.com/noctalia-dev/noctalia)** - Desktop shell and UI tooling used in this setup.
 - **[Hyprland](https://github.com/hyprwm/Hyprland)** - Core Wayland compositor powering this environment.
 - **[chezmoi](https://github.com/twpayne/chezmoi)** - Dotfile manager used to template and deploy this configuration.
@@ -347,7 +345,7 @@ Thanks to all maintainers and contributors behind these projects.
 
 ## 📄 License
 
-This project is open source and available under the [MIT License](LICENSE).
+This project is open source and available under the [GPL License](LICENSE).
 
 You are free to use, modify, and distribute these configurations. Attribution is appreciated but not required.
 
