@@ -20,7 +20,7 @@ function is_installed() {
 
 pkgs=(
 	# Core & Hardware (Nvidia LTS + Backends de Red y Bluetooth)
-	linux-lts-headers nvidia-lts nvidia-utils egl-wayland
+	linux-lts-headers nvidia-open-lts nvidia-utils egl-wayland
 	networkmanager bluez bluez-utils
 
 	# Development & CLI Tools
@@ -37,7 +37,7 @@ pkgs=(
 	kitty
 
 	# Hyprland & Wayland Ecosystem
-	hyprland hyprpaper hyprpolkitagent hyprshutdown
+	hyprland hyprpaper hyprpolkitagent 
 	hyprlock hypridle hyprpicker cliphist
 	xdg-desktop-portal-gtk xdg-desktop-portal-hyprland
 	qt5-wayland qt6-wayland xdg-user-dirs
@@ -66,7 +66,8 @@ aur_pkgs=(
 	brave-bin
 	noctalia-shell
 	emote
-	bibata-cursor-theme
+	volantes-cursors-git
+	obsidian
 )
 
 # ==========================================

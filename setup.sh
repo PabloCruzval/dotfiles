@@ -19,6 +19,10 @@ if ask "Install packages (Official repos and AUR)?" "Y"; then
     source "$INSTALL_DIR/pkgs.sh" 
 fi
 
+if ask "Configure Git?" "Y"; then
+    source "$INSTALL_DIR/git.sh" 
+fi
+
 if ask "Configure Nvidia?" "Y"; then
     source "$INSTALL_DIR/nvidia.sh"
 fi
@@ -30,6 +34,11 @@ fi
 
 if ask "Apply dotfiles with Chezmoi (automatic backups will be made)?" "Y"; then
     source "$INSTALL_DIR/chezmoi.sh"
+fi
+
+
+if ask "Install Fonts?" "Y"; then
+    source "$INSTALL_DIR/font.sh"
 fi
 
 echo ""
