@@ -1,0 +1,26 @@
+-- Hyprland configuration for Desktop PC
+-- Import modular configurations
+
+require("modules.env")
+require("modules.general")
+require("modules.inputs")
+require("modules.decorations")
+require("modules.animations")
+
+-- Behavior
+require("modules.windowrules")
+require("modules.keybindings")
+require("modules.autostart")
+
+-- Monitor configuration (device-specific gestionado por chezmoi)
+{{- if eq .machinename "archtower" }}
+require("modules.monitors-desktop")
+{{- else if eq .machinename "lnyx"}}
+require("modules.monitors-laptop")
+{{- else }}
+hl.config({
+    monitor = {
+        ",auto,auto,1"
+    }
+})
+{{- end }}
