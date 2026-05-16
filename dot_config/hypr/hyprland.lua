@@ -1,12 +1,23 @@
 -- Hyprland configuration for Desktop PC
 -- Import modular configurations
-
 local function get_hostname()
-    local f = io.popen("hostname")
-    local hostname = f:read("*a") or ""
-    f:close()
-    return hostname:gsub("%s+$", "")
+    local f = io.open("/etc/hostname", "r")
+    if f then
+        local host = f:read("*l")
+        f:close()
+        return host
+    end
+    
+    local handle = io.popen("hostname")
+    if handle then
+        local host = handle:read("*l")
+        handle:close()
+        return host
+    end
+    
+    return "archtower"
 end
+
 
 print(get_hostname())
 
@@ -22,7 +33,6 @@ require("modules.windowrules")
 require("modules.keybindings")
 require("modules.autostart")
 
--- Monitor configuration (device-specific gestionado por chezmoi)
 local hostname = get_hostname()
 
 if (hostname == "archtower") then
