@@ -33,7 +33,7 @@ hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd('grim -g "$(slurp)" - | wl-co
 hl.bind(mainMod .. " + E",         hl.dsp.exec_cmd(programs["fileManager"]))
 hl.bind(mainMod .. " + V",         hl.dsp.layout("togglesplit"))
 hl.bind(mainMod .. " + SUPER_L",   hl.dsp.exec_cmd(programs["menu"]))
-hl.bind(mainMod .. " + R",         hl.dsp.exec_cmd(programs["launcher"]))
+hl.bind(mainMod .. " + SPACE",         hl.dsp.exec_cmd(programs["launcher"]))
 hl.bind(mainMod .. " + B",         hl.dsp.exec_cmd(programs["browser"]))
 hl.bind(mainMod .. " + period",    hl.dsp.exec_cmd("emote"))
 hl.bind(mainMod .. " + O",         hl.dsp.exec_cmd("obsidian"))

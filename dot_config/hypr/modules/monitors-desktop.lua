@@ -15,13 +15,9 @@ hl.monitor({
 })
 
 -- Workspace bindings for multi-monitor setup
-hl.workspace_rule({workspace = "1", monitor="DP-1"})
-hl.workspace_rule({workspace = "2", monitor="DP-1"})
-hl.workspace_rule({workspace = "3", monitor="DP-1"})
-hl.workspace_rule({workspace = "4", monitor="DP-1"})
-hl.workspace_rule({workspace = "5", monitor="DP-1"})
-hl.workspace_rule({workspace = "6", monitor="HDMI-A-1"})
-hl.workspace_rule({workspace = "7", monitor="HDMI-A-1"})
-hl.workspace_rule({workspace = "8", monitor="HDMI-A-1"})
-hl.workspace_rule({workspace = "9", monitor="HDMI-A-1"})
-hl.workspace_rule({workspace = "10", monitor="HDMI-A-1"})
+for i = 1, 5 do
+	hl.workspace_rule({workspace = i, monitor="DP-1"})
+end
+for i = 5, 10 do
+	hl.workspace_rule({workspace = i, monitor="HDMI-A-1"})
+end
