@@ -50,7 +50,7 @@ pkgs=(
 
 	# Audio/Media (Backends de audio + mixer en terminal + control avanzado GUI)
 	pipewire pipewire-audio pipewire-alsa pipewire-pulse
-	wireplumber pamixer wiremix pavucontrol
+	wireplumber pamixer wiremix pavucontrol playerctl
 
 	# File Manager
 	dolphin yazi

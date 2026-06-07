@@ -1,7 +1,8 @@
+---@diagnostic disable: undefined-global
+
 local map = vim.keymap.set
 
-vim.g.mapleader = " "
-map('t', '<ESC>', "<C-\\><C-n>", {remap = true})
+map('t', '<ESC>', "<C-\\><C-n>", { remap = true })
 
 -- Core
 map('n', '<leader>so', ':update<CR> :source<CR>')
@@ -13,11 +14,11 @@ map('n', '<C-h>', '<C-w>h', { desc = "Move to left window" })
 map('n', '<C-j>', '<C-w>j', { desc = "Move to window below" })
 map('n', '<C-k>', '<C-w>k', { desc = "Move to window above" })
 map('n', '<C-l>', '<C-w>l', { desc = "Move to right window" })
-map('n', '<leader>ll', require "utils.lazy_picker")
 map('n', '<leader>ts', require "utils.terminal")
+
 -- Comment
-map('n', '<leader>/', "gcc", {remap = true})
-map('v', '<leader>/', "gc", {remap = true})
+map('n', '<leader>/', "gcc", { remap = true })
+map('v', '<leader>/', "gc", { remap = true })
 
 -- Pick files & Oil
 local Oil = require "oil"
@@ -38,22 +39,21 @@ map({ 'n', 'v', 'x' }, '<leader>d', '"+y<CR>')
 map({ 'n', 'v', 'x' }, '<leader>s', ':e #<CR>')
 map({ 'n', 'v', 'x' }, '<leader>h', ':noh<CR>')
 
+vim.api.nvim_create_autocmd("LspAttach", {
+    group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
+    callback = function(args)
+        local client = vim.lsp.get_client_by_id(args.data.client_id)
+        local bufnr = args.buf
 
--- Lsp
-map('n', '<leader>lf', vim.lsp.buf.format)
-map('n', '<leader>lD', vim.diagnostic.open_float)
-map('n', '<leader>ld', vim.lsp.buf.definition)
-map('n', '<leader>lr', vim.lsp.buf.rename)
-map('n', '<leader>lh', vim.lsp.buf.hover)
+        local function lsp_map(keys, func, desc)
+            vim.keymap.set("n", keys, func, { buffer = bufnr, desc = "LSP: " .. desc })
+        end
 
--- Git
-local gitsigns = require "gitsigns"
-map('n', '<leader>gh', gitsigns.preview_hunk)
-map('n', '<leader>gr', gitsigns.reset_hunk)
-map("v", "<leader>gs", function()
-	gitsigns.stage_hunk({ vim.fn.line("."), vim.fn.line("v") })
-end)
+        lsp_map("<leader>lf", vim.lsp.buf.format, "Formatear buffer con LSP")
+        lsp_map("<leader>lD", vim.diagnostic.open_float, "Abrir diagnóstico flotante")
 
--- Copilot
-map('n', '<leader>cc', ':CopilotChat<CR>')
-map('n', '<leader>cC', ':CopilotChatCommit<CR>')
+        lsp_map("<leader>ld", vim.lsp.buf.definition, "Ir a definición")
+        lsp_map("<leader>lr", vim.lsp.buf.rename, "Renombrar símbolo")
+        lsp_map("<leader>lh", vim.lsp.buf.hover, "Mostrar documentación")
+    end,
+})
