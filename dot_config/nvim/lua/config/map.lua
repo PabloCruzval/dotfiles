@@ -10,10 +10,6 @@ map({ 'n', 'i' }, "<A-k>", '<cmd>m -2<CR>')
 map({ 'n', 'i' }, "<A-j>", '<cmd>m +1<CR>')
 map({ 'x', 'v' }, "<A-k>", ":m '<-2<CR>gv=gv")
 map({ 'x', 'v' }, "<A-j>", ":m '>+1<CR>gv=gv")
-map('n', '<C-h>', '<C-w>h', { desc = "Move to left window" })
-map('n', '<C-j>', '<C-w>j', { desc = "Move to window below" })
-map('n', '<C-k>', '<C-w>k', { desc = "Move to window above" })
-map('n', '<C-l>', '<C-w>l', { desc = "Move to right window" })
 map('n', '<leader>ts', require "utils.terminal")
 
 -- Comment

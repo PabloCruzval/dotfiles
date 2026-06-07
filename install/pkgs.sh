@@ -25,7 +25,7 @@ pkgs=(
 
 	# Development & CLI Tools
 	git base-devel neovim npm ripgrep
-	jq eza bat fd lazygit
+	jq eza bat fd lazygit tmux
 
 	# Dotfiles Management
 	chezmoi
