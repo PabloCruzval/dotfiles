@@ -7,4 +7,8 @@ return {
         "echasnovski/mini.pick",
         opts = require("config.plugins").mini_pick,
     },
+    {
+        "christoomey/vim-tmux-navigator",
+        lazy = false,
+    },
 }
