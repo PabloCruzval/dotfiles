@@ -1,35 +1,24 @@
 return {
-	{
-		"neovim/nvim-lspconfig",
-	},
-	{
-		"mason-org/mason.nvim",
-		opts = {
-			ensure_installed = {"prettierd"}
-		},
-	},
-	{
-		"mason-org/mason-lspconfig.nvim", opts = {
-			ensure_installed = { "lua_ls", "tailwindcss", "qmlls", "ts_ls", "astro", "emmet_language_server", "clangd" },
-		},
-	},
-	{
-		"folke/lazydev.nvim",
-		ft = { "lua" },
-		opts = {},
-	},
-	{
-		"nvimtools/none-ls.nvim",
-		event = "VeryLazy",
-		config = function()
-			local null_ls = require "null-ls"
-			local opts = {
-				sources = {
-					null_ls.builtins.formatting.prettierd,
-				}
-			}
-			return opts
-		end
-		
-	},
+    {
+        "neovim/nvim-lspconfig",
+    },
+    {
+        "mason-org/mason.nvim",
+        opts = require("config.plugins").mason,
+    },
+    {
+        "mason-org/mason-lspconfig.nvim",
+        opts = require("config.plugins").mason_lspconfig,
+    },
+    {
+        "b0o/schemastore.nvim",
+    },
+    {
+        "saghen/blink.cmp",
+        version = "v1.*",
+        dependencies = {
+            "rafamadriz/friendly-snippets",
+        },
+        opts = require("config.plugins").blink_cmp,
+    },
 }
