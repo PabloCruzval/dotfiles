@@ -4,9 +4,13 @@
 
 - **Never commit unless explicitly instructed.**
 - When told to commit, use:
-  `git commit --author="<agent_name> <agent_name+correo@personal.com>" -m "<commit-message>"`
-  Replace `<agent_name>` with the agent's name, `<correo@personal.com>` with the user's email and `<commit-message>`
-  with conventional commit.
+  `git commit --author="<agent_name>-<username> <agent_name+user_email>" -m "<commit-message>"`
+  - `<agent_name>` — your own name (e.g. `opencode`, `claude`)
+  - `<username>` — `git config user.name` (e.g. `PabloCruzval`)
+  - `<user_email>` — `git config user.email` (e.g. `p.cruzat.valenzuela@gmail.com`)
+  - The email format is **literal** `<agent_name>+<user_email>` — the `+` is part of the address
+  - Example: `opencode-PabloCruzval <opencode+p.cruzat.valenzuela@gmail.com>`
+  - `<commit-message>` must follow conventional commits
 
 ## Repo overview
 
