@@ -190,12 +190,4 @@ function M.gitsigns()
     }
 end
 
------------
---  THEME --
------------
-
-function M.kanagawa()
-    return {}
-end
-
 return M

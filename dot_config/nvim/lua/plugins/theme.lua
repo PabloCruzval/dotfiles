@@ -1,6 +1,5 @@
 return {
     {
-        "rebelot/kanagawa.nvim",
-        opts = require("config.plugins").kanagawa,
+		'builtbyleo/oc-2.nvim'
     },
 }
