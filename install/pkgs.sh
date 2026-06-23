@@ -42,6 +42,12 @@ pkgs=(
 	xdg-desktop-portal-gtk xdg-desktop-portal-hyprland
 	qt5-wayland qt6-wayland xdg-user-dirs archlinux-xdg-menu
 
+	# Noctalia v5 build deps (C++ native Wayland, no Qt)
+	meson gcc just wayland-protocols libglvnd
+	freetype2 fontconfig cairo pango
+	libxkbcommon glib2 sdbus-cpp libpipewire
+	polkit pam curl libwebp librsvg libqalculate
+
 	# Screenshot Tools
 	grim slurp
 
@@ -64,7 +70,7 @@ pkgs=(
 
 aur_pkgs=(
 	brave-bin
-	noctalia-shell
+	noctalia-git
 	emote
 	volantes-cursors-git
 	obsidian

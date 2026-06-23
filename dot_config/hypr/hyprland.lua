@@ -40,3 +40,8 @@ if (hostname == "archtower") then
 elseif (hostname == "lnyx")  then
 	require("modules.monitors-laptop")
 end
+
+-- Noctalia v5 color template (safe fallback if module not yet generated)
+pcall(function()
+	require("noctalia").apply_theme()
+end)

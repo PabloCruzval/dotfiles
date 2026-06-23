@@ -16,7 +16,7 @@ Personal dotfiles for Arch Linux featuring a modern Hyprland setup where [Noctal
 
 ## ✨ Features
 
-- **🎨 Nord-Inspired Color Scheme** - Cohesive color palette across Hyprland borders, Kitty terminal, and tmux
+- **🎨 Noctalia v5 Theming** - Native C++ desktop shell that generates cohesive Material Design colors for Hyprland, Kitty, and GTK
 - **🖥️ Multi-Monitor Support** - Separate configurations for desktop and laptop setups
 - **📦 Modular Configuration** - Clean, organized configs split by functionality
 - **🔄 Template-Based** - Machine-specific configs generated automatically via chezmoi
@@ -28,7 +28,7 @@ Personal dotfiles for Arch Linux featuring a modern Hyprland setup where [Noctal
 
 - **[Hyprland](dot_config/hypr/README.md)** - Wayland compositor with modular configuration
 - **[Neovim](dot_config/nvim/readme.md)** - Modern IDE setup with LSP, Treesitter, and debugging
-- **[Noctalia](https://noctalia.dev/)** - Wayland desktop shell and the component that defines the look, feel, and interaction model of the desktop
+- **[Noctalia v5](https://docs.noctalia.dev/v5/)** - Native Wayland desktop shell (C++) powering bars, launcher, control center, and themes
 - **Kitty** - GPU-accelerated terminal emulator
 - **Zsh** - Shell with Powerlevel10k and Zinit plugin manager
 - **Rofi** - Application launcher
@@ -83,20 +83,23 @@ The repository is organized with chezmoi naming conventions:
 
 ## 🎯 Key Features
 
-Noctalia Shell provides the desktop widget layer (bar, launcher, control center) but its visual configuration is managed directly within the app.
+Noctalia v5 is a native Wayland desktop shell (C++) that provides bars, launcher, control center, notifications, wallpaper, lock screen, and app theming. Colors are defined via custom palettes and automatically applied to Hyprland, Kitty, and GTK apps through built-in templates.
 
 <details>
 <summary><b>🎨 Theming</b></summary>
 
 <br>
 
-Nord-inspired color scheme applied to:
+Noctalia v5 generates themed configuration files for external apps via its built-in template engine:
 
-- **Hyprland** - Border colors (`#88c0d0` active, `#3b4252` inactive) and shadow (`#2e3440`) are hardcoded in `modules/general.lua` and `modules/decorations.lua`
-- **Kitty** - 16-color Nord palette defined inline in `kitty.conf`
-- **tmux** - Full OpenCode palette in `tmux.conf`
-- **GTK** - `Adwaita-dark` theme with `prefer-dark` color scheme set via `gsettings`
-- **Cursor** - `volantes-cursors` at size 34
+- **Hyprland** - `require("noctalia").apply_theme()` sets border colors from the active palette
+- **Kitty** - `include themes/noctalia.conf` loads the 16-color terminal palette
+- **GTK 3/4** - `noctalia.css` injects Material Design color variables into GTK apps
+- **Qt** - Optional `qtct.conf` for Qt apps that need color integration
+
+**Palette location**: `~/.config/noctalia/palettes/<Name>.json`
+
+**Applying templates**: Templates are automatically applied when the theme changes in Noctalia. Manual rerender: `noctalia msg theme rerender`
 
 </details>
 
@@ -203,12 +206,9 @@ Each major component has detailed documentation:
 
 <br>
 
-**Change GTK theme:**
-```bash
-gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
-# or use nwg-look for a GUI
-nwg-look
-```
+**Change theme:**
+Use Noctalia's control center (Super + Super_L) and open Settings > Theme.
+Palettes are managed in `~/.config/noctalia/palettes/`.
 
 **Adjust monitors:**
 ```bash

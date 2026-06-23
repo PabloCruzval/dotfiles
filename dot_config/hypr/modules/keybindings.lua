@@ -5,13 +5,13 @@
 
 local mainMod = "SUPER"
 
-local ipc = "qs -c noctalia-shell ipc call"
+local ipc = "noctalia msg"
 local programs = {
 	browser = "brave",
 	terminal = "kitty",
 	fileManager = "nautilus",
-	launcher = ipc .. " launcher toggle",
-	menu = ipc .. " controlCenter toggle"
+	launcher = ipc .. " panel-toggle launcher",
+	menu = ipc .. " panel-toggle control-center"
 }
 --  ----------------------------------------------------- 
 --  █▀ █▄█ █▀ ▀█▀ ██▀ █▀▄▀█ 
