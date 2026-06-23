@@ -61,6 +61,9 @@ pkgs=(
 	# File Manager
 	nautilus yazi
 
+	# GTK theming (required by Noctalia v5 GTK templates)
+	adw-gtk-theme
+
 	# Fonts
 	noto-fonts-cjk noto-fonts-emoji noto-fonts ttf-jetbrains-mono-nerd
 

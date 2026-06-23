@@ -14,7 +14,12 @@ hl.on("hyprland.start", function()
 	-- User applications
 	hl.exec_cmd("syncthing --no-browser")
 
-	-- Cursor theme (GTK is handled by Noctalia v5 templates)
+	-- GTK / GNOME interface settings (base theme for Noctalia v5 templates)
+	hl.exec_cmd("gsettings set org.gnome.desktop.interface gtk-theme 'adw-gtk3'")
+	hl.exec_cmd("gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'")
+	hl.exec_cmd("gsettings set org.gnome.desktop.interface icon-theme 'Adwaita'")
+
+	-- Cursor theme
 	hl.exec_cmd("gsettings set org.gnome.desktop.interface cursor-theme 'volantes-cursors'")
 	hl.exec_cmd("gsettings set org.gnome.desktop.interface cursor-size 34")
 	hl.exec_cmd("hyprctl setcursor volantes_cursors 34")

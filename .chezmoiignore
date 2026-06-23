@@ -8,3 +8,6 @@
 ./NyxWallpapers/
 ./install/
 ./dot_config/noctalia/
+
+# Documentation files are kept in the chezmoi source repo only
+**/*.md

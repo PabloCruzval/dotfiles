@@ -3,6 +3,8 @@
 -- █▄▀ ██▄ ▀▄▄ █▄█ █▀▄ █▀█  █  █ █▄█ █ ▀█ ▄█ 
 -- ----------------------------------------------------- 
 
+local colors = require("modules.fallback_colors")
+
 hl.config({
     decoration = {
         rounding = 15,
@@ -18,7 +20,7 @@ hl.config({
 
         shadow = {
             enabled = true,
-            color = "rgba(46,52,64,1.0)", 
+            color = colors.shadow,
             range = 4,
             render_power = 3,
             sharp = false,

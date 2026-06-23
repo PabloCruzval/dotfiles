@@ -26,12 +26,12 @@ Personal dotfiles for Arch Linux featuring a modern Hyprland setup where [Noctal
 
 ## 📦 What's Inside
 
-- **[Hyprland](dot_config/hypr/README.md)** - Wayland compositor with modular configuration
+- **[Hyprland](dot_config/hypr/README.md)** - Wayland compositor with modular Lua configuration
 - **[Neovim](dot_config/nvim/readme.md)** - Modern IDE setup with LSP, Treesitter, and debugging
 - **[Noctalia v5](https://docs.noctalia.dev/v5/)** - Native Wayland desktop shell (C++) powering bars, launcher, control center, and themes
+- **[GTK](dot_config/gtk-3.0/README.md)** - GTK3/4 application theming with Noctalia v5
 - **Kitty** - GPU-accelerated terminal emulator
 - **Zsh** - Shell with Powerlevel10k and Zinit plugin manager
-- **Rofi** - Application launcher
 
 > 📚 Applications with their own detailed README are linked above.
 
@@ -72,8 +72,9 @@ The repository is organized with chezmoi naming conventions:
 | What | Where | Description |
 |------|-------|-------------|
 | **Installer**| `install/` | Modular setup scripts (`utils.sh`, `base.sh`, `pkgs.sh`, etc.) |
-| **Hyprland** | `dot_config/hypr/` | Modular Wayland compositor config with templates |
+| **Hyprland** | `dot_config/hypr/` | Modular Wayland compositor config in Lua |
 | **Neovim** | `dot_config/nvim/` | LSP, DAP, and plugin configurations |
+| **GTK** | `dot_config/gtk-3.0/`, `dot_config/gtk-4.0/` | Base GTK theme and dark-mode settings |
 | **Kitty** | `dot_config/kitty/` | Terminal emulator config |
 | **Scripts** | `dot_local/bin/` | Utility scripts (vc-mount, tmux-workspace) |
 
@@ -83,7 +84,7 @@ The repository is organized with chezmoi naming conventions:
 
 ## 🎯 Key Features
 
-Noctalia v5 is a native Wayland desktop shell (C++) that provides bars, launcher, control center, notifications, wallpaper, lock screen, and app theming. Colors are defined via custom palettes and automatically applied to Hyprland, Kitty, and GTK apps through built-in templates.
+Noctalia v5 is a native Wayland desktop shell (C++) that provides bars, launcher, control center, notifications, wallpaper, lock screen, and app theming. The active palette is derived from the current wallpaper (`[theme].source = "wallpaper"`) and applied to Hyprland, Kitty, and GTK apps through built-in templates.
 
 <details>
 <summary><b>🎨 Theming</b></summary>
@@ -92,14 +93,22 @@ Noctalia v5 is a native Wayland desktop shell (C++) that provides bars, launcher
 
 Noctalia v5 generates themed configuration files for external apps via its built-in template engine:
 
-- **Hyprland** - `require("noctalia").apply_theme()` sets border colors from the active palette
-- **Kitty** - `include themes/noctalia.conf` loads the 16-color terminal palette
-- **GTK 3/4** - `noctalia.css` injects Material Design color variables into GTK apps
-- **Qt** - Optional `qtct.conf` for Qt apps that need color integration
+- **Hyprland** - `require("noctalia").apply_theme()` sets border colors from the active palette. Fallback colors live in [`dot_config/hypr/modules/fallback_colors.lua`](dot_config/hypr/modules/fallback_colors.lua).
+- **Kitty** - `include themes/noctalia.conf` loads the 16-color terminal palette.
+- **GTK 3/4** - `noctalia.css` injects Material Design color variables into GTK apps. The base theme is `adw-gtk3` with `prefer-dark` enforced through `settings.ini` and Hyprland's autostart.
+- **Qt** - Not themed by Noctalia in this setup. Qt apps use the default platform integration.
 
 **Palette location**: `~/.config/noctalia/palettes/<Name>.json`
 
-**Applying templates**: Templates are automatically applied when the theme changes in Noctalia. Manual rerender: `noctalia msg theme rerender`
+**Applying templates**: Templates are automatically applied when the wallpaper or theme mode changes. Manual rerender:
+
+```bash
+noctalia msg templates-apply
+```
+
+**GTK theming details**: See [`dot_config/gtk-3.0/README.md`](dot_config/gtk-3.0/README.md)
+
+**Brave/Chromium note**: These browsers read the GTK theme only at startup. After switching light/dark, restart the browser.
 
 </details>
 
