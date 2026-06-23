@@ -3,16 +3,14 @@
 -- ▀▄█ ██▄ █ ▀█ ██▄ █▀▄ █▀█ █▄▄
 -- ----------------------------------------------------- 
 
-dofile(os.getenv("HOME") .. "/.cache/theme/hyprland_colors.lua")
-
 hl.config({
     general = {
         gaps_in = 0,
         gaps_out = 4,
         border_size = 2,
         col = {
-            active_border = active_border,
-            inactive_border = inactive_border,
+            active_border = "rgba(136,192,208,1.0)",
+            inactive_border = "rgba(59,66,82,1.0)",
         },
         resize_on_border = false,
         allow_tearing = false,

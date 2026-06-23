@@ -36,7 +36,7 @@ The source directory IS the chezmoi source (`~/.local/share/chezmoi`). No CI, te
 |------|---------|
 | `install/*.sh` | Interactive Arch Linux setup scripts (modular) |
 | `dot_config/<app>/` | Per-app config (hypr, nvim, kitty, tmux, systemd) |
-| `dot_local/bin/executable_*` | Custom scripts (nyx-theme, vc-mount, tmux-workspace) |
+| `dot_local/bin/executable_*` | Custom scripts (vc-mount, tmux-workspace) |
 | `.chezmoi.toml.tmpl` | Chezmoi config / template data |
 | `.chezmoiignore` | Files excluded from chezmoi management |
 | `.env.example` | Template for VeraCrypt credentials (`.env` is gitignored) |
@@ -50,11 +50,6 @@ chezmoi apply       # deploy changes locally
 git add -A && git commit -m "..." && git push
 chezmoi update      # on other machines: pull + apply
 ```
-
-## Theme system
-
-`nyx-theme` syncs colors/mode from Noctalia. Systemd user timers auto-switch at 06:00/19:30.
-Enable with: `systemctl --user enable --now theme.timer`
 
 ## Install flow
 

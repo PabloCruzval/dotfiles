@@ -5,17 +5,13 @@
 
 hl.on("hyprland.start", function()
 	-- System services
-	hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP QT_QPA_PLATFORMTHEME QT_STYLE_OVERRIDE")
-	hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP QT_QPA_PLATFORMTHEME QT_STYLE_OVERRIDE")
+	hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
+	hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
 	hl.exec_cmd("systemctl --user start hyprpolkitagent")
 	hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
 	hl.exec_cmd("QT_QPA_PLATFORMTHEME=gtk3 qs -c noctalia-shell")
-	hl.exec_cmd("~/.local/bin/nyx-theme sync")
 
-	-- Theme sync (apply correct theme based on time of day)
-	hl.exec_cmd("$HOME/.local/bin/nyx-theme sync")
-
-	--  User applications
+	-- User applications
 	hl.exec_cmd("syncthing --no-browser")
 
 	-- GTK & cursor theme

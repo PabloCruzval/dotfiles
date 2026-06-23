@@ -40,7 +40,7 @@ pkgs=(
 	hyprland hyprpaper hyprpolkitagent 
 	hyprlock hypridle hyprpicker cliphist
 	xdg-desktop-portal-gtk xdg-desktop-portal-hyprland
-	qt5-wayland qt6-wayland xdg-user-dirs
+	qt5-wayland qt6-wayland xdg-user-dirs archlinux-xdg-menu
 
 	# Screenshot Tools
 	grim slurp
@@ -53,7 +53,7 @@ pkgs=(
 	wireplumber pamixer wiremix pavucontrol playerctl
 
 	# File Manager
-	dolphin yazi
+	nautilus yazi
 
 	# Fonts
 	noto-fonts-cjk noto-fonts-emoji noto-fonts ttf-jetbrains-mono-nerd

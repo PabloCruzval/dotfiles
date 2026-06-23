@@ -12,7 +12,7 @@ Personal Hyprland configuration featuring modular design, dynamic theming, and a
 
 - **📦 Modular Design** - Configuration split by functionality for easy maintenance
 - **🖥️ Multi-Device Support** - Automatic desktop/laptop configuration via templates
-- **🎨 Nord-Inspired Colors** - Cohesive color scheme across borders and UI
+- **🎨 Static Colors** - Nord-inspired hardcoded colors, no runtime color generation
 - **🔒 Security First** - Integrated idle management and screen locking
 - **⚡ Optimized Performance** - 144Hz support on desktop, power-efficient on laptop
 - **🎯 Custom Animations** - "Diablo-1" animation preset for snappy feel
@@ -51,7 +51,7 @@ hypr/
 **Color Scheme (Nord-inspired)**:
 - Active border: `#88c0d0` (Frost blue)
 - Inactive border: `#3b4252` (Dark gray)
-- Background: `#2e3440` (Polar night)
+- Shadow: `#2e3440` (Polar night palette base)
 
 **Layout**:
 - No gaps between windows (maximalist space usage)
@@ -193,7 +193,7 @@ Secure and beautiful lock screen:
 | `SUPER + R` | Application launcher (`$launcher`) |
 | `SUPER + SUPER_L` | Control center (`$menu`) |
 | `SUPER + B` | Browser (Brave) |
-| `SUPER + E` | File manager (Dolphin) |
+| `SUPER + E` | File manager (Nautilus) |
 | `SUPER + O` | Notion |
 | `SUPER + .` | Emoji picker (Emote) |
 
@@ -265,7 +265,7 @@ Automatic workspace assignment for common applications:
 | Brave | 2 |
 | Visual Studio Code | 3 |
 | Obsidian | 4 |
-| Dolphin | 4 |
+| Nautilus | 5 |
 | Discord | 5 |
 | Telegram | 5 |
 
@@ -311,7 +311,7 @@ Configured in [modules/env.conf](modules/env.conf):
 |------|-------------|
 | Terminal | Kitty |
 | Browser | Brave |
-| File Manager | Dolphin |
+| File Manager | Nautilus |
 | Launcher | Rofi |
 | Cursor Theme | Bibata-Modern-Classic |
 | GTK Theme | Adwaita:dark |
@@ -372,7 +372,7 @@ sudo pacman -S playerctl wireplumber brightnessctl
 
 **Applications**:
 ```bash
-sudo pacman -S thunar
+sudo pacman -S nautilus
 yay -S brave-bin emote notion-app-enhanced
 ```
 
@@ -390,8 +390,8 @@ sudo pacman -S gnome-keyring
 # File synchronization
 sudo pacman -S syncthing
 
-# QT theme integration
-sudo pacman -S qt6ct
+# GTK theme customization
+sudo pacman -S nwg-look
 ```
 
 </details>

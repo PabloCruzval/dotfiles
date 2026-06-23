@@ -16,7 +16,7 @@ Personal dotfiles for Arch Linux featuring a modern Hyprland setup where [Noctal
 
 ## ✨ Features
 
-- **🎨 Dynamic Theming** - Automatic light/dark mode with Hyprland colors synced from Noctalia-generated files
+- **🎨 Nord-Inspired Color Scheme** - Cohesive color palette across Hyprland borders, Kitty terminal, and tmux
 - **🖥️ Multi-Monitor Support** - Separate configurations for desktop and laptop setups
 - **📦 Modular Configuration** - Clean, organized configs split by functionality
 - **🔄 Template-Based** - Machine-specific configs generated automatically via chezmoi
@@ -75,7 +75,7 @@ The repository is organized with chezmoi naming conventions:
 | **Hyprland** | `dot_config/hypr/` | Modular Wayland compositor config with templates |
 | **Neovim** | `dot_config/nvim/` | LSP, DAP, and plugin configurations |
 | **Kitty** | `dot_config/kitty/` | Terminal emulator config |
-| **Scripts** | `dot_local/bin/` | Utility scripts (nyx-theme) |
+| **Scripts** | `dot_local/bin/` | Utility scripts (vc-mount, tmux-workspace) |
 
 > 💡 **Chezmoi naming**: `dot_` → `.` (hidden files), `.tmpl` → template, `executable_` → executable bit
 
@@ -83,38 +83,20 @@ The repository is organized with chezmoi naming conventions:
 
 ## 🎯 Key Features
 
-Noctalia Shell is still the layer that ties the desktop together visually, but its own configuration is intentionally not managed in this repository.
+Noctalia Shell provides the desktop widget layer (bar, launcher, control center) but its visual configuration is managed directly within the app.
 
 <details>
-<summary><b>🎨 Dynamic Theming</b></summary>
+<summary><b>🎨 Theming</b></summary>
 
 <br>
 
-Automated theme sync that reads Noctalia's generated files and applies matching Hyprland + GTK mode changes.
+Nord-inspired color scheme applied to:
 
-**Features:**
-- 🌅 **Auto Mode Switch** - Switches the active mode automatically at 6am (light) and 7:30pm (dark)
-- 🔄 **Login Sync** - Applies the correct mode at startup
-- ⌨️ **Quick Toggle** - `SUPER + T` switches dark/light
-- 🎨 **Color Sync** - Hyprland border/shadow colors are read from `~/.config/noctalia/colors.json`
-- 🧭 **Mode Source** - Dark/light state is read from `~/.config/noctalia/settings.json`
-
-**Usage:**
-```bash
-nyx-theme apply dark         # Force dark mode
-nyx-theme apply light        # Force light mode
-nyx-theme toggle             # Toggle dark/light mode
-nyx-theme sync noctalia      # Sync colors/mode from Noctalia generated files
-nyx-theme sync time          # Sync mode according to your timer workflow
-```
-
-**Automatic Switching:**
-```bash
-# Enable the systemd timer for automatic mode changes
-systemctl --user enable --now theme.timer
-```
-
-> ℹ️ Noctalia config/themes are no longer versioned in this repo. Configure them directly in Noctalia config panel.
+- **Hyprland** - Border colors (`#88c0d0` active, `#3b4252` inactive) and shadow (`#2e3440`) are hardcoded in `modules/general.lua` and `modules/decorations.lua`
+- **Kitty** - 16-color Nord palette defined inline in `kitty.conf`
+- **tmux** - Full OpenCode palette in `tmux.conf`
+- **GTK** - `Adwaita-dark` theme with `prefer-dark` color scheme set via `gsettings`
+- **Cursor** - `volantes-cursors` at size 34
 
 </details>
 
@@ -221,11 +203,11 @@ Each major component has detailed documentation:
 
 <br>
 
-**Change themes:**
+**Change GTK theme:**
 ```bash
-nvim ~/.config/noctalia/settings.json
-nyx-theme sync noctalia
-nyx-theme toggle
+gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
+# or use nwg-look for a GUI
+nwg-look
 ```
 
 **Adjust monitors:**

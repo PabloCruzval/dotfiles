@@ -9,7 +9,7 @@ local ipc = "qs -c noctalia-shell ipc call"
 local programs = {
 	browser = "brave",
 	terminal = "kitty",
-	fileManager = "dolphin",
+	fileManager = "nautilus",
 	launcher = ipc .. " launcher toggle",
 	menu = ipc .. " controlCenter toggle"
 }
@@ -21,7 +21,6 @@ local programs = {
 hl.bind(mainMod .. " + Q",         hl.dsp.window.close())
 hl.bind(mainMod .. " + M",         hl.dsp.window.fullscreen({action="toggle"}))
 hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exec_cmd("hyprshutdown"))
-hl.bind(mainMod .. " + T",         hl.dsp.exec_cmd("$HOME/.local/bin/nyx-theme toggle"))
 
 --  ----------------------------------------------------- 
 --  ▄▀█ █▀█ █▀█ █   █ ▄▀▀ ▄▀█ ▀█▀ █ █▀█ █▄ █ █▀ 
