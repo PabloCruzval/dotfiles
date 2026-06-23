@@ -1,0 +1,10 @@
+sleep 2 && hyprctl eval '
+  local win = hl.get_active_window()
+  if win ~= nil then
+    local target = "address:" .. win.address
+    hl.dispatch(hl.dsp.window.float({ window = target, action = "enable" }))
+    hl.dispatch(hl.dsp.window.pin({ window = target, action = "enable" }))
+    hl.dispatch(hl.dsp.window.move({ window = target, monitor = "DP-1" }))
+  end
+'
+

@@ -18,6 +18,10 @@ hl.config({
             tap_to_click = true, 
             drag_lock = false,
         },
+
+		tablet = {
+			output = "DP-1"
+		},
     },
 })
 
