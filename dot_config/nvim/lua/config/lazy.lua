@@ -26,6 +26,6 @@ require("lazy").setup({
 		{ import = "plugins"}
 	},
 	install = {
-		colorscheme = { "kanagawa" },
+		colorscheme = { "oc-2" },
 	},
 })
