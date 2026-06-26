@@ -6,12 +6,12 @@
 
 </div>
 
-Personal Neovim configuration for web development featuring modular lazy-loading, native LSP, blink.cmp completion, and Kanagawa aesthetics.
+Personal Neovim configuration for web development featuring modular lazy-loading, native LSP, blink.cmp completion, and oc-2 aesthetics.
 
 ## ✨ Features
 
 - **⚡ Lazy Loading** - Plugins load only when needed via lazy.nvim for fast startup
-- **🔧 Native LSP** - Zero-overhead language server integration (vtsls, tailwindcss, lua_ls, astro, more)
+- **🔧 Native LSP** - Zero-overhead language server integration (vtsls, tailwindcss, lua_ls, astro, tinymist, more)
 - **🧠 blink.cmp** - Performant autocompletion with ghost text, auto-brackets, and signature help
 - **📐 conform.nvim** - Manual multi-formatter orchestration (prettierd, stylua, ruff\_format)
 - **🏷️ nvim-ts-autotag** - Treesitter-powered auto-closing and renaming of HTML/JSX tags
@@ -19,9 +19,10 @@ Personal Neovim configuration for web development featuring modular lazy-loading
 - **🔍 Git Signs** - Inline git change indicators, hunk staging, preview, and blame
 - **🗂️ Oil + Mini.pick** - Edit filesystem as a buffer + fuzzy picker for files/grep/buffers
 - **📦 JSON Schema Validation** - Automatic schema detection via SchemaStore for `package.json`, `tsconfig.json`, etc.
-- **🎨 Kanagawa Theme** - Warm, vibrant color scheme with rounded borders and transparent statusline
+- **🎨 oc-2 Theme** - Warm, vibrant color scheme with rounded borders and transparent statusline
 - **📋 Diagnostic Signs** - Custom Nerd Font icons for errors, warnings, info, and hints
 - **🖥️ Integrated Terminal** - Toggle floating/split terminal with session persistence
+- **📝 Writing Tools** - Typst LSP/preview, prose wordcount (:WordCount), and reading-time estimates
 
 ## 📁 Structure
 
@@ -41,17 +42,21 @@ nvim/
 │   │   ├── syntax.lua              # nvim-treesitter, guess-indent
 │   │   ├── editing.lua             # nvim-autopairs, nvim-ts-autotag, conform.nvim
 │   │   ├── git.lua                 # gitsigns.nvim
-│   │   ├── theme.lua               # kanagawa.nvim
-│   │   └── ui.lua                  # (reserved)
+│   │   ├── theme.lua               # oc-2.nvim
+│   │   ├── ui.lua                  # which-key.nvim
+│   │   └── typst.lua               # typst-preview.nvim, nvim-prose
 │   └── utils/
-│       └── terminal.lua            # Toggle terminal utility
+│       ├── terminal.lua            # Toggle terminal utility
+│       ├── tinymist_status.lua     # Tinymist compile status handler
+│       └── wordcount.lua           # Word count and reading time
 └── after/
     └── lsp/
         ├── vtsls.lua               # TypeScript/JavaScript LSP config
         ├── astro.lua               # Astro LSP config
         ├── jsonls.lua              # JSON LSP with SchemaStore
         ├── tailwindcss.lua         # Tailwind CSS LSP config
-        └── emmet_language_server.lua # Emmet LSP config
+        ├── emmet_language_server.lua # Emmet LSP config
+        └── tinymist.lua            # Typst LSP config
 ```
 
 ---
@@ -97,7 +102,8 @@ nvim/
 | [oil.nvim](https://github.com/stevearc/oil.nvim) | File explorer as an editable buffer |
 | [mini.pick](https://github.com/echasnovski/mini.pick) | Fuzzy picker (files, buffers, grep, help) |
 | [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) | Advanced syntax highlighting & parsing |
-| [kanagawa.nvim](https://github.com/rebelot/kanagawa.nvim) | Warm, inspired color scheme |
+| [oc-2.nvim](https://github.com/builtbyleo/oc-2.nvim) | Warm, vibrant color scheme |
+| [which-key.nvim](https://github.com/folke/which-key.nvim) | Keybinding popup menu |
 
 </details>
 
@@ -123,6 +129,19 @@ nvim/
 
 </details>
 
+<details>
+<summary><b>Writing (Typst & Prose)</b></summary>
+
+<br>
+
+| Plugin | Purpose |
+|--------|---------|
+| [tinymist](https://github.com/myriad-dreamin/tinymist) | Typst LSP with typstyle formatting, PDF export on save |
+| [typst-preview.nvim](https://github.com/chomosuke/typst-preview.nvim) | Live Typst PDF preview |
+| [nvim-prose](https://github.com/skwee357/nvim-prose) | Word count and reading time for prose files |
+
+</details>
+
 ---
 
 ## 🧠 Language Servers
@@ -139,6 +158,7 @@ Installed automatically via Mason. Configured in [`after/lsp/`](after/lsp/):
 | **html** | — | HTML language support |
 | **tailwindcss** | [`after/lsp/tailwindcss.lua`](after/lsp/tailwindcss.lua) | Tailwind CSS class completion |
 | **lua\_ls** | — | Lua language server (for config editing) |
+| **tinymist** | [`after/lsp/tinymist.lua`](after/lsp/tinymist.lua) | Typst LSP — typstyle formatting, PDF export on save |
 
 ---
 
@@ -187,6 +207,7 @@ Installed automatically via Mason. Configured in [`after/lsp/`](after/lsp/):
 | Key | Action |
 |-----|--------|
 | `<leader>lf` | Format buffer (LSP) |
+| `<leader>la` | Code actions |
 | `<leader>fm` | Format buffer (conform.nvim, manual) |
 | `<leader>ld` | Go to definition |
 | `<leader>lr` | Rename symbol |
@@ -259,6 +280,18 @@ Installed automatically via Mason. Configured in [`after/lsp/`](after/lsp/):
 </details>
 
 <details>
+<summary><b>Typst</b></summary>
+
+<br>
+
+| Key | Action |
+|-----|--------|
+| `<leader>tp` | Toggle Typst preview |
+| `:WordCount` | Show word/char count and reading time |
+
+</details>
+
+<details>
 <summary><b>Terminal</b></summary>
 
 <br>
@@ -278,7 +311,7 @@ Installed automatically via Mason. Configured in [`after/lsp/`](after/lsp/):
 
 <br>
 
-- **Theme**: [Kanagawa](https://github.com/rebelot/kanagawa.nvim) — warm, vibrant color palette inspired by the classic ukiyo-e painting
+- **Theme**: [oc-2](https://github.com/builtbyleo/oc-2.nvim) — warm, vibrant color palette
 - **Borders**: Rounded (`winborder = "rounded"`)
 - **Statusline**: Transparent background (`guibg=NONE`)
 - **Line Numbers**: Relative with absolute current line
@@ -352,6 +385,7 @@ emmet-language-server      # Emmet abbreviations
 vscode-langservers-extracted # HTML, CSS, JSON
 @tailwindcss/language-server # Tailwind CSS
 lua-language-server        # Lua
+tinymist                   # Typst (typstyle formatting, PDF export)
 ```
 
 **Formatters** (install manually if needed):
@@ -446,6 +480,8 @@ Then restart Neovim to reinstall everything.
 - **Toggle terminal**: `<leader>ts` opens a persistent split terminal
 - **Config editing**: Changes to `init.lua` or any config file — use `<leader>so` to source
 - **JSON validation**: Opening `package.json` or `tsconfig.json` auto-loads the correct schema
+- **Typst preview**: `<leader>tp` toggles live PDF preview
+- **Word count**: `:WordCount` shows words, characters, and estimated reading time
 
 ---
 
@@ -453,7 +489,6 @@ Then restart Neovim to reinstall everything.
 
 - **[Hyprland](../hypr/README.md)** — Wayland compositor
 - **[Kitty](../kitty/kitty.conf)** — Terminal emulator
-- **[Quickshell](../quickshell/README.md)** — Status bar
 - **[Main Dotfiles](../../README.md)** — Complete dotfiles documentation
 
 ---

@@ -56,7 +56,7 @@ Noctalia controls the global theme mode. To toggle:
 noctalia msg theme-mode-toggle
 ```
 
-Then restart GTK applications (and Brave/Chromium) to pick up the change.
+Then restart GTK applications (and librewolf/Chromium) to pick up the change.
 
 ### Fix an App That Appears Light
 
@@ -114,9 +114,9 @@ Noctalia's built-in GTK template also writes a small `gtk.css` in each GTK confi
 
 `settings.ini` sets the base GTK theme and the dark-mode preference. It is a static, machine-independent configuration file, so it is managed by chezmoi. The generated color files (`noctalia.css`, `gtk.css`) change whenever the wallpaper or palette changes, so they live outside version control.
 
-### Brave and Chromium Limitation
+### Chromium Limitation
 
-Brave and other Chromium-based browsers read the GTK theme only at startup. They do **not** hot-reload when the theme changes. After switching from dark to light (or vice versa), you must restart the browser.
+librewolf and other Chromium-based browsers read the GTK theme only at startup. They do **not** hot-reload when the theme changes. After switching from dark to light (or vice versa), you must restart the browser.
 
 ---
 
@@ -182,13 +182,13 @@ gsettings set org.gnome.desktop.interface icon-theme 'Adwaita'
 </details>
 
 <details>
-<summary><b>Brave stays light after toggling theme</b></summary>
+<summary><b>librewolf stays light after toggling theme</b></summary>
 
 <br>
 
-Brave reads GTK settings only at startup. Restart Brave completely.
+librewolf reads GTK settings only at startup. Restart librewolf completely.
 
-Also verify in `brave://settings/appearance` that the theme is set to **GTK**, not forced Light or Dark.
+Also verify in `about:preferences` that the theme is set to **System**, not forced Light or Dark.
 
 </details>
 

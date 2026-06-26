@@ -43,7 +43,7 @@ Personal dotfiles for Arch Linux featuring a modern Hyprland setup where [Noctal
 > Only for Arch Linux. The script was made for my machines and may require adjustments for yours.
 
 >[!NOTE]
-> Existing configurations for `hypr`, `noctalia`, `kitty`, `nvim`, or `rofi` will be backed up to `$HOME/.backups_dotfiles/<timestamp>`
+> Existing configurations for `hypr`, `noctalia`, `kitty`, `nvim` will be backed up to `$HOME/.backups_dotfiles/<timestamp>`
 
 ```bash
 bash -c "$(curl -fsSL [https://raw.githubusercontent.com/PabloCruzval/dotfiles/refs/heads/main/setup.sh](https://raw.githubusercontent.com/PabloCruzval/dotfiles/refs/heads/main/setup.sh))"
@@ -76,7 +76,7 @@ The repository is organized with chezmoi naming conventions:
 | **Neovim** | `dot_config/nvim/` | LSP, DAP, and plugin configurations |
 | **GTK** | `dot_config/gtk-3.0/`, `dot_config/gtk-4.0/` | Base GTK theme and dark-mode settings |
 | **Kitty** | `dot_config/kitty/` | Terminal emulator config |
-| **Scripts** | `dot_local/bin/` | Utility scripts (vc-mount, tmux-workspace) |
+| **Scripts** | `dot_local/bin/` | Utility scripts (vc-mount, pin_hyprland, tmux-workspace) |
 
 > 💡 **Chezmoi naming**: `dot_` → `.` (hidden files), `.tmpl` → template, `executable_` → executable bit
 
@@ -96,7 +96,7 @@ Noctalia v5 generates themed configuration files for external apps via its built
 - **Hyprland** - `require("noctalia").apply_theme()` sets border colors from the active palette. Fallback colors live in [`dot_config/hypr/modules/fallback_colors.lua`](dot_config/hypr/modules/fallback_colors.lua).
 - **Kitty** - `include themes/noctalia.conf` loads the 16-color terminal palette.
 - **GTK 3/4** - `noctalia.css` injects Material Design color variables into GTK apps. The base theme is `adw-gtk3` with `prefer-dark` enforced through `settings.ini` and Hyprland's autostart.
-- **Qt** - Not themed by Noctalia in this setup. Qt apps use the default platform integration.
+- **Qt** - Not themed. Qt theming (kdeglobals) was removed; Qt apps use the default platform integration.
 
 **Palette location**: `~/.config/noctalia/palettes/<Name>.json`
 
@@ -108,7 +108,7 @@ noctalia msg templates-apply
 
 **GTK theming details**: See [`dot_config/gtk-3.0/README.md`](dot_config/gtk-3.0/README.md)
 
-**Brave/Chromium note**: These browsers read the GTK theme only at startup. After switching light/dark, restart the browser.
+**Chromium browser note**: Chromium-based browsers (e.g. librewolf) read the GTK theme only at startup. After switching light/dark, restart the browser.
 
 </details>
 
@@ -208,7 +208,7 @@ chezmoi cd        # Go to source directory
 
 Each major component has detailed documentation:
 - **[Hyprland](dot_config/hypr/README.md)** - Compositor, keybindings, modules
-- **[Neovim](dot_config/nvim/readme.md)** - Plugins, LSP, DAP
+- **[Neovim](dot_config/nvim/README.md)** - Plugins, LSP, DAP
 
 <details>
 <summary><b>Common Tasks</b></summary>
@@ -221,13 +221,13 @@ Palettes are managed in `~/.config/noctalia/palettes/`.
 
 **Adjust monitors:**
 ```bash
-nvim ~/.local/share/chezmoi/dot_config/hypr/modules/monitors-desktop.conf
+nvim ~/.local/share/chezmoi/dot_config/hypr/modules/monitors-desktop.lua
 chezmoi apply
 ```
 
 **Modify keybindings:**
 ```bash
-nvim ~/.local/share/chezmoi/dot_config/hypr/modules/keybindings.conf
+nvim ~/.local/share/chezmoi/dot_config/hypr/modules/keybindings.lua
 chezmoi apply
 ```
 

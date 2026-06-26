@@ -28,6 +28,7 @@ hypr/
 ├── hypridle.conf                   # Idle management & auto-suspend
 ├── hyprlock.conf                   # Lock screen configuration
 └── modules/
+    ├── apps.lua                    # Shared app definitions (cmd, title match, workspace)
     ├── env.lua                     # Environment variables & default apps
     ├── general.lua                 # Gaps, borders, layouts, misc settings
     ├── fallback_colors.lua         # Fallback Nord palette when Noctalia is not loaded
@@ -199,10 +200,10 @@ Secure and beautiful lock screen:
 | `SUPER + Return` | Launch terminal (Kitty) |
 | `SUPER + SPACE` | Application launcher |
 | `SUPER + SUPER_L` | Control center |
-| `SUPER + B` | Browser (Brave) |
+| `SUPER + B` | Browser (librewolf) |
 | `SUPER + E` | File manager (Nautilus) |
-| `SUPER + O` | Notion |
-| `SUPER + .` | Emoji picker (Emote) |
+| `SUPER + O` | Obsidian |
+| `SUPER + ALT + .` | Emoji picker (Emote) |
 
 </details>
 
@@ -216,7 +217,6 @@ Secure and beautiful lock screen:
 | `SUPER + Q` | Close active window |
 | `SUPER + V` | Toggle floating mode |
 | `SUPER + M` | Toggle fullscreen |
-| `SUPER + P` | Pseudo-tiling (dwindle) |
 | `SUPER + H/J/K/L` | Move focus (Vim keys) |
 | `SUPER + Arrow Keys` | Move focus (arrows) |
 | `SUPER + LMB` (drag) | Move window |
@@ -234,6 +234,41 @@ Secure and beautiful lock screen:
 | `SUPER + [1-9,0]` | Switch to workspace 1-10 |
 | `SUPER + SHIFT + [1-9,0]` | Move window to workspace 1-10 |
 | `SUPER + Mouse Wheel` | Cycle through workspaces |
+
+</details>
+
+<details>
+<summary><b>📐 Master Layout</b></summary>
+
+<br>
+
+| Keybind | Action |
+|---------|--------|
+| `SUPER + SHIFT + Return` | Swap with master |
+| `SUPER + SHIFT + I` | Add master |
+| `SUPER + SHIFT + D` | Remove master |
+| `SUPER + SHIFT + J` | Cycle next |
+| `SUPER + SHIFT + K` | Cycle previous |
+| `SUPER + ALT + H/L` | Decrease/increase master factor |
+| `SUPER + ALT + J/K` | Cycle orientation |
+
+</details>
+
+<details>
+<summary><b>📜 Scrolling Layout</b></summary>
+
+<br>
+
+| Keybind | Action |
+|---------|--------|
+| `SUPER + ,` | Move column left |
+| `SUPER + .` | Move column right |
+| `SUPER + SHIFT + ,` | Swap column left |
+| `SUPER + SHIFT + .` | Swap column right |
+| `SUPER + ;` | Fit active column |
+| `SUPER + :` | Consume or expel previous |
+| `SUPER + SHIFT + E` | Expel window |
+| `SUPER + SHIFT + C` | Consume window |
 
 </details>
 
@@ -269,14 +304,15 @@ Automatic workspace assignment for common applications:
 
 | Application | Workspace |
 |-------------|-----------|
-| Brave | 2 |
+| librewolf | 2 |
 | Visual Studio Code | 3 |
 | Obsidian | 4 |
 | Nautilus | 5 |
 | Discord | 5 |
 | Telegram | 5 |
 
-> Configure in [modules/windowrules.conf](modules/windowrules.conf)
+> App definitions (cmd, title match, workspace) are centralized in [modules/apps.lua](modules/apps.lua).
+> Window rules and keybindings both read from this shared module.
 
 ---
 
@@ -312,12 +348,12 @@ Automatic workspace assignment for common applications:
 
 <br>
 
-Configured in [modules/env.conf](modules/env.conf):
+Configured in [modules/env.lua](modules/env.lua):
 
 | Type | Application |
 |------|-------------|
 | Terminal | Kitty |
-| Browser | Brave |
+| Browser | librewolf |
 | File Manager | Nautilus |
 | Launcher | Noctalia v5 |
 | Cursor Theme | volantes-cursors |
@@ -344,7 +380,7 @@ gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
 gsettings set org.gnome.desktop.interface icon-theme 'Adwaita'
 ```
 
-This guarantees GTK apps (including Brave at startup) use the correct base theme, even before Noctalia templates are applied.
+This guarantees GTK apps (including librewolf at startup) use the correct base theme, even before Noctalia templates are applied.
 
 </details>
 
@@ -387,7 +423,7 @@ sudo pacman -S playerctl wireplumber brightnessctl
 **Applications**:
 ```bash
 sudo pacman -S nautilus
-yay -S brave-bin emote
+yay -S librewolf-bin emote
 ```
 
 **GTK theming**:
@@ -423,13 +459,13 @@ sudo pacman -S syncthing
 
 <br>
 
-**Desktop**: [modules/monitors-desktop.conf](modules/monitors-desktop.conf)
+**Desktop**: [modules/monitors-desktop.lua](modules/monitors-desktop.lua)
 ```properties
 monitor = DP-1,1920x1080@144,0x0,1
 monitor = HDMI-A-1,1920x1080@60,-1920x0,1
 ```
 
-**Laptop**: [modules/monitors-laptop.conf](modules/monitors-laptop.conf)
+**Laptop**: [modules/monitors-laptop.lua](modules/monitors-laptop.lua)
 ```properties
 monitor = eDP-1,1920x1080@60,0x0,1
 ```
@@ -446,7 +482,7 @@ hyprctl monitors
 
 <br>
 
-Edit [modules/decorations.conf](modules/decorations.conf) and [modules/general.conf](modules/general.conf):
+Edit [modules/decorations.lua](modules/decorations.lua) and [modules/general.lua](modules/general.lua):
 
 **Borders**:
 ```properties
@@ -479,7 +515,7 @@ decoration {
 
 <br>
 
-All keybindings in [modules/keybindings.conf](modules/keybindings.conf):
+All keybindings in [modules/keybindings.lua](modules/keybindings.lua):
 
 ```properties
 # Add custom keybinding
@@ -516,7 +552,7 @@ bind = $mainMod SHIFT, F, togglefloating,
 
 <br>
 
-Edit [modules/autostart.conf](modules/autostart.conf):
+Edit [modules/autostart.lua](modules/autostart.lua):
 
 ```properties
 exec-once = your-application
@@ -534,17 +570,25 @@ hyprctl reload
 
 <br>
 
-Edit [modules/windowrules.conf](modules/windowrules.conf):
+Add or edit apps in [modules/apps.lua](modules/apps.lua) — workspace rules are generated automatically:
 
-```properties
-# Assign to workspace
-windowrule = workspace NUMBER, match:title .*AppName.*
+```lua
+-- In apps.lua: add a title pattern and workspace number
+myapp = {
+    cmd = "myapp",            -- command for keybindings (optional)
+    title = ".*MyApp.*",      -- window title regex
+    workspace = 3,            -- target workspace
+}
+```
 
-# Make floating
-windowrule = float, ^(app-id)$
+For custom window rules, edit [modules/windowrules.lua](modules/windowrules.lua):
 
-# Set opacity
-windowrule = opacity 0.9, ^(app-id)$
+```lua
+-- Make floating
+hl.window_rule({ float = true, match = { class = "app-id" } })
+
+-- Center floating windows
+hl.window_rule({ match = { float = true }, center = true })
 ```
 
 </details>
@@ -554,15 +598,17 @@ windowrule = opacity 0.9, ^(app-id)$
 
 <br>
 
-Edit [modules/inputs.conf](modules/inputs.conf):
+Edit [modules/inputs.lua](modules/inputs.lua):
 
-```properties
-input {
-    kb_layout = us,latam
-    kb_options = caps:escape,grp:alt_shift_toggle
-    sensitivity = 0
-    accel_profile = flat
-}
+```lua
+hl.config({
+    input = {
+        kb_layout = "us,latam",
+        kb_options = "caps:escape,grp:alt_shift_toggle",
+        sensitivity = 0,
+        accel_profile = "flat",
+    }
+})
 ```
 
 </details>
@@ -572,14 +618,16 @@ input {
 
 <br>
 
-Edit [modules/animations.conf](modules/animations.conf):
+Edit [modules/animations.lua](modules/animations.lua):
 
-```properties
-animations {
-    enabled = true
-    bezier = myBezier, 0.05, 0.9, 0.1, 1.05
-    animation = windows, 1, 7, myBezier
-}
+```lua
+hl.config({
+    animations = {
+        enabled = true,
+        bezier = "myBezier, 0.05, 0.9, 0.1, 1.05",
+        animation = "windows, 1, 7, myBezier",
+    }
+})
 ```
 
 </details>
@@ -715,6 +763,6 @@ Hyprland
 
 Part of **[Nyx's Dotfiles](../../README.md)**
 
-Open source under MIT License
+Open source under GPLv3 License
 
 </div>
