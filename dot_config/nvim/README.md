@@ -6,7 +6,7 @@
 
 </div>
 
-Personal Neovim configuration for web development featuring modular lazy-loading, native LSP, blink.cmp completion, and oc-2 aesthetics.
+Personal Neovim configuration for web development featuring modular lazy-loading, native LSP, blink.cmp completion, and Noctalia-driven theming.
 
 ## ✨ Features
 
@@ -19,7 +19,7 @@ Personal Neovim configuration for web development featuring modular lazy-loading
 - **🔍 Git Signs** - Inline git change indicators, hunk staging, preview, and blame
 - **🗂️ Oil + Mini.pick** - Edit filesystem as a buffer + fuzzy picker for files/grep/buffers
 - **📦 JSON Schema Validation** - Automatic schema detection via SchemaStore for `package.json`, `tsconfig.json`, etc.
-- **🎨 oc-2 Theme** - Warm, vibrant color scheme with rounded borders and transparent statusline
+- **🎨 Noctalia Theme** - Colors generated from Noctalia palette via base16; Nord fallback if palette unavailable
 - **📋 Diagnostic Signs** - Custom Nerd Font icons for errors, warnings, info, and hints
 - **🖥️ Integrated Terminal** - Toggle floating/split terminal with session persistence
 - **📝 Writing Tools** - Typst LSP/preview, prose wordcount (:WordCount), and reading-time estimates
@@ -36,15 +36,18 @@ nvim/
 │   │   ├── diagnostic.lua          # Diagnostic display configuration
 │   │   ├── plugins.lua             # Centralized plugin option definitions
 │   │   └── lsp.lua                 # (reserved)
+│   ├── matugen-template.lua        # Noctalia user template source
 │   ├── plugins/
 │   │   ├── lsp.lua                 # LSP, Mason, blink.cmp, SchemaStore
 │   │   ├── nav.lua                 # oil.nvim, mini.pick
 │   │   ├── syntax.lua              # nvim-treesitter, guess-indent
 │   │   ├── editing.lua             # nvim-autopairs, nvim-ts-autotag, conform.nvim
 │   │   ├── git.lua                 # gitsigns.nvim
-│   │   ├── theme.lua               # oc-2.nvim
+│   │   ├── theme.lua               # base16-nvim (Noctalia palette engine)
 │   │   ├── ui.lua                  # which-key.nvim
 │   │   └── typst.lua               # typst-preview.nvim, nvim-prose
+│   ├── themes/
+│   │   └── noctalia.lua            # Theme loader: Noctalia palette → Nord fallback
 │   └── utils/
 │       ├── terminal.lua            # Toggle terminal utility
 │       ├── tinymist_status.lua     # Tinymist compile status handler
@@ -102,7 +105,7 @@ nvim/
 | [oil.nvim](https://github.com/stevearc/oil.nvim) | File explorer as an editable buffer |
 | [mini.pick](https://github.com/echasnovski/mini.pick) | Fuzzy picker (files, buffers, grep, help) |
 | [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) | Advanced syntax highlighting & parsing |
-| [oc-2.nvim](https://github.com/builtbyleo/oc-2.nvim) | Warm, vibrant color scheme |
+| [base16-nvim](https://github.com/RRethy/base16-nvim) | Base16 colorscheme engine, driven by Noctalia palette |
 | [which-key.nvim](https://github.com/folke/which-key.nvim) | Keybinding popup menu |
 
 </details>
@@ -311,7 +314,8 @@ Installed automatically via Mason. Configured in [`after/lsp/`](after/lsp/):
 
 <br>
 
-- **Theme**: [oc-2](https://github.com/builtbyleo/oc-2.nvim) — warm, vibrant color palette
+- **Theme**: Driven by [Noctalia v5](https://docs.noctalia.dev/v5/) palette via [base16-nvim](https://github.com/RRethy/base16-nvim) — colors match the desktop shell
+- **Fallback**: [Nord](https://www.nordtheme.com/) palette applied automatically when the Noctalia-generated file is missing
 - **Borders**: Rounded (`winborder = "rounded"`)
 - **Statusline**: Transparent background (`guibg=NONE`)
 - **Line Numbers**: Relative with absolute current line

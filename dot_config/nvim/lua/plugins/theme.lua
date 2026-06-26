@@ -1,5 +1,7 @@
 return {
-    {
-		'builtbyleo/oc-2.nvim'
-    },
+	{
+		"RRethy/base16-nvim",
+		lazy = false,
+		priority = 1000,
+	},
 }
