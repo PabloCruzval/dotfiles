@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+#
+# tmux-repo-dir - Shows GitHub repo name or current directory basename
+# Used by tmux status-right
+
+get_github_repo_name() {
+    local remote_url
+    remote_url=$(git remote get-url origin 2>/dev/null)
+    echo "$remote_url" | sed 's|.*[/:]||; s|\.git$||'
+}
+
+is_github_remote() {
+    local remote_url
+    remote_url=$(git remote get-url origin 2>/dev/null)
+    [[ "$remote_url" =~ github\.com ]]
+}
+
+main() {
+    if is_github_remote; then
+        get_github_repo_name
+    else
+        basename "$PWD" 2>/dev/null || return 0
+    fi
+}
+
+main
