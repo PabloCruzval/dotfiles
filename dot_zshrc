@@ -129,3 +129,6 @@ esac
 
 # bob neovim path
 export PATH="$HOME/.local/share/bob/nvim-bin:$PATH"
+
+# opencode
+export PATH=/home/nyx/.opencode/bin:$PATH
