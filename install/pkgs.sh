@@ -72,7 +72,7 @@ pkgs=(
 )
 
 aur_pkgs=(
-	brave-bin
+	librewolf-bin
 	noctalia-git
 	emote
 	volantes-cursors-git

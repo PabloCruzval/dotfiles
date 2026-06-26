@@ -6,13 +6,7 @@
 local mainMod = "SUPER"
 
 local ipc = "noctalia msg"
-local programs = {
-	browser = "librewolf",
-	terminal = "kitty",
-	fileManager = "nautilus",
-	launcher = ipc .. " panel-toggle launcher",
-	menu = ipc .. " panel-toggle control-center"
-}
+local apps = require("modules.apps")
 --  ----------------------------------------------------- 
 --  █▀ █▄█ █▀ ▀█▀ ██▀ █▀▄▀█ 
 --  ▄█  █  ▄█  █  ██▄ █ ▀ █ 
@@ -27,16 +21,16 @@ hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exec_cmd("hyprshutdown"))
 --  █▀█ █▀▀ █▀▀ █▄▄ █ ▀▄▄ █▀█  █  █ █▄█ █ ▀█ ▄█ 
 --  ----------------------------------------------------- 
 
-hl.bind(mainMod .. " + Return",    hl.dsp.exec_cmd(programs["terminal"]))
+hl.bind(mainMod .. " + Return",    hl.dsp.exec_cmd(apps.terminal.cmd))
 hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd('grim -g "$(slurp)" - | wl-copy'))
-hl.bind(mainMod .. " + E",         hl.dsp.exec_cmd(programs["fileManager"]))
+hl.bind(mainMod .. " + E",         hl.dsp.exec_cmd(apps.fileManager.cmd))
 hl.bind(mainMod .. " + V",         hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd(ipc .. " panel-toggle clipboard"))
-hl.bind(mainMod .. " + SUPER_L",   hl.dsp.exec_cmd(programs["menu"]))
-hl.bind(mainMod .. " + SPACE",         hl.dsp.exec_cmd(programs["launcher"]))
-hl.bind(mainMod .. " + B",         hl.dsp.exec_cmd(programs["browser"]))
-hl.bind(mainMod .. " + ALT + period", hl.dsp.exec_cmd("emote"))
-hl.bind(mainMod .. " + O",         hl.dsp.exec_cmd("obsidian"))
+hl.bind(mainMod .. " + SUPER_L",   hl.dsp.exec_cmd(ipc .. " panel-toggle control-center"))
+hl.bind(mainMod .. " + SPACE",     hl.dsp.exec_cmd(ipc .. " panel-toggle launcher"))
+hl.bind(mainMod .. " + B",         hl.dsp.exec_cmd(apps.browser.cmd))
+hl.bind(mainMod .. " + ALT + period", hl.dsp.exec_cmd(apps.emote.cmd))
+hl.bind(mainMod .. " + O",         hl.dsp.exec_cmd(apps.obsidian.cmd))
 hl.bind(mainMod .. " + SHIFT + P", hl.dsp.exec_cmd("hyprpicker -a"))
 
 --  ----------------------------------------------------- 
