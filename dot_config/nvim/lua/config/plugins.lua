@@ -19,6 +19,7 @@ function M.mason_lspconfig()
             "html",
             "tailwindcss",
             "lua_ls",
+            "tinymist",
         },
     }
 end
@@ -92,6 +93,7 @@ function M.treesitter()
                 "lua",
                 "vim",
                 "vimdoc",
+                "typst",
             },
             highlight = {
                 enable = true,
@@ -116,6 +118,15 @@ end
 
 function M.ui()
     return {}
+end
+
+function M.which_key()
+    return {
+        preset = "helix",
+        icons = {
+            rules = false,
+        },
+    }
 end
 
 ---------------
@@ -187,6 +198,24 @@ function M.gitsigns()
             map("<leader>gr", gs.reset_hunk, "Reset hunk")
             map("<leader>gs", function() gs.stage_hunk() end, "Stage hunk")
         end,
+    }
+end
+
+--------------
+--  TYPST  --
+--------------
+
+function M.typst_preview()
+    return {
+        dependencies_bin = {
+            tinymist = "tinymist",
+        },
+    }
+end
+
+function M.nvim_prose()
+    return {
+        filetypes = { "typst", "markdown", "asciidoc" },
     }
 end
 
