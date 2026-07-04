@@ -9,12 +9,18 @@ hl.window_rule({ match = { float = true }, center = true })
 
 -- Auto-assign windows to workspaces defined in apps.lua
 for _, app in pairs(apps) do
-    if app.workspace and app.title then
+    if app.workspace and app.title and not app.class then
         hl.window_rule({
             workspace = tostring(app.workspace),
             match = { title = app.title },
         })
     end
+	if app.workspace and app.class then
+		hl.window_rule({
+			workspace = tostring(app.workspace),
+			match = { class = app.class }
+		})
+	end
 end
 
 -- Workspace 3 uses scrolling layout

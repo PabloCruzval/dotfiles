@@ -18,6 +18,7 @@ return {
 	fileManager = {
 		cmd = "nautilus",
 		title = ".*Nautilus.*",
+		class = "org.gnome.Nautilus",
 		workspace = 5,
 	},
 	obsidian = {
