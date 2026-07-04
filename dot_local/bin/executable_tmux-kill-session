@@ -12,7 +12,8 @@ if [ -z "$session" ]; then
     exit 1
 fi
 
-read -r -p "¿Matar sesión '${session}'? [y/N] " ans
+read -r -n1 -p "¿Matar sesión '${session}'? [y/N] " ans
+echo
 if [ "${ans:-}" = "y" ] || [ "${ans:-}" = "Y" ]; then
     tmux kill-session -t "$session"
     echo "Sesión '${session}' eliminada"
