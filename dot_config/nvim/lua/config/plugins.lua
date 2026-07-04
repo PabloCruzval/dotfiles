@@ -20,6 +20,7 @@ function M.mason_lspconfig()
             "tailwindcss",
             "lua_ls",
             "tinymist",
+            "codebook",
         },
     }
 end
@@ -67,7 +68,12 @@ end
 -----------
 
 function M.oil()
-    return {}
+    return {
+        keymaps = {
+            ["<C-h>"] = false,
+            ["<C-l>"] = false,
+        },
+    }
 end
 
 function M.mini_pick()

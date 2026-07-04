@@ -1,0 +1,16 @@
+# Codebook global spell-check config
+# https://github.com/blopker/codebook
+#
+# Overrides por proyecto: coloca un `codebook.toml` o `.codebook.toml`
+# en la raiz del repo. Los code actions "Add to dictionary" escriben
+# al codebook.toml del proyecto; "Add to global dictionary" escribe aqui.
+
+dictionaries = ["en_us", "es"]
+words = []
+flag_words = []
+ignore_paths = []
+min_word_length = 3
+
+# Scope por defecto de codebook: comments + strings + definiciones de
+# identificadores (solo donde se definen, no donde se usan).
+# Sin include_tags/exclude_tags => revisa todas las categorias que conoce.

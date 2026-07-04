@@ -35,6 +35,32 @@ map({ 'n', 'v', 'x' }, '<leader>d', '"+y<CR>', { desc = "Copiar al portapapeles"
 map({ 'n', 'v', 'x' }, '<leader>s', ':e #<CR>', { desc = "Alternar al archivo previo" })
 map({ 'n', 'v', 'x' }, '<leader>h', ':noh<CR>', { desc = "Limpiar resaltado de búsqueda" })
 
+-- Variable global o local para rastrear el estado del toggle
+local line_wrap_navigation_active = false
+
+local function toggle_wrap_navigation()
+  local modes = { 'n', 'v' }
+  
+  if line_wrap_navigation_active then
+    -- Si está activo, eliminamos los mapeos para regresar al comportamiento nativo
+    for _, mode in ipairs(modes) do
+      pcall(vim.keymap.del, mode, 'k')
+      pcall(vim.keymap.del, mode, 'j') -- Por si decides usar j también
+    end
+    line_wrap_navigation_active = false
+    print("Navegación por líneas físicas (k/j estándar)")
+  else
+    -- Si está inactivo, activamos tus mapeos condicionales con expr = true
+    vim.keymap.set(modes, 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
+    vim.keymap.set(modes, 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
+    line_wrap_navigation_active = true
+    print("Navegación por líneas visuales (gk/gj activo)")
+  end
+end
+
+-- Asignamos el atajo para activar/desactivar la función (ejemplo con <leader>tw)
+vim.keymap.set('n', '<leader>tw', toggle_wrap_navigation, { desc = "Toggle wrap navigation (gk/gj)" })
+
 vim.api.nvim_create_autocmd("LspAttach", {
     group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
     callback = function(args)

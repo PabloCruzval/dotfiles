@@ -22,7 +22,7 @@ Personal Neovim configuration for web development featuring modular lazy-loading
 - **🎨 Noctalia Theme** - Colors generated from Noctalia palette via base16; Nord fallback if palette unavailable
 - **📋 Diagnostic Signs** - Custom Nerd Font icons for errors, warnings, info, and hints
 - **🖥️ Integrated Terminal** - Toggle floating/split terminal with session persistence
-- **📝 Writing Tools** - Typst LSP/preview, prose wordcount (:WordCount), and reading-time estimates
+- **📝 Writing Tools** - Typst LSP/preview, prose wordcount (:WordCount), reading-time estimates, and codebook spell checking
 
 ## 📁 Structure
 
@@ -59,7 +59,8 @@ nvim/
         ├── jsonls.lua              # JSON LSP with SchemaStore
         ├── tailwindcss.lua         # Tailwind CSS LSP config
         ├── emmet_language_server.lua # Emmet LSP config
-        └── tinymist.lua            # Typst LSP config
+        ├── tinymist.lua            # Typst LSP config
+        └── codebook.lua            # Code-aware spell checker LSP config
 ```
 
 ---
@@ -142,6 +143,7 @@ nvim/
 | [tinymist](https://github.com/myriad-dreamin/tinymist) | Typst LSP with typstyle formatting, PDF export on save |
 | [typst-preview.nvim](https://github.com/chomosuke/typst-preview.nvim) | Live Typst PDF preview |
 | [nvim-prose](https://github.com/skwee357/nvim-prose) | Word count and reading time for prose files |
+| [codebook](https://github.com/blopker/codebook) | Code-aware spell checker (LSP) — comments, strings, and definitions; typst/markdown prose too |
 
 </details>
 
@@ -162,6 +164,7 @@ Installed automatically via Mason. Configured in [`after/lsp/`](after/lsp/):
 | **tailwindcss** | [`after/lsp/tailwindcss.lua`](after/lsp/tailwindcss.lua) | Tailwind CSS class completion |
 | **lua\_ls** | — | Lua language server (for config editing) |
 | **tinymist** | [`after/lsp/tinymist.lua`](after/lsp/tinymist.lua) | Typst LSP — typstyle formatting, PDF export on save |
+| **codebook** | [`after/lsp/codebook.lua`](after/lsp/codebook.lua) | Code-aware spell checking (comments, strings, definitions) |
 
 ---
 
