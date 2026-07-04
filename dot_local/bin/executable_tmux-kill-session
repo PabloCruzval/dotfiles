@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+#
+# tmux-kill-session - Prompt modal para matar la sesión tmux actual.
+# Pensado para invocarse desde display-popup -E.
+
+set -euo pipefail
+
+session=$(tmux display-message -p "#S" 2>/dev/null || echo "")
+if [ -z "$session" ]; then
+    echo "No se pudo determinar la sesión actual" >&2
+    read -r -p "[Enter] para cerrar"
+    exit 1
+fi
+
+read -r -p "¿Matar sesión '${session}'? [y/N] " ans
+if [ "${ans:-}" = "y" ] || [ "${ans:-}" = "Y" ]; then
+    tmux kill-session -t "$session"
+    echo "Sesión '${session}' eliminada"
+else
+    echo "Cancelado"
+fi
+sleep 0.6
