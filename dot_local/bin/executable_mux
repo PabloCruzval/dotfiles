@@ -1,0 +1,557 @@
+#!/bin/bash
+# mux — Session manager with named layouts
+#
+# Usage:
+#   mux                              # fzf picker (principal)
+#   mux <alias>                      # abrir proyecto guardado con su layout
+#   mux <path>                       # abrir directorio con layout dev
+#   mux <layout> <alias|path|sesion> # abrir con layout específico
+#   mux add <alias> [path]           # registrar proyecto
+#   mux rm  <alias>                  # eliminar proyecto
+#   mux ls                           # listar proyectos
+#   mux set <alias> layout <layout>  # cambiar layout default de un proyecto
+#   mux set <alias> focus  <window>  # cambiar foco default de un proyecto
+#   mux layout ls                    # listar layouts definidos
+#   mux layout add <name> [win...]   # definir layout (win = nombre o nombre:cmd)
+#   mux layout rm  <name>            # eliminar layout
+#   mux layout focus <name> <win>    # cambiar ventana de foco de un layout
+
+set -euo pipefail
+IFS=$'\n\t'
+trap 'echo "Error en ${BASH_SOURCE[0]}:$LINENO" >&2' ERR
+
+CONFIG_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/tmux-workspace"
+CONFIG_FILE="$CONFIG_DIR/projects.json"
+
+# ---------------------------------------------------------------------------
+# Bootstrap / migración
+# ---------------------------------------------------------------------------
+_default_config() {
+    cat <<'EOF'
+{
+  "layouts": {
+    "dev":         { "windows": ["zsh", "opencode:opencode", "nvim:nvim"], "focus": "zsh" },
+    "investigate": { "windows": ["zsh", "opencode:opencode"],              "focus": "zsh" }
+  },
+  "projects": {}
+}
+EOF
+}
+
+init_config() {
+    mkdir -p "$CONFIG_DIR"
+    for cmd in jq mktemp; do
+        command -v "$cmd" >/dev/null 2>&1 || { echo "Falta: $cmd" >&2; exit 1; }
+    done
+
+    if [ ! -f "$CONFIG_FILE" ]; then
+        _default_config > "$CONFIG_FILE"
+        return
+    fi
+
+    # Migración de formato viejo: projects era { "alias": "path" }
+    local is_old
+    is_old=$(jq 'if .projects then (.projects | to_entries[0].value | type) == "string" else false end' "$CONFIG_FILE" 2>/dev/null || echo "false")
+    if [ "$is_old" = "true" ]; then
+        local tmpfile
+        tmpfile=$(mktemp "${CONFIG_DIR}/projects.XXXXXX")
+        jq '
+            . as $root |
+            if .layouts then . else . + {
+                "layouts": {
+                    "dev":         { "windows": ["zsh", "opencode:opencode", "nvim:nvim"], "focus": "zsh" },
+                    "investigate": { "windows": ["zsh", "opencode:opencode"],              "focus": "zsh" }
+                }
+            } end |
+            .projects = (
+                $root.projects | to_entries | map({
+                    key: .key,
+                    value: { "path": .value, "layout": "dev" }
+                }) | from_entries
+            )
+        ' "$CONFIG_FILE" >"$tmpfile"
+        mv "$tmpfile" "$CONFIG_FILE"
+    fi
+
+    # Asegurar que .layouts siempre existe y contiene los layouts default
+    local has_layouts
+    has_layouts=$(jq -r 'if .layouts then "yes" else "no" end' "$CONFIG_FILE" 2>/dev/null || echo "no")
+    if [ "$has_layouts" = "no" ]; then
+        local tmpfile
+        tmpfile=$(mktemp "${CONFIG_DIR}/projects.XXXXXX")
+        jq '. + {
+            "layouts": {
+                "dev":         { "windows": ["zsh", "opencode:opencode", "nvim:nvim"], "focus": "zsh" },
+                "investigate": { "windows": ["zsh", "opencode:opencode"],              "focus": "zsh" }
+            }
+        }' "$CONFIG_FILE" >"$tmpfile"
+        mv "$tmpfile" "$CONFIG_FILE"
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# Helpers JSON — proyectos
+# ---------------------------------------------------------------------------
+_jq_write() {
+    local tmpfile
+    tmpfile=$(mktemp "${CONFIG_DIR}/projects.XXXXXX")
+    jq "$@" "$CONFIG_FILE" >"$tmpfile"
+    mv "$tmpfile" "$CONFIG_FILE"
+}
+
+get_projects() {
+    # Emite líneas: alias TAB path TAB layout TAB focus_override(o "")
+    jq -r '
+        .projects | to_entries[] |
+        "\(.key)\t\(.value.path)\t\(.value.layout)\t\(.value.focus // "")"
+    ' "$CONFIG_FILE" 2>/dev/null
+}
+
+get_project_field() {
+    local alias="$1" field="$2"
+    jq -r --arg k "$1" --arg f "$2" '.projects[$k][$f] // empty' "$CONFIG_FILE" 2>/dev/null
+}
+
+set_project_field() {
+    local alias="$1" field="$2" value="$3"
+    if [ -z "$value" ]; then
+        _jq_write --arg k "$alias" --arg f "$field" \
+            'del(.projects[$k][$f])'
+    else
+        _jq_write --arg k "$alias" --arg f "$field" --arg v "$value" \
+            '.projects[$k][$f] = $v'
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# Helpers JSON — layouts
+# ---------------------------------------------------------------------------
+get_layout() {
+    local name="$1"
+    jq -r --arg n "$name" '.layouts[$n] // empty' "$CONFIG_FILE" 2>/dev/null
+}
+
+layout_windows() {
+    local name="$1"
+    jq -r --arg n "$name" '.layouts[$n].windows[]' "$CONFIG_FILE" 2>/dev/null
+}
+
+layout_focus() {
+    local name="$1"
+    jq -r --arg n "$name" '.layouts[$n].focus // (.layouts[$n].windows[0] | split(":")[0])' "$CONFIG_FILE" 2>/dev/null
+}
+
+list_layout_names() {
+    jq -r '.layouts | keys[]' "$CONFIG_FILE" 2>/dev/null
+}
+
+# ---------------------------------------------------------------------------
+# Abrir workspace
+# ---------------------------------------------------------------------------
+_tmux_nav() {
+    # switch-client si ya estamos dentro de tmux, attach-session si no
+    local target="$1"
+    if [ -n "${TMUX:-}" ]; then
+        tmux switch-client -t "$target"
+    else
+        tmux attach-session -t "$target"
+    fi
+}
+
+resolve_target() {
+    # Imprime una línea TSV: kind TAB dir TAB alias TAB session_name
+    # kind ∈ {project, session, path}. Retorna 1 si no resuelve.
+    local token="$1" dir
+    dir=$(jq -r --arg k "$token" '.projects[$k].path // empty' "$CONFIG_FILE" 2>/dev/null)
+    if [ -n "$dir" ]; then
+        printf 'project\t%s\t%s\t%s\n' "$dir" "$token" "$token"
+        return 0
+    fi
+    if tmux has-session -t "$token" 2>/dev/null; then
+        printf 'session\t\t\t%s\n' "$token"
+        return 0
+    fi
+    if [ -d "$token" ]; then
+        local abs base sanitized
+        abs=$(cd "$token" && pwd)
+        base=$(basename "$abs")
+        sanitized=$(printf "%s" "$base" | tr ' ' '_' | tr -cd '[:alnum:]_.-')
+        printf 'path\t%s\t\t%s\n' "$abs" "$sanitized"
+        return 0
+    fi
+    return 1
+}
+
+open_session() {
+    local token="$1"
+    local layout_override="${2:-}"
+    local resolved
+    if ! resolved=$(resolve_target "$token"); then
+        echo "Proyecto, directorio o sesión no encontrado: $token" >&2
+        exit 1
+    fi
+    local kind dir alias session_name
+    IFS=$'\t' read -r kind dir alias session_name <<<"$resolved"
+
+    # session nunca llega aquí sin existir (resolve sólo la devuelve si has-session)
+    if [ "$kind" != "session" ] && [ ! -d "$dir" ]; then
+        echo "El directorio ya no existe: $dir" >&2
+        exit 1
+    fi
+
+    # Si la sesión existe: sólo navegar (override de layout ignorado)
+    if tmux has-session -t "$session_name" 2>/dev/null; then
+        _tmux_nav "$session_name"
+        return
+    fi
+
+    # Determinar layout efectivo
+    local layout
+    if [ -n "$layout_override" ]; then
+        layout="$layout_override"
+    elif [ "$kind" = "project" ]; then
+        layout=$(jq -r --arg k "$alias" '.projects[$k].layout // "dev"' "$CONFIG_FILE" 2>/dev/null)
+        [ -z "$layout" ] && layout="dev"
+    else
+        layout="dev"
+    fi
+
+    # Validar layout
+    local layout_exists
+    layout_exists=$(jq -r --arg l "$layout" 'if .layouts[$l] then "yes" else "no" end' "$CONFIG_FILE")
+    if [ "$layout_exists" = "no" ]; then
+        echo "Layout no encontrado: $layout" >&2
+        exit 1
+    fi
+
+    # Foco efectivo: override de proyecto > default del layout
+    local focus
+    if [ -n "$layout_override" ]; then
+        focus=$(layout_focus "$layout")
+    elif [ "$kind" = "project" ]; then
+        focus=$(jq -r --arg k "$alias" '.projects[$k].focus // empty' "$CONFIG_FILE" 2>/dev/null)
+        [ -z "$focus" ] && focus=$(layout_focus "$layout")
+    else
+        focus=$(layout_focus "$layout")
+    fi
+
+    # Crear sesión con la primera ventana del layout
+    local first_win win_name win_cmd
+    first_win=$(jq -r --arg l "$layout" '.layouts[$l].windows[0]' "$CONFIG_FILE")
+    if [[ "$first_win" == *:* ]]; then
+        win_name="${first_win%%:*}"
+        win_cmd="${first_win#*:}"
+    else
+        win_name="$first_win"
+        win_cmd=""
+    fi
+
+    tmux new-session -d -s "$session_name" -n "$win_name" -c "$dir"
+    [ -n "$win_cmd" ] && tmux send-keys -t "${session_name}:${win_name}" "$win_cmd" Enter
+
+    # Crear el resto de ventanas
+    local rest entry
+    rest=$(jq -r --arg l "$layout" '.layouts[$l].windows[1:][]' "$CONFIG_FILE" 2>/dev/null || true)
+    while IFS= read -r entry; do
+        [ -z "$entry" ] && continue
+        if [[ "$entry" == *:* ]]; then
+            win_name="${entry%%:*}"
+            win_cmd="${entry#*:}"
+        else
+            win_name="$entry"
+            win_cmd=""
+        fi
+        tmux new-window -t "$session_name" -n "$win_name" -c "$dir"
+        [ -n "$win_cmd" ] && tmux send-keys -t "${session_name}:${win_name}" "$win_cmd" Enter
+    done <<<"$rest"
+
+    # Seleccionar ventana de foco
+    tmux select-window -t "${session_name}:${focus}" 2>/dev/null || tmux select-window -t "${session_name}:1"
+
+    _tmux_nav "$session_name"
+}
+
+# ---------------------------------------------------------------------------
+# FZF picker
+# ---------------------------------------------------------------------------
+_fzf() {
+    if [ -n "${TMUX:-}" ]; then
+        if command -v fzf-tmux >/dev/null 2>&1; then
+            fzf-tmux "$@"
+        else
+            fzf "$@"
+        fi
+    else
+        fzf "$@"
+    fi
+}
+
+fzf_pick_layout() {
+    list_layout_names | _fzf \
+        --prompt="layout > " \
+        --height=40% \
+        --reverse \
+        --preview="jq -r --arg l {} '.layouts[\$l] as \$lay | \$lay.windows[]?, \"focus: \" + ((\$lay.focus // (\$lay.windows[0] // \"\") | split(\":\")[0]) // \"\")' \"$CONFIG_FILE\" 2>/dev/null" \
+        --preview-window=up:4:wrap
+}
+
+build_fzf_list() {
+    # Emite líneas: kind TAB alias TAB layout TAB path TAB session_name
+    # kind ∈ {P: proyecto, S: sesión, H: header cosmético}
+    while IFS=$'\t' read -r alias path layout _focus; do
+        [ -z "$alias" ] && continue
+        printf 'P\t%s\t%s\t%s\t%s\n' "$alias" "${layout:-dev}" "$path" "$alias"
+    done <<<"$(get_projects)"
+
+    local sessions
+    sessions=$(tmux list-sessions -F "#{session_name}" 2>/dev/null || true)
+    if [ -n "$sessions" ]; then
+        printf 'H\t── sesiones activas ──\t\t\t\n'
+        local s
+        while IFS= read -r s; do
+            [ -z "$s" ] && continue
+            printf 'S\t%s\t\t\t%s\n' "$s" "$s"
+        done <<<"$sessions"
+    fi
+}
+
+fzf_mode() {
+    command -v fzf >/dev/null 2>&1 || { echo "Falta: fzf" >&2; exit 1; }
+
+    local preview_cmd
+    preview_cmd=$(cat <<PREVIEW
+line='{}'
+kind=\$(printf "%s" "\$line" | cut -f1)
+alias=\$(printf "%s" "\$line" | cut -f2)
+layout=\$(printf "%s" "\$line" | cut -f3)
+path=\$(printf "%s" "\$line" | cut -f4)
+case "\$kind" in
+P)
+    printf "%s\n" "\$path"
+    printf "layout: %s\n" "\$layout"
+    jq -r --arg l "\$layout" '.layouts[\$l].windows[]' "$CONFIG_FILE" 2>/dev/null | while IFS= read -r w; do printf "  %s\n" "\$w"; done
+    ;;
+S)
+    printf "sesión activa\n"
+    tmux list-windows -t "\$alias" 2>/dev/null
+    ;;
+esac
+PREVIEW
+)
+
+    local header="  Enter: abrir  |  Ctrl-F: cambiar layout  |  Ctrl-X: matar sesión"
+    local fzf_output
+    fzf_output=$(build_fzf_list | _fzf \
+        --expect=ctrl-f \
+        --prompt="workspace > " \
+        --height=60% \
+        --reverse \
+        --with-nth=2,3 \
+        --delimiter=$'\t' \
+        --preview="$preview_cmd" \
+        --preview-window=up:5:wrap \
+        --header="$header" \
+        --bind="ctrl-x:execute(tmux kill-session -t \$(printf '%s' {} | cut -f2) 2>/dev/null)+reload(mux --list-for-fzf)" \
+        --no-multi \
+        || true)
+
+    local key selection
+    { read -r key; read -r selection; } <<<"$fzf_output"
+    [ -z "$selection" ] && exit 0
+
+    local s_kind s_alias s_layout s_path s_session
+    IFS=$'\t' read -r s_kind s_alias s_layout s_path s_session <<<"$selection"
+    [[ "$s_kind" == "H" ]] && exit 0
+
+    # Ctrl-F: elegir layout temporal, segundo fzf, abrir con override
+    if [ "$key" = "ctrl-f" ]; then
+        local chosen_layout
+        chosen_layout=$(fzf_pick_layout 2>/dev/null || true)
+        [ -z "$chosen_layout" ] && exit 0
+        local p_out
+        p_out=$(build_fzf_list | _fzf \
+            --prompt="proyecto [${chosen_layout}] > " \
+            --height=60% --reverse --with-nth=2,3 --delimiter=$'\t' \
+            --preview="$preview_cmd" --preview-window=up:5:wrap --no-multi || true)
+        [ -z "$p_out" ] && exit 0
+        local p_kind p_alias p_layout p_path p_session
+        IFS=$'\t' read -r p_kind p_alias p_layout p_path p_session <<<"$p_out"
+        [[ "$p_kind" == "H" ]] && exit 0
+        if [ "$p_kind" = "P" ]; then
+            open_session "$p_alias" "$chosen_layout"
+        elif [ "$p_kind" = "S" ]; then
+            _tmux_nav "$p_session"
+        fi
+        return
+    fi
+
+    # Enter: dispatch por tipo
+    if [ "$s_kind" = "P" ]; then
+        open_session "$s_alias"
+    elif [ "$s_kind" = "S" ]; then
+        _tmux_nav "$s_session"
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# Subcomandos
+# ---------------------------------------------------------------------------
+cmd_add() {
+    local alias="$1"
+    local path="${2:-$PWD}"
+    path=$(cd "$path" && pwd)
+    local layout="${3:-dev}"
+    _jq_write --arg k "$alias" --arg p "$path" --arg l "$layout" \
+        '.projects[$k] = { "path": $p, "layout": $l }'
+    echo "Guardado: $alias → $path [${layout}]"
+}
+
+cmd_rm() {
+    _jq_write --arg k "$1" 'del(.projects[$k])'
+    echo "Eliminado: $1"
+}
+
+cmd_ls() {
+    printf "%-20s %-12s %s\n" "ALIAS" "LAYOUT" "PATH"
+    printf "%-20s %-12s %s\n" "─────────────────────" "────────────" "────────────────────────────────────────"
+    while IFS=$'\t' read -r alias path layout focus; do
+        local focus_mark=""
+        [ -n "$focus" ] && focus_mark=" (foco: $focus)"
+        printf "%-20s %-12s %s%s\n" "$alias" "$layout" "$path" "$focus_mark"
+    done <<< "$(get_projects)"
+}
+
+cmd_set() {
+    local alias="$1" field="$2" value="$3"
+    case "$field" in
+        layout)
+            local exists
+            exists=$(jq -r --arg l "$value" 'if .layouts[$l] then "yes" else "no" end' "$CONFIG_FILE")
+            [ "$exists" = "no" ] && echo "Layout no encontrado: $value" >&2 && exit 1
+            set_project_field "$alias" "layout" "$value"
+            echo "Actualizado: $alias → layout=$value"
+            ;;
+        focus)
+            set_project_field "$alias" "focus" "$value"
+            echo "Actualizado: $alias → focus=$value"
+            ;;
+        *)
+            echo "Campo desconocido: $field (válidos: layout, focus)" >&2
+            exit 1
+            ;;
+    esac
+}
+
+cmd_layout_ls() {
+    printf "%-16s %-10s %s\n" "NOMBRE" "FOCO" "VENTANAS"
+    printf "%-16s %-10s %s\n" "────────────────" "──────────" "────────────────────────────────────────"
+    while IFS= read -r name; do
+        local focus windows
+        focus=$(layout_focus "$name")
+        windows=$(layout_windows "$name" | tr '\n' ' ')
+        printf "%-16s %-10s %s\n" "$name" "$focus" "$windows"
+    done <<< "$(list_layout_names)"
+}
+
+cmd_layout_add() {
+    local name="$1"; shift
+    [ -z "$name" ] && { echo "El nombre del layout no puede estar vacío" >&2; exit 1; }
+    local existing
+    existing=$(get_layout "$name")
+    if [ -n "$existing" ]; then
+        echo "Advertencia: el layout '$name' ya existe y será sobrescrito" >&2
+    fi
+    local windows_json="[]"
+    local first_win=""
+    for entry in "$@"; do
+        windows_json=$(printf "%s" "$windows_json" | jq --arg w "$entry" '. + [$w]')
+        [ -z "$first_win" ] && first_win="${entry%%:*}"
+    done
+    _jq_write --arg n "$name" --arg f "$first_win" --argjson w "$windows_json" \
+        '.layouts[$n] = { "windows": $w, "focus": $f }'
+    echo "Layout creado: $name"
+}
+
+cmd_layout_rm() {
+    local name="$1"
+    local in_use
+    in_use=$(jq -r --arg l "$name" '[.projects | to_entries[] | select(.value.layout == $l) | .key] | join(", ")' "$CONFIG_FILE")
+    if [ -n "$in_use" ]; then
+        echo "Layout en uso por: $in_use — elimínalo primero o cambia su layout" >&2
+        exit 1
+    fi
+    _jq_write --arg n "$name" 'del(.layouts[$n])'
+    echo "Layout eliminado: $name"
+}
+
+cmd_layout_focus() {
+    local name="$1" win="$2"
+    _jq_write --arg n "$name" --arg w "$win" '.layouts[$n].focus = $w'
+    echo "Foco del layout $name → $win"
+}
+
+# ---------------------------------------------------------------------------
+# Abrir (dispatch del CLI posicional)
+# ---------------------------------------------------------------------------
+cmd_open() {
+    local first="$1"
+    if list_layout_names | grep -qxF "$first"; then
+        shift
+        [ $# -eq 0 ] && { echo "Uso: mux <layout> <alias|path|sesion>" >&2; exit 1; }
+        open_session "$1" "$first"
+    else
+        open_session "$first"
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+init_config
+
+if [ "${1:-}" = "--list-for-fzf" ]; then
+    build_fzf_list
+    exit 0
+fi
+
+if [ $# -eq 0 ]; then
+    fzf_mode
+    exit 0
+fi
+
+case "$1" in
+    -h|--help)
+        sed -n '/^# Usage:/,/^$/p' "$0" | sed 's/^# //; s/^#$//'
+        exit 0
+        ;;
+    add)
+        shift; cmd_add "$@"
+        ;;
+    rm)
+        shift; cmd_rm "$@"
+        ;;
+    ls)
+        cmd_ls
+        ;;
+    set)
+        shift
+        [ $# -lt 3 ] && echo "Uso: mux set <alias> layout|focus <valor>" >&2 && exit 1
+        cmd_set "$@"
+        ;;
+    layout)
+        shift
+        [ $# -eq 0 ] && cmd_layout_ls && exit 0
+        case "$1" in
+            ls)     cmd_layout_ls ;;
+            add)    shift; [ $# -lt 2 ] && echo "Uso: layout add <nombre> <win1> [win2...]" >&2 && exit 1; cmd_layout_add "$@" ;;
+            rm)     shift; [ $# -lt 1 ] && echo "Uso: layout rm <nombre>" >&2 && exit 1; cmd_layout_rm "$@" ;;
+            focus)  shift; [ $# -lt 2 ] && echo "Uso: layout focus <nombre> <ventana>" >&2 && exit 1; cmd_layout_focus "$@" ;;
+            *)      echo "Subcomando desconocido: layout $1" >&2; exit 1 ;;
+        esac
+        ;;
+    *)
+        # mux <layout> <alias|path|sesion>
+        # mux <alias|path|sesion>
+        cmd_open "$@"
+        ;;
+esac
