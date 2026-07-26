@@ -163,12 +163,14 @@ resolve_target() {
     # kind ∈ {project, session, path}. Retorna 1 si no resuelve.
     local token="$1" dir
     dir=$(jq -r --arg k "$token" '.projects[$k].path // empty' "$CONFIG_FILE" 2>/dev/null)
+    # \x1f (Unit Separator) como delimitador: al ser no-whitespace,
+    # `read` no colapsa separadores consecutivos → se preservan campos vacíos.
     if [ -n "$dir" ]; then
-        printf 'project\t%s\t%s\t%s\n' "$dir" "$token" "$token"
+        printf 'project\x1f%s\x1f%s\x1f%s\n' "$dir" "$token" "$token"
         return 0
     fi
-    if tmux has-session -t "$token" 2>/dev/null; then
-        printf 'session\t\t\t%s\n' "$token"
+    if tmux list-sessions -F '#{session_name}' 2>/dev/null | grep -qxF -- "$token"; then
+        printf 'session\x1f\x1f\x1f%s\n' "$token"
         return 0
     fi
     if [ -d "$token" ]; then
@@ -176,7 +178,7 @@ resolve_target() {
         abs=$(cd "$token" && pwd)
         base=$(basename "$abs")
         sanitized=$(printf "%s" "$base" | tr ' ' '_' | tr -cd '[:alnum:]_.-')
-        printf 'path\t%s\t\t%s\n' "$abs" "$sanitized"
+        printf 'path\x1f%s\x1f\x1f%s\n' "$abs" "$sanitized"
         return 0
     fi
     return 1
@@ -191,7 +193,7 @@ open_session() {
         exit 1
     fi
     local kind dir alias session_name
-    IFS=$'\t' read -r kind dir alias session_name <<<"$resolved"
+    IFS=$'\x1f' read -r kind dir alias session_name <<<"$resolved"
 
     # session nunca llega aquí sin existir (resolve sólo la devuelve si has-session)
     if [ "$kind" != "session" ] && [ ! -d "$dir" ]; then
@@ -201,8 +203,22 @@ open_session() {
 
     # Si la sesión existe: sólo navegar (override de layout ignorado)
     if tmux has-session -t "$session_name" 2>/dev/null; then
-        _tmux_nav "$session_name"
-        return
+        if [ "$kind" = "session" ]; then
+            _tmux_nav "$session_name"
+            return
+        fi
+        local existing_path
+        existing_path=$(tmux display-message -p -t "$session_name" '#{pane_path}' 2>/dev/null || true)
+        if [ "$existing_path" = "$dir" ]; then
+            _tmux_nav "$session_name"
+            return
+        fi
+        local i=2 cand
+        cand="${session_name}-2"
+        while tmux has-session -t "$cand" 2>/dev/null; do
+            i=$((i+1)); cand="${session_name}-${i}"
+        done
+        session_name="$cand"
     fi
 
     # Determinar layout efectivo
