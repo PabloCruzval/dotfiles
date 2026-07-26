@@ -5,42 +5,31 @@ export INSTALL_DIR="$DOTFILES_DIR/install"
 export REPO_URL="https://github.com/PabloCruzval/dotfiles"
 
 if [ ! -d "$DOTFILES_DIR" ]; then
-    echo -e "\033[1;34m[INFO]\033[0m Cloning base repository..."
+    echo -e "\033[1;34m[INFO]\033[0m Cloning dotfiles repository..."
     git clone "$REPO_URL" "$DOTFILES_DIR"
 fi
 
 source "$INSTALL_DIR/utils.sh"
 
 echo ""
-info "Welcome to the Nyx Dotfiles installation"
+info "CachyOS Dotfiles Setup"
 echo ""
 
-if ask "Install packages (Official repos and AUR)?" "Y"; then
-    source "$INSTALL_DIR/pkgs.sh" 
+if ask "Install extra packages?" "Y"; then
+    source "$INSTALL_DIR/packages.sh"
 fi
 
 if ask "Configure Git?" "Y"; then
-    source "$INSTALL_DIR/git.sh" 
+    source "$INSTALL_DIR/git.sh"
 fi
 
-if ask "Configure Nvidia?" "Y"; then
-    source "$INSTALL_DIR/nvidia.sh"
-fi
-
-if ask "Enable system and user services (Bluetooth, Theme Timer)?" "Y"; then
-    source "$INSTALL_DIR/services.sh"
-    source "$INSTALL_DIR/sddm.sh"
-fi
-
-if ask "Apply dotfiles with Chezmoi (automatic backups will be made)?" "Y"; then
+if ask "Apply dotfiles with chezmoi?" "Y"; then
     source "$INSTALL_DIR/chezmoi.sh"
 fi
 
-
-if ask "Install Fonts?" "Y"; then
+if ask "Install Funnel Display font?" "Y"; then
     source "$INSTALL_DIR/font.sh"
 fi
 
 echo ""
-ok "Installation completed successfully!"
-info "Check the guide at: $DOTFILES_DIR/troubleshoot.md if you have issues."
+ok "Setup completed."

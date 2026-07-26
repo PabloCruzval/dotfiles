@@ -1,6 +1,7 @@
 ./AGENTS.md
 ./troubleshoot.md
 ./setup.sh
+./dot_zshrc
 ./LICENSE
 ./README.md
 ./DesktopImage.png
