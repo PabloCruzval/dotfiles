@@ -2,13 +2,23 @@
 
 hl.config({
     input = {
-        -- sensitivity = -0.25,
+        kb_layout = "us,latam",
+        kb_options = "caps:escape,grp:alt_shift_toggle",
+        numlock_by_default = true,
         accel_profile = "flat",
+        force_no_accel = true,
+        follow_mouse = 1,
+
+        touchpad = {
+            natural_scroll = true,
+            tap_to_click = true,
+            drag_lock = false,
+        },
+
+        tablet = {
+            output = "DP-1",
+        },
     },
-    -- Uncomment the section below to enable software cursors; this can help with cursor display or behavior issues
-    -- cursor = {
-    --     no_hardware_cursors = 1,
-    -- },
 })
 
 hl.gesture({ fingers = 4, direction = "horizontal", action = "workspace" })
