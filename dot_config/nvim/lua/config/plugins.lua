@@ -69,6 +69,9 @@ end
 
 function M.oil()
     return {
+		columns = {
+			"icon",
+		},
         keymaps = {
             ["<C-h>"] = false,
             ["<C-l>"] = false,
