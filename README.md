@@ -12,7 +12,7 @@
 
 https://github.com/user-attachments/assets/adce3f51-be9a-433b-9a28-7132e8fb3eb2
 
-Personal dotfiles for Arch Linux featuring a modern Hyprland setup where [Noctalia Shell](https://noctalia.dev/) defines the visual feel of the desktop, while [chezmoi](https://www.chezmoi.io/) manages the dotfiles for consistent deployment across multiple machines.
+Personal dotfiles for CachyOS featuring a modern Hyprland setup where [Noctalia Shell](https://noctalia.dev/) defines the visual feel of the desktop, while [chezmoi](https://www.chezmoi.io/) manages the dotfiles for consistent deployment across multiple machines.
 
 ## ✨ Features
 
@@ -29,9 +29,8 @@ Personal dotfiles for Arch Linux featuring a modern Hyprland setup where [Noctal
 - **[Hyprland](dot_config/hypr/README.md)** - Wayland compositor with modular Lua configuration
 - **[Neovim](dot_config/nvim/readme.md)** - Modern IDE setup with LSP, Treesitter, and debugging
 - **[Noctalia v5](https://docs.noctalia.dev/v5/)** - Native Wayland desktop shell (C++) powering bars, launcher, control center, and themes
-- **[GTK](dot_config/gtk-3.0/README.md)** - GTK3/4 application theming with Noctalia v5
 - **Kitty** - GPU-accelerated terminal emulator
-- **Zsh** - Shell with Powerlevel10k and Zinit plugin manager
+- **Fish** - Shell with CachyOS defaults and custom tool integrations
 
 > 📚 Applications with their own detailed README are linked above.
 
@@ -40,30 +39,27 @@ Personal dotfiles for Arch Linux featuring a modern Hyprland setup where [Noctal
 ### Interactive Installation
 
 >[!IMPORTANT]
-> Only for Arch Linux. The script was made for my machines and may require adjustments for yours.
+> Only for CachyOS. The script was made for my machines and may require adjustments for yours.
 
 >[!NOTE]
-> Existing configurations for `hypr`, `noctalia`, `kitty`, `nvim` will be backed up to `$HOME/.backups_dotfiles/<timestamp>`
+> Existing configurations will be backed up by chezmoi automatically.
 
 ```bash
 bash -c "$(curl -fsSL [https://raw.githubusercontent.com/PabloCruzval/dotfiles/refs/heads/main/setup.sh](https://raw.githubusercontent.com/PabloCruzval/dotfiles/refs/heads/main/setup.sh))"
 ```
 
 ### What the installer does:
-The setup script acts as an orchestrator, allowing you to choose exactly what to install:
-1. **Base System:** Installs core tools (Git, base-devel, Chezmoi) and sets up Yay.
-2. **Packages:** Installs official and AUR packages from defined lists.
-3. **Git Config:** Interactive global Git user configuration.
-4. **Services:** Enables necessary system and user services (NetworkManager, Bluetooth, custom timers).
-5. **Dotfiles:** Safely applies Chezmoi configurations with automatic conflict backups.
+1. **Packages:** Installs extra packages not included in CachyOS base (chezmoi, nvim, tmux, CLI tools, fonts).
+2. **Git Config:** Interactive global Git user configuration.
+3. **Dotfiles:** Applies chezmoi configurations from this repo.
+4. **Fonts:** Installs Funnel Display font.
 
 ## 📋 Requirements
 
-- **OS**: Arch Linux
+- **OS**: CachyOS with Hyprland
 - **Display Server**: Wayland
-- **Package Managers**: `pacman` and an AUR helper `yay`
-- **Fonts**: Nerd Fonts (installed automatically)
-- **Dependencies**: Listed in `install/pkgs.sh`.
+- **Shell**: Fish (default on CachyOS)
+- **Dependencies**: Listed in `install/packages.sh`.
 
 ## 📁 Structure
 
@@ -71,12 +67,13 @@ The repository is organized with chezmoi naming conventions:
 
 | What | Where | Description |
 |------|-------|-------------|
-| **Installer**| `install/` | Modular setup scripts (`utils.sh`, `base.sh`, `pkgs.sh`, etc.) |
+| **Installer**| `install/` | Modular setup scripts (`utils.sh`, `packages.sh`, etc.) |
 | **Hyprland** | `dot_config/hypr/` | Modular Wayland compositor config in Lua |
 | **Neovim** | `dot_config/nvim/` | LSP, DAP, and plugin configurations |
-| **GTK** | `dot_config/gtk-3.0/`, `dot_config/gtk-4.0/` | Base GTK theme and dark-mode settings |
 | **Kitty** | `dot_config/kitty/` | Terminal emulator config |
-| **Scripts** | `dot_local/bin/` | Utility scripts (vc-mount, pin_hyprland, tmux-workspace) |
+| **Fish** | `dot_config/fish/` | Shell configuration with tool integrations |
+| **UWSM** | `dot_config/uwsm/` | Wayland session environment variables |
+| **Scripts** | `dot_local/bin/` | Utility scripts (vc-mount, tmux-workspace) |
 
 > 💡 **Chezmoi naming**: `dot_` → `.` (hidden files), `.tmpl` → template, `executable_` → executable bit
 
@@ -93,10 +90,9 @@ Noctalia v5 is a native Wayland desktop shell (C++) that provides bars, launcher
 
 Noctalia v5 generates themed configuration files for external apps via its built-in template engine:
 
-- **Hyprland** - `require("noctalia").apply_theme()` sets border colors from the active palette. Fallback colors live in [`dot_config/hypr/modules/fallback_colors.lua`](dot_config/hypr/modules/fallback_colors.lua).
+- **Hyprland** - `require("noctalia").apply_theme()` sets border colors from the active palette defined in `noctalia.lua`.
 - **Kitty** - `include themes/noctalia.conf` loads the 16-color terminal palette.
-- **GTK 3/4** - `noctalia.css` injects Material Design color variables into GTK apps. The base theme is `adw-gtk3` with `prefer-dark` enforced through `settings.ini` and Hyprland's autostart.
-- **Qt** - Not themed. Qt theming (kdeglobals) was removed; Qt apps use the default platform integration.
+- **GTK** - Handled by Noctalia v5 templates and `adw-gtk-theme` (shipped with CachyOS).
 
 **Palette location**: `~/.config/noctalia/palettes/<Name>.json`
 
@@ -119,12 +115,14 @@ noctalia msg templates-apply
 
 Chezmoi templates automatically adapt configurations based on machine name:
 
-```conf
-{{- if eq .machinename "cnyx" }}
-source = ~/.config/hypr/modules/monitors-desktop.conf
-{{- else}}
-source = ~/.config/hypr/modules/monitors-laptop.conf
-{{- end }}
+```lua
+if HOSTNAME == "t-nyx" then
+    require("config.monitors-desktop")
+    require("config.workspaces-desktop")
+else
+    require("config.monitors-laptop")
+    require("config.workspaces-laptop")
+end
 ```
 
 Same source, different output per machine!
@@ -143,7 +141,7 @@ Same source, different output per machine!
 **Direct editing (recommended):**
 ```bash
 chezmoi cd                               # Navigate to source
-nvim dot_config/hypr/hyprland.conf.tmpl  # Edit files
+nvim dot_config/hypr/config/binds.lua    # Edit files
 chezmoi apply                            # Apply changes
 git add . && git commit -m "Update"      # Commit
 git push                                 # Push
@@ -151,7 +149,7 @@ git push                                 # Push
 
 **Quick edit:**
 ```bash
-chezmoi edit ~/.config/hypr/hyprland.conf
+chezmoi edit ~/.config/hypr/hyprland.lua
 chezmoi apply
 ```
 
@@ -207,7 +205,7 @@ chezmoi cd        # Go to source directory
 ## 🎨 Customization
 
 Each major component has detailed documentation:
-- **[Hyprland](dot_config/hypr/README.md)** - Compositor, keybindings, modules
+- **[Hyprland](dot_config/hypr/README.md)** - Compositor, keybindings, config
 - **[Neovim](dot_config/nvim/README.md)** - Plugins, LSP, DAP
 
 <details>
@@ -221,13 +219,13 @@ Palettes are managed in `~/.config/noctalia/palettes/`.
 
 **Adjust monitors:**
 ```bash
-nvim ~/.local/share/chezmoi/dot_config/hypr/modules/monitors-desktop.lua
+nvim ~/.local/share/chezmoi/dot_config/hypr/config/monitors-desktop.lua
 chezmoi apply
 ```
 
 **Modify keybindings:**
 ```bash
-nvim ~/.local/share/chezmoi/dot_config/hypr/modules/keybindings.lua
+nvim ~/.local/share/chezmoi/dot_config/hypr/config/binds.lua
 chezmoi apply
 ```
 

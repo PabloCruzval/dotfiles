@@ -14,7 +14,7 @@
 
 ## Repo overview
 
-Personal dotfiles for Arch Linux + Hyprland, managed by [chezmoi](https://chezmoi.io).
+Personal dotfiles for CachyOS + Hyprland, managed by [chezmoi](https://chezmoi.io).
 The source directory IS the chezmoi source (`~/.local/share/chezmoi`). No CI, tests, linters, or build steps.
 
 ## Chezmoi naming conventions
@@ -27,14 +27,13 @@ The source directory IS the chezmoi source (`~/.local/share/chezmoi`). No CI, te
 ## Machine-specific config
 
 - `.chezmoi.toml.tmpl` sets `machinename` from `hostnamectl hostname`
-- Templates branch on `{{ if eq .machinename "cnyx" }}` for desktop vs laptop
-- `dot_config/hypr/hyprland.lua` does its own hostname detection at runtime (archtower vs lnyx)
+- `dot_config/hypr/hyprland.lua` does its own hostname detection at runtime from `/etc/hostname`. Desktop: `t-nyx`, laptop: anything else.
 
 ## Key paths
 
 | Path | Purpose |
 |------|---------|
-| `install/*.sh` | Interactive Arch Linux setup scripts (modular) |
+| `install/*.sh` | Interactive CachyOS setup scripts (modular) |
 | `dot_config/<app>/` | Per-app config (hypr, nvim, kitty, tmux, systemd) |
 | `dot_local/bin/executable_*` | Custom scripts (vc-mount, tmux-workspace) |
 | `.chezmoi.toml.tmpl` | Chezmoi config / template data |
@@ -53,8 +52,7 @@ chezmoi update      # on other machines: pull + apply
 
 ## Install flow
 
-`bash setup.sh` orchestrates `install/*.sh` interactively. Arch Linux only.
-`install/chezmoi.sh` and `install/sddm.sh` are currently empty stubs.
+`bash setup.sh` orchestrates `install/*.sh` interactively. CachyOS only.
 
 ## Gitignored (don't touch)
 
