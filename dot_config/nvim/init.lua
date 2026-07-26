@@ -28,5 +28,6 @@ local function set_transparent_bg()
 	vim.api.nvim_set_hl(0, "Normal", { bg = nil })
 	vim.api.nvim_set_hl(0, "NormalNC", { bg = nil })
 end
+
 set_transparent_bg()
 vim.cmd [[colorscheme catppuccin-mocha]]

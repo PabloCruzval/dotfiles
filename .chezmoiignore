@@ -1,13 +1,12 @@
+./AGENTS.md
+./troubleshoot.md
+./setup.sh
 ./LICENSE
 ./README.md
 ./DesktopImage.png
-./setup.sh
-./aurlist
-./pkglist
-./troubleshoot.md
-./NyxWallpapers/
 ./install/
-./dot_config/hypr_old/
+./dot_config/codebook/
+./dot_config/fish/fish_variables
 
 # Documentation files are kept in the chezmoi source repo only
 **/*.md
