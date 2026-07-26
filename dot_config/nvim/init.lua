@@ -28,11 +28,5 @@ local function set_transparent_bg()
 	vim.api.nvim_set_hl(0, "Normal", { bg = nil })
 	vim.api.nvim_set_hl(0, "NormalNC", { bg = nil })
 end
-
-require("themes.noctalia").load()
 set_transparent_bg()
-
-vim.api.nvim_create_autocmd("ColorScheme", {
-	group = vim.api.nvim_create_augroup("TransparentBg", { clear = true }),
-	callback = set_transparent_bg,
-})
+vim.cmd [[colorscheme catppuccin-mocha]]
