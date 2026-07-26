@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+set -eu
+
+current="$(fcitx5-remote -n 2>/dev/null || true)"
+
+if [ "$current" = "mozc" ]; then
+    fcitx5-remote -s keyboard-us
+else
+    fcitx5-remote -s mozc
+fi

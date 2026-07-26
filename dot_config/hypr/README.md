@@ -329,6 +329,12 @@ Automatic workspace assignment for common applications:
 - Caps Lock → Escape
 - Numlock enabled by default
 
+**IME**:
+- Engine: `fcitx5`
+- Japanese input: `fcitx5-mozc`
+- Toolkit env: `GTK_IM_MODULE`, `QT_IM_MODULE`, `XMODIFIERS`
+- Toggle between keyboard and IME: `Ctrl + Shift + I` in `fcitx5`
+
 **Mouse**:
 - Acceleration: Flat profile
 - Natural scroll: Disabled
@@ -409,6 +415,9 @@ yay -S noctalia-git
 ```bash
 # Idle and lock management
 yay -S hypridle hyprlock
+
+# IME for Japanese input
+sudo pacman -S fcitx5 fcitx5-configtool fcitx5-gtk fcitx5-qt fcitx5-mozc
 
 # Desktop shell
 yay -S noctalia-git

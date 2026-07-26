@@ -41,6 +41,7 @@ pkgs=(
 	hyprlock hypridle hyprpicker cliphist
 	xdg-desktop-portal-gtk xdg-desktop-portal-hyprland
 	qt5-wayland qt6-wayland xdg-user-dirs archlinux-xdg-menu
+	fcitx5 fcitx5-configtool fcitx5-gtk fcitx5-qt fcitx5-mozc
 
 	# Noctalia v5 build deps (C++ native Wayland, no Qt)
 	meson gcc just wayland-protocols libglvnd
