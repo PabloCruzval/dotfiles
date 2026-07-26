@@ -12,7 +12,7 @@ return {
 		cmd = "uwsm app -- " .. TERMINAL,
 	},
 	fileManager = {
-		cmd = "uwsm app -- nautilus",
+		cmd = "uwsm app -- dolphin",
 		class = "org.gnome.Nautilus",
 		workspace = 5,
 	},
