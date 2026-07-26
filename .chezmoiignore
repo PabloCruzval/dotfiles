@@ -7,7 +7,7 @@
 ./troubleshoot.md
 ./NyxWallpapers/
 ./install/
-./dot_config/noctalia/
+./dot_config/hypr_old/
 
 # Documentation files are kept in the chezmoi source repo only
 **/*.md

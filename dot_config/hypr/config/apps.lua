@@ -1,28 +1,23 @@
--- -----------------------------------------------------
--- ▄▀█ █▀█ █▀█ █▀▀
--- █▀█ █▀▀ █▀▀ ▄█
--- -----------------------------------------------------
 -- Shared application definitions.
 -- Change apps in one place — keybindings and window rules
 -- pick up cmd, title matching, and workspace assignments.
 
 return {
 	browser = {
-		cmd = "librewolf",
+		cmd = "uwsm app -- librewolf",
 		title = ".*LibreWolf.*",
 		workspace = 2,
 	},
 	terminal = {
-		cmd = "kitty",
+		cmd = "uwsm app -- " .. TERMINAL,
 	},
 	fileManager = {
-		cmd = "nautilus",
-		title = ".*Nautilus.*",
+		cmd = "uwsm app -- nautilus",
 		class = "org.gnome.Nautilus",
 		workspace = 5,
 	},
 	obsidian = {
-		cmd = "obsidian",
+		cmd = "uwsm app -- obsidian",
 		title = ".*Obsidian.*",
 		workspace = 4,
 	},
@@ -39,6 +34,6 @@ return {
 		workspace = 5,
 	},
 	emote = {
-		cmd = "emote",
+		cmd = "uwsm app -- emote",
 	},
 }
