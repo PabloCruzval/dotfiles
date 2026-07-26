@@ -3,13 +3,13 @@
 -- █▀█ █▄█  █  █▄█ ▄█  █  █▀█ █▀▄  █  
 -------------------------------------------------------- 
 
-hl.on("hyprland.start", function()
+	hl.on("hyprland.start", function()
 	-- System services
 	hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
 	hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
 	hl.exec_cmd("systemctl --user start hyprpolkitagent")
 	hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
-	hl.exec_cmd("noctalia")
+	hl.exec_cmd("noctalia --daemon")
 
 	-- User applications
 	hl.exec_cmd("syncthing --no-browser")
@@ -24,4 +24,3 @@ hl.on("hyprland.start", function()
 	hl.exec_cmd("gsettings set org.gnome.desktop.interface cursor-size 34")
 	hl.exec_cmd("hyprctl setcursor volantes_cursors 34")
 end)
-
