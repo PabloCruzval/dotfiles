@@ -31,5 +31,9 @@ if ask "Install Funnel Display font?" "Y"; then
     source "$INSTALL_DIR/font.sh"
 fi
 
+if ask "Install SDDM Theme?" "Y"; then
+    source "$INSTALL_DIR/sddm.sh"
+fi
+
 echo ""
 ok "Setup completed."
