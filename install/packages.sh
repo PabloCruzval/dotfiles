@@ -1,16 +1,11 @@
 #!/bin/bash
 
-green=$(tput setaf 2)
-yellow=$(tput setaf 3)
-reset=$(tput sgr0)
+if ! command -v info >/dev/null 2>&1; then
+	source "$(dirname "${BASH_SOURCE[0]:-$0}")/utils.sh"
+fi
 
-function log_info() { echo "${green}[INFO]${reset} $1"; }
-function log_warn() { echo "${yellow}[WARN]${reset} $1"; }
-
-function inpath() { command -v "$1" >/dev/null 2>&1; }
-
-if ! inpath pacman; then
-    echo "This script is for CachyOS / Arch-based systems only." >&2
+if ! command -v pacman >/dev/null 2>&1; then
+    err "This script is for CachyOS / Arch-based systems only."
     exit 1
 fi
 
@@ -28,40 +23,62 @@ PKGS=(
     yazi
     nodejs
     npm
-    syncthing
     just
     noto-fonts-cjk
     noto-fonts-emoji
     ttf-jetbrains-mono-nerd
+    ttf-meslo-nerd
+    awesome-terminal-fonts
+    fcitx5
+    fcitx5-mozc
+    fcitx5-im
+    fcitx5-lua
+    fcitx5-gtk
+    fcitx5-qt
+    fcitx5-configtool
+    github-cli
+    pnpm
+    typst
+    tree-sitter-cli
+    docker
+    docker-compose
+    syncthing
 )
 
 AUR=(
     obsidian
+    crudini
+    librewolf
+    ttf-ms-fonts
 )
 
 # Official packages
-log_info "Installing packages..."
+info "Installing packages..."
 sudo pacman -S --needed --noconfirm "${PKGS[@]}"
-log_info "Official packages done."
+ok "Official packages done."
 
 # AUR (paru or yay required)
 if [ ${#AUR[@]} -gt 0 ]; then
     AUR_HELPER=""
-    if inpath paru; then
+    if command -v paru >/dev/null 2>&1; then
         AUR_HELPER="paru"
-    elif inpath yay; then
+    elif command -v yay >/dev/null 2>&1; then
         AUR_HELPER="yay"
     fi
 
     if [ -n "$AUR_HELPER" ]; then
-        log_info "Installing AUR packages with $AUR_HELPER..."
+        info "Installing AUR packages with $AUR_HELPER..."
         $AUR_HELPER -S --needed --noconfirm "${AUR[@]}"
-        log_info "AUR packages done."
+        ok "AUR packages done."
     else
-        log_warn "No AUR helper found. Install paru or yay first."
+        err "No AUR helper found (paru/yay). The following AUR packages were skipped:"
+        for pkg in "${AUR[@]}"; do
+            warn "  - $pkg"
+        done
+        warn "Install paru or yay and re-run to install them."
     fi
 else
-    log_info "No AUR packages configured."
+    info "No AUR packages configured."
 fi
 
-log_info "All packages installed."
+ok "All packages installed."

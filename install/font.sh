@@ -1,5 +1,6 @@
 #!/bin/bash
 
+_saved_opts="$(set +o)"
 set -euo pipefail
 
 FUNNEL_DISPLAY_URL="https://gwfh.mranftl.com/api/fonts/funnel-display?download=zip&subsets=latin&variants=300,500,600,700,800,regular&formats=woff2"
@@ -31,3 +32,5 @@ ok "Archivos extraídos."
 info "Actualizando la caché de fuentes..."
 fc-cache -f "$FONT_DIR"
 ok "Tipografía instalada y lista para usar."
+
+eval "$_saved_opts"

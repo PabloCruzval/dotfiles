@@ -29,6 +29,17 @@ if ask "Configure Git user and email globally?" "Y"; then
 
 	info "Setting main as default branch"
 	git config --global init.defaultBranch main
+
+	info "Configuring auto setup remote"
+	git config --global push.autoSetupRemote true
+
+	if command -v gh >/dev/null 2>&1; then
+		info "Configuring GitHub CLI as credential helper"
+		git config --global credential.https://github.com.helper ""
+		git config --global credential.https://github.com.helper "!/usr/bin/gh auth git-credential"
+		git config --global credential.https://gist.github.com.helper ""
+		git config --global credential.https://gist.github.com.helper "!/usr/bin/gh auth git-credential"
+	fi
 else
     warn "Continuing without configuring Git."
 fi

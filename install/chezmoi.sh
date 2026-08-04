@@ -1,12 +1,10 @@
 #!/bin/bash
 
-REPO="PabloCruzval/dotfiles"
-
 if ! command -v chezmoi >/dev/null 2>&1; then
-    echo "chezmoi is not installed. Run packages.sh first." >&2
+    err "chezmoi is not installed. Run packages.sh first."
     exit 1
 fi
 
-info "Initializing chezmoi from $REPO..."
-chezmoi init --apply "$REPO"
+info "Initializing chezmoi..."
+chezmoi init --apply --source "$DOTFILES_DIR"
 ok "Dotfiles applied successfully."
