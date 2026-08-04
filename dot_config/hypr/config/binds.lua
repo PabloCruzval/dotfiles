@@ -133,32 +133,11 @@ hl.bind(mainMod .. " + SHIFT + C",      hl.dsp.layout("consume"))
 
 local hostname = HOSTNAME
 
-if hostname == "t-nyx" then
 	-- Desktop: global fixed workspaces 1-10
-	for i = 1, 10 do
-		local key = i % 10
-		hl.bind(mainMod .. " + " .. key,         hl.dsp.focus({ workspace = i }))
-		hl.bind(mainMod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }))
-	end
-	hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
-	hl.bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
-else
-	-- Laptop: per-monitor workspaces (CachyOS model)
-	hl.bind(mainMod .. " + 1", hl.dsp.focus({ monitor = MONITOR1 }))
-	hl.bind(mainMod .. " + 2", hl.dsp.focus({ monitor = MONITOR2 }))
-	hl.bind(mainMod .. " + 3", hl.dsp.focus({ monitor = MONITOR3 }))
-
-	for i = 1, NUM_WPM do
-		local key = i % 10
-		hl.bind(mainMod .. " + TAB + " .. key, hl.dsp.focus({ workspace = i }))
-		hl.bind(mainMod .. " + CONTROL + " .. key, hl.dsp.focus({ workspace = "m~" .. i }))
-	end
-
-	hl.bind(mainMod .. " + CONTROL + Right",       hl.dsp.focus({ workspace = "m+1" }))
-	hl.bind(mainMod .. " + CONTROL + Left",        hl.dsp.focus({ workspace = "m-1" }))
-	hl.bind(mainMod .. " + CONTROL + Down",        hl.dsp.focus({ workspace = "emptym" }))
-	hl.bind(mainMod .. " + mouse_down",            hl.dsp.focus({ workspace = "m-1" }))
-	hl.bind(mainMod .. " + mouse_up",              hl.dsp.focus({ workspace = "m+1" }))
-	hl.bind(mainMod .. " + CONTROL + mouse_up",    hl.dsp.focus({ workspace = "m-1" }))
-	hl.bind(mainMod .. " + CONTROL + mouse_down",  hl.dsp.focus({ workspace = "m+1" }))
+for i = 1, 10 do
+	local key = i % 10
+	hl.bind(mainMod .. " + " .. key,         hl.dsp.focus({ workspace = i }))
+	hl.bind(mainMod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }))
 end
+hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
+hl.bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
