@@ -2,8 +2,8 @@
 
 hl.config({
     input = {
-        kb_layout = "us,latam",
-        kb_options = "caps:escape,grp:alt_shift_toggle",
+        kb_layout = "us",
+        kb_options = "caps:escape",
         numlock_by_default = true,
         accel_profile = "flat",
         force_no_accel = true,

@@ -116,9 +116,7 @@ function M.treesitter()
 end
 
 function M.guess_indent()
-    return function()
-        require("guess-indent").setup({})
-    end
+	require('guess-indent').setup { auto_cmd = true, override_editorconfig = true}
 end
 
 ----------

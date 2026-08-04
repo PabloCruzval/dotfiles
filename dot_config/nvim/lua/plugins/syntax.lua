@@ -6,6 +6,7 @@ return {
     },
     {
         "NMAC427/guess-indent.nvim",
+        event = "InsertEnter",
         config = require("config.plugins").guess_indent,
     },
 }

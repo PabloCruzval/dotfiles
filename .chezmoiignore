@@ -7,6 +7,7 @@
 ./DesktopImage.png
 ./install/
 ./dot_config/codebook/
+./dot_config/fcitx5/conf/cached_layouts
 ./dot_config/fish/fish_variables
 
 # Documentation files are kept in the chezmoi source repo only

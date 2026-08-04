@@ -1,5 +1,3 @@
-function fish_greeting; end
-
 set -gx EDITOR nvim
 
 set -gx LANG en_US.UTF-8
