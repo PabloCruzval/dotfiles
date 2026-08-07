@@ -86,3 +86,15 @@ vim.api.nvim_create_autocmd("LspAttach", {
         lsp_map("<leader>lh", vim.lsp.buf.hover, "Mostrar documentación")
     end,
 })
+
+-- DAP
+map('n', '<leader>db', function() require("dap").toggle_breakpoint() end, { desc = "DAP: Toggle breakpoint" })
+map('n', '<leader>dB', function()
+    require("dap").set_breakpoint(vim.fn.input("Breakpoint condition: "))
+end, { desc = "DAP: Breakpoint condicional" })
+map('n', '<leader>dc', function() require("dap").continue() end, { desc = "DAP: Continuar" })
+map('n', '<leader>do', function() require("dap").step_over() end, { desc = "DAP: Step over" })
+map('n', '<leader>di', function() require("dap").step_into() end, { desc = "DAP: Step into" })
+map('n', '<leader>dO', function() require("dap").step_out() end, { desc = "DAP: Step out" })
+map('n', '<leader>dr', function() require("dap").repl.open() end, { desc = "DAP: Abrir REPL" })
+map('n', '<leader>du', function() require("dapui").toggle() end, { desc = "DAP: Toggle UI" })
