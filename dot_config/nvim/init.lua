@@ -24,6 +24,8 @@ require("config.diagnostic")
 require("utils.tinymist_status")
 require("utils.wordcount")
 
+vim.lsp.enable("ruby_lsp")
+
 local function set_transparent_bg()
 	vim.api.nvim_set_hl(0, "Normal", { bg = nil })
 	vim.api.nvim_set_hl(0, "NormalNC", { bg = nil })
