@@ -105,3 +105,6 @@ map('n', '<leader>tf', function() require("neotest").run.run(vim.fn.expand("%"))
 map('n', '<leader>tD', function() require("neotest").run.run({ strategy = "dap" }) end, { desc = "Test: Debug más cercano" })
 map('n', '<leader>to', function() require("neotest").output.open({ enter = true }) end, { desc = "Test: Abrir output" })
 map('n', '<leader>tS', function() require("neotest").summary.toggle() end, { desc = "Test: Toggle summary" })
+
+-- C/C++
+map('n', '<leader>ch', '<cmd>ClangdSwitchSourceHeader<CR>', { desc = "C/C++: Switch header/source" })

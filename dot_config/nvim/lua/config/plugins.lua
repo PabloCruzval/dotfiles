@@ -21,6 +21,7 @@ function M.mason_lspconfig()
             "lua_ls",
             "tinymist",
             "codebook",
+            "clangd",
         },
     }
 end
@@ -72,6 +73,14 @@ function M.blink_cmp()
         },
         signature = {
             enabled = true,
+        },
+    }
+end
+
+function M.clangd_extensions()
+    return {
+        inlay_hints = {
+            inline = false,
         },
     }
 end

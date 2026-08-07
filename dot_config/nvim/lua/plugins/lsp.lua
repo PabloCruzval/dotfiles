@@ -19,6 +19,10 @@ return {
         "b0o/schemastore.nvim",
     },
     {
+        "p00f/clangd_extensions.nvim",
+        opts = require("config.plugins").clangd_extensions,
+    },
+    {
         "saghen/blink.cmp",
         version = "v1.*",
         dependencies = {
