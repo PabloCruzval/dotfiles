@@ -14,5 +14,6 @@ fish_add_path ~/.bun/bin
 fish_add_path ~/.local/share/pnpm
 fish_add_path ~/.local/share/bob/nvim-bin
 fish_add_path ~/.opencode/bin
+fish_add_path ~/.rvm/bin/
 
 set -gx BUN_INSTALL $HOME/.bun
