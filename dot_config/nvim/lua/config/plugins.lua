@@ -348,6 +348,24 @@ function M.dap_virtual_text()
     }
 end
 
+--------------
+--  TESTING  --
+--------------
+
+function M.neotest()
+    return function()
+        require("neotest").setup({
+            adapters = {
+                require("neotest-rspec")({
+                    rspec_cmd = function()
+                        return vim.tbl_flatten({ "bundle", "exec", "rspec" })
+                    end,
+                }),
+            },
+        })
+    end
+end
+
 ---------
 --  GIT --
 ---------

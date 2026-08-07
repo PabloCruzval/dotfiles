@@ -98,3 +98,10 @@ map('n', '<leader>di', function() require("dap").step_into() end, { desc = "DAP:
 map('n', '<leader>dO', function() require("dap").step_out() end, { desc = "DAP: Step out" })
 map('n', '<leader>dr', function() require("dap").repl.open() end, { desc = "DAP: Abrir REPL" })
 map('n', '<leader>du', function() require("dapui").toggle() end, { desc = "DAP: Toggle UI" })
+
+-- Test
+map('n', '<leader>tn', function() require("neotest").run.run() end, { desc = "Test: Ejecutar más cercano" })
+map('n', '<leader>tf', function() require("neotest").run.run(vim.fn.expand("%")) end, { desc = "Test: Ejecutar archivo" })
+map('n', '<leader>tD', function() require("neotest").run.run({ strategy = "dap" }) end, { desc = "Test: Debug más cercano" })
+map('n', '<leader>to', function() require("neotest").output.open({ enter = true }) end, { desc = "Test: Abrir output" })
+map('n', '<leader>tS', function() require("neotest").summary.toggle() end, { desc = "Test: Toggle summary" })
