@@ -25,6 +25,17 @@ function M.mason_lspconfig()
     }
 end
 
+function M.mason_tool_installer()
+    return {
+        ensure_installed = {
+            "eslint_d",
+            "stylua",
+            "prettierd",
+            "ruff",
+        },
+    }
+end
+
 function M.blink_cmp()
     return {
         appearance = {
