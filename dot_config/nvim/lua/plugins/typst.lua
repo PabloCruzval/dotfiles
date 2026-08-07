@@ -13,7 +13,7 @@ return {
     },
     {
         "skwee357/nvim-prose",
-        ft = { "typst", "markdown", "asciidoc" },
+        ft = { "markdown", "asciidoc" },
         opts = require("config.plugins").nvim_prose,
     },
 }
