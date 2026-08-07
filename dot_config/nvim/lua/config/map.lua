@@ -72,7 +72,13 @@ vim.api.nvim_create_autocmd("LspAttach", {
         end
 
         lsp_map("<leader>lf", vim.lsp.buf.format, "Formatear buffer con LSP")
-        lsp_map("<leader>la", vim.lsp.buf.code_action, "Acciones de código")
+        lsp_map("<leader>la", function()
+            vim.lsp.buf.code_action({
+                filter = function(a)
+                    return not a.disabled
+                end,
+            })
+        end, "Acciones de código")
         lsp_map("<leader>lD", vim.diagnostic.open_float, "Abrir diagnóstico flotante")
 
         lsp_map("<leader>ld", vim.lsp.buf.definition, "Ir a definición")
