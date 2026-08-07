@@ -32,6 +32,8 @@ function M.mason_tool_installer()
             "stylua",
             "prettierd",
             "ruff",
+            "js-debug-adapter",
+            "codelldb",
         },
     }
 end
@@ -249,6 +251,101 @@ function M.lint()
             end,
         })
     end
+end
+
+---------
+--  DAP  --
+---------
+
+function M.dap()
+    return function()
+        local dap = require("dap")
+
+        dap.adapters["pwa-node"] = {
+            type = "server",
+            host = "localhost",
+            port = "${port}",
+            executable = {
+                command = "node",
+                args = {
+                    vim.fn.stdpath("data")
+                        .. "/mason/packages/js-debug-adapter/js-debug/src/dapDebugServer.js",
+                    "${port}",
+                },
+            },
+        }
+
+        dap.adapters.codelldb = {
+            type = "executable",
+            command = "codelldb",
+        }
+
+        local js_config = {
+            {
+                name = "Launch file",
+                type = "pwa-node",
+                request = "launch",
+                program = "${file}",
+                cwd = "${workspaceFolder}",
+            },
+            {
+                name = "Attach to process",
+                type = "pwa-node",
+                request = "attach",
+                processId = require("dap.utils").pick_process,
+                cwd = "${workspaceFolder}",
+            },
+        }
+        dap.configurations.javascript = js_config
+        dap.configurations.typescript = js_config
+        dap.configurations.javascriptreact = js_config
+        dap.configurations.typescriptreact = js_config
+        dap.configurations.astro = js_config
+
+        local cpp_config = {
+            {
+                name = "Launch file",
+                type = "codelldb",
+                request = "launch",
+                program = function()
+                    return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+                end,
+                cwd = "${workspaceFolder}",
+                stopOnEntry = false,
+            },
+        }
+        dap.configurations.cpp = cpp_config
+        dap.configurations.c = cpp_config
+    end
+end
+
+function M.dap_ui()
+    return function()
+        local dap = require("dap")
+        local dapui = require("dapui")
+
+        dapui.setup()
+
+        dap.listeners.before.attach.dapui_config = function()
+            dapui.open()
+        end
+        dap.listeners.before.launch.dapui_config = function()
+            dapui.open()
+        end
+        dap.listeners.before.event_terminated.dapui_config = function()
+            dapui.close()
+        end
+        dap.listeners.before.event_exited.dapui_config = function()
+            dapui.close()
+        end
+    end
+end
+
+function M.dap_virtual_text()
+    return {
+        enabled = true,
+        virt_text_pos = "inline",
+    }
 end
 
 ---------
