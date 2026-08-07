@@ -108,3 +108,9 @@ map('n', '<leader>tS', function() require("neotest").summary.toggle() end, { des
 
 -- C/C++
 map('n', '<leader>ch', '<cmd>ClangdSwitchSourceHeader<CR>', { desc = "C/C++: Switch header/source" })
+
+-- CMake
+map('n', '<leader>mg', '<cmd>CMakeGenerate<CR>', { desc = "CMake: Generate" })
+map('n', '<leader>mb', '<cmd>CMakeBuild<CR>', { desc = "CMake: Build" })
+map('n', '<leader>mr', '<cmd>CMakeRun<CR>', { desc = "CMake: Run target" })
+map('n', '<leader>md', '<cmd>CMakeDebug<CR>', { desc = "CMake: Debug target" })

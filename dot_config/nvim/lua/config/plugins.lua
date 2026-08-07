@@ -357,6 +357,31 @@ function M.dap_virtual_text()
     }
 end
 
+----------
+--  CMAKE  --
+----------
+
+function M.cmake_tools()
+    return {
+        cmake_regenerate_on_save = false,
+        cmake_generate_options = { "-DCMAKE_EXPORT_COMPILE_COMMANDS=1" },
+        cmake_compile_commands_options = {
+            action = "soft_link",
+            target = vim.uv.cwd,
+        },
+        cmake_executor = "terminal",
+        cmake_runner = "terminal",
+        cmake_dap_configuration = {
+            name = "cpp",
+            type = "codelldb",
+            request = "launch",
+            stopOnEntry = false,
+            runInTerminal = true,
+            console = "integratedTerminal",
+        },
+    }
+end
+
 --------------
 --  TESTING  --
 --------------
