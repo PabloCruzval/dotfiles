@@ -89,27 +89,63 @@ end
 
 function M.treesitter()
     return function()
-        require("nvim-treesitter").setup({
-            ensure_installed = {
-                "astro",
-                "css",
-                "typescript",
-                "tsx",
-                "javascript",
-                "html",
-                "python",
-                "rust",
-                "lua",
-                "vim",
-                "vimdoc",
-                "typst",
-            },
-            highlight = {
+        require("nvim-treesitter").setup()
+        require("nvim-treesitter").install({
+            "astro",
+            "css",
+            "typescript",
+            "tsx",
+            "javascript",
+            "html",
+            "python",
+            "rust",
+            "lua",
+            "vim",
+            "vimdoc",
+            "typst",
+            "ruby",
+            "cpp",
+        })
+
+        vim.api.nvim_create_autocmd("FileType", {
+            group = vim.api.nvim_create_augroup("TreesitterNative", { clear = true }),
+            callback = function(args)
+                pcall(vim.treesitter.start, args.buf)
+                pcall(function()
+                    vim.bo[args.buf].indentexpr =
+                        "v:lua.require'nvim-treesitter'.indentexpr()"
+                end)
+            end,
+        })
+    end
+end
+
+function M.textobjects()
+    return function()
+        require("nvim-treesitter-textobjects").setup({
+            select = {
                 enable = true,
-                additional_vim_regex_highlighting = false,
+                lookahead = true,
+                keymaps = {
+                    ["af"] = "@function.outer",
+                    ["if"] = "@function.inner",
+                    ["ac"] = "@class.outer",
+                    ["ic"] = "@class.inner",
+                    ["aa"] = "@parameter.outer",
+                    ["ia"] = "@parameter.inner",
+                },
             },
-            indent = {
+            move = {
                 enable = true,
+                set_jumps = true,
+                goto_next_start = {
+                    ["]f"] = "@function.outer",
+                    ["]a"] = "@parameter.inner",
+                },
+                goto_previous_start = {
+                    ["[f"] = "@function.outer",
+                    ["[a"] = "@parameter.inner",
+                },
             },
         })
     end
