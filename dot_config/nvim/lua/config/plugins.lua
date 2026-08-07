@@ -213,16 +213,12 @@ end
 --------------
 
 function M.typst_preview()
-    return {
-        dependencies_bin = {
-            tinymist = "tinymist",
-        },
-    }
+    return {}
 end
 
 function M.nvim_prose()
     return {
-        filetypes = { "typst", "markdown", "asciidoc" },
+        filetypes = { "markdown", "asciidoc" },
     }
 end
 
