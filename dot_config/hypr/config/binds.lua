@@ -8,7 +8,7 @@ local apps = require("config.apps")
 ---------------------------
 
 hl.bind(mainMod .. " + Q",           hl.dsp.window.close())
-hl.bind(mainMod .. " + Escape",      hl.dsp.exec_cmd(noctCall .. "session lock"))
+hl.bind(mainMod .. " + SHIFT + L",      hl.dsp.exec_cmd(noctCall .. "session lock"))
 hl.bind(mainMod .. " + V",           hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + D",           hl.dsp.window.fullscreen({ mode = 1 }))
 hl.bind(mainMod .. " + F",           hl.dsp.window.fullscreen())
