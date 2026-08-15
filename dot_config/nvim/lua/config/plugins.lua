@@ -369,8 +369,8 @@ function M.cmake_tools()
             action = "soft_link",
             target = vim.uv.cwd,
         },
-        cmake_executor = "terminal",
-        cmake_runner = "terminal",
+        cmake_executor = { name = "terminal" },
+        cmake_runner = { name = "terminal" },
         cmake_dap_configuration = {
             name = "cpp",
             type = "codelldb",
