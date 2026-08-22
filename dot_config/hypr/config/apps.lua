@@ -4,8 +4,8 @@
 
 return {
 	browser = {
-		cmd = "uwsm app -- librewolf",
-		title = ".*LibreWolf.*",
+		cmd = "uwsm app -- brave",
+		title = ".*Brave.*",
 		workspace = 2,
 	},
 	terminal = {
