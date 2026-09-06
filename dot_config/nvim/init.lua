@@ -11,6 +11,8 @@ o.relativenumber = true
 o.number = true
 o.termguicolors = true
 o.winborder = "rounded"
+o.ignorecase = true
+o.smartcase = true
 
 vim.filetype.add({
     extension = {
