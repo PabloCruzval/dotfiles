@@ -22,6 +22,25 @@ function M.mason_lspconfig()
             "tinymist",
             "codebook",
             "clangd",
+            "pyright",
+            "ruff",
+            "rust_analyzer",
+        },
+        automatic_enable = {
+            "vtsls",
+            "astro",
+            "emmet_language_server",
+            "jsonls",
+            "cssls",
+            "html",
+            "tailwindcss",
+            "lua_ls",
+            "tinymist",
+            "codebook",
+            "clangd",
+            "pyright",
+            "ruff",
+            "rust_analyzer",
         },
     }
 end
@@ -35,6 +54,7 @@ function M.mason_tool_installer()
             "ruff",
             "js-debug-adapter",
             "codelldb",
+            "debugpy",
         },
     }
 end
@@ -68,6 +88,7 @@ function M.blink_cmp()
                 selection = { preselect = true, auto_insert = false },
             },
         },
+        snippets = { preset = "luasnip" },
         sources = {
             default = { "lsp", "path", "snippets", "buffer" },
         },
@@ -94,10 +115,21 @@ function M.oil()
 		columns = {
 			"icon",
 		},
+        win_options = {
+            signcolumn = "auto:1",
+        },
         keymaps = {
             ["<C-h>"] = false,
             ["<C-l>"] = false,
         },
+    }
+end
+
+function M.oil_git()
+    return {
+        symbol_position = "signcolumn",
+        show_ignored_files = true,
+        show_ignored_directories = true,
     }
 end
 
@@ -247,7 +279,8 @@ function M.conform()
             jsonc = { "prettierd", "prettier", stop_after_first = true },
             astro = { "prettierd", "prettier", stop_after_first = true },
             lua = { "stylua" },
-            python = { "ruff_format" },
+            python = { "ruff_fix", "ruff_format", "ruff_organize_imports" },
+            rust = { "rustfmt", lsp_format = "fallback" },
             markdown = { "prettierd", "prettier", stop_after_first = true },
             yaml = { "prettierd", "prettier", stop_after_first = true },
         },
