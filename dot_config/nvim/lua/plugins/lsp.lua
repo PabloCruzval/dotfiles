@@ -5,6 +5,7 @@ return {
     {
         "mason-org/mason.nvim",
         opts = require("config.plugins").mason,
+        dependencies = { "echasnovski/mini.pick" },
     },
     {
         "mason-org/mason-lspconfig.nvim",
@@ -20,6 +21,7 @@ return {
     },
     {
         "p00f/clangd_extensions.nvim",
+        ft = { "c", "cpp" },
         opts = require("config.plugins").clangd_extensions,
     },
     {
@@ -27,6 +29,14 @@ return {
         version = "v1.*",
         dependencies = {
             "rafamadriz/friendly-snippets",
+            {
+                "L3MON4D3/LuaSnip",
+                version = "v2.*",
+                build = "make install_jsregexp",
+                config = function()
+                    require("luasnip.loaders.from_vscode").lazy_load()
+                end,
+            },
         },
         opts = require("config.plugins").blink_cmp,
     },
