@@ -1,18 +1,19 @@
 return {
-    filetypes = {
-        "html",
-        "css",
-        "javascript",
-        "javascriptreact",
-        "typescript",
-        "typescriptreact",
-        "astro",
-        "svelte",
-        "vue",
-    },
     settings = {
         tailwindCSS = {
-            includeLanguages = {},
+            includeLanguages = {
+                astro = "html",
+                javascript = "jsx",
+                javascriptreact = "jsx",
+                typescript = "tsx",
+                typescriptreact = "tsx",
+            },
+            experimental = {
+                classRegex = {
+                    { "clsx\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]" },
+                    { "cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]" },
+                },
+            },
         },
     },
 }
