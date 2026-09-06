@@ -2,4 +2,5 @@
 .backup/
 .vscode/
 .env
+.tmp/
 dot_config/noctalia/colors.json
