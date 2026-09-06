@@ -6,7 +6,7 @@
 
 </div>
 
-Personal Neovim configuration for web development featuring modular lazy-loading, native LSP, blink.cmp completion, and Noctalia-driven theming.
+Personal Neovim configuration for web development featuring modular lazy-loading, native LSP, blink.cmp completion, and catppuccin theming.
 
 ## ✨ Features
 
@@ -19,7 +19,7 @@ Personal Neovim configuration for web development featuring modular lazy-loading
 - **🔍 Git Signs** - Inline git change indicators, hunk staging, preview, and blame
 - **🗂️ Oil + Mini.pick** - Edit filesystem as a buffer + fuzzy picker for files/grep/buffers
 - **📦 JSON Schema Validation** - Automatic schema detection via SchemaStore for `package.json`, `tsconfig.json`, etc.
-- **🎨 Noctalia Theme** - Colors generated from Noctalia palette via base16; Nord fallback if palette unavailable
+- **🎨 Catppuccin Theme** - catppuccin-mocha with transparent background
 - **📋 Diagnostic Signs** - Custom Nerd Font icons for errors, warnings, info, and hints
 - **🖥️ Integrated Terminal** - Toggle floating/split terminal with session persistence
 - **📝 Writing Tools** - Typst LSP/preview, prose wordcount (:WordCount), reading-time estimates, and codebook spell checking
@@ -35,19 +35,16 @@ nvim/
 │   │   ├── map.lua                 # Global keymaps & LspAttach handlers
 │   │   ├── diagnostic.lua          # Diagnostic display configuration
 │   │   ├── plugins.lua             # Centralized plugin option definitions
-│   │   └── lsp.lua                 # (reserved)
-│   ├── matugen-template.lua        # Noctalia user template source
+│   │   └── keys.lua                # Plugin keymaps
 │   ├── plugins/
 │   │   ├── lsp.lua                 # LSP, Mason, blink.cmp, SchemaStore
 │   │   ├── nav.lua                 # oil.nvim, mini.pick
 │   │   ├── syntax.lua              # nvim-treesitter, guess-indent
 │   │   ├── editing.lua             # nvim-autopairs, nvim-ts-autotag, conform.nvim
 │   │   ├── git.lua                 # gitsigns.nvim
-│   │   ├── theme.lua               # base16-nvim (Noctalia palette engine)
+│   │   ├── theme.lua               # catppuccin
 │   │   ├── ui.lua                  # which-key.nvim
 │   │   └── typst.lua               # typst-preview.nvim, nvim-prose
-│   ├── themes/
-│   │   └── noctalia.lua            # Theme loader: Noctalia palette → Nord fallback
 │   └── utils/
 │       ├── terminal.lua            # Toggle terminal utility
 │       ├── tinymist_status.lua     # Tinymist compile status handler
@@ -60,7 +57,12 @@ nvim/
         ├── tailwindcss.lua         # Tailwind CSS LSP config
         ├── emmet_language_server.lua # Emmet LSP config
         ├── tinymist.lua            # Typst LSP config
-        └── codebook.lua            # Code-aware spell checker LSP config
+        ├── codebook.lua            # Code-aware spell checker LSP config
+        ├── pyright.lua             # Python LSP config
+        ├── ruff.lua                # Ruff LSP config
+        ├── rust_analyzer.lua       # Rust LSP config
+        ├── ruby_lsp.lua            # Ruby LSP config
+        └── clangd.lua              # C/C++ LSP config
 ```
 
 ---
@@ -106,7 +108,7 @@ nvim/
 | [oil.nvim](https://github.com/stevearc/oil.nvim) | File explorer as an editable buffer |
 | [mini.pick](https://github.com/echasnovski/mini.pick) | Fuzzy picker (files, buffers, grep, help) |
 | [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) | Advanced syntax highlighting & parsing |
-| [base16-nvim](https://github.com/RRethy/base16-nvim) | Base16 colorscheme engine, driven by Noctalia palette |
+| [catppuccin/nvim](https://github.com/catppuccin/nvim) | catppuccin-mocha colorscheme with transparent background |
 | [which-key.nvim](https://github.com/folke/which-key.nvim) | Keybinding popup menu |
 
 </details>
@@ -165,6 +167,11 @@ Installed automatically via Mason. Configured in [`after/lsp/`](after/lsp/):
 | **lua\_ls** | — | Lua language server (for config editing) |
 | **tinymist** | [`after/lsp/tinymist.lua`](after/lsp/tinymist.lua) | Typst LSP — typstyle formatting, PDF export on save |
 | **codebook** | [`after/lsp/codebook.lua`](after/lsp/codebook.lua) | Code-aware spell checking (comments, strings, definitions) |
+| **pyright** | [`after/lsp/pyright.lua`](after/lsp/pyright.lua) | Python type checker |
+| **ruff** | [`after/lsp/ruff.lua`](after/lsp/ruff.lua) | Python linter/formatter (`ruff server`) |
+| **rust\_analyzer** | [`after/lsp/rust_analyzer.lua`](after/lsp/rust_analyzer.lua) | Rust with clippy |
+| **ruby\_lsp** | [`after/lsp/ruby_lsp.lua`](after/lsp/ruby_lsp.lua) | Ruby |
+| **clangd** | [`after/lsp/clangd.lua`](after/lsp/clangd.lua) | C/C++ |
 
 ---
 
@@ -317,8 +324,8 @@ Installed automatically via Mason. Configured in [`after/lsp/`](after/lsp/):
 
 <br>
 
-- **Theme**: Driven by [Noctalia v5](https://docs.noctalia.dev/v5/) palette via [base16-nvim](https://github.com/RRethy/base16-nvim) — colors match the desktop shell
-- **Fallback**: [Nord](https://www.nordtheme.com/) palette applied automatically when the Noctalia-generated file is missing
+- **Theme**: [catppuccin-mocha](https://github.com/catppuccin/nvim) with transparent background
+- **Fallback**: None — catppuccin-mocha is the single theme
 - **Borders**: Rounded (`winborder = "rounded"`)
 - **Statusline**: Transparent background (`guibg=NONE`)
 - **Line Numbers**: Relative with absolute current line
@@ -368,7 +375,7 @@ winborder = "rounded"    -- Rounded window borders
 
 <br>
 
-- **Neovim 0.10+** (0.11 recommended for native LSP config support)
+- **Neovim 0.12+**
 - **Git** — plugin management and gitsigns
 - **Nerd Font** — diagnostic and UI icons
 - **Ripgrep** — live grep search (`:Pick grep_live`)
