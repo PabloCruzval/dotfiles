@@ -68,6 +68,10 @@ M.pick_files = function()
     vim.cmd("Pick files")
 end
 
+M.pick_recent_files = function()
+    vim.cmd("Pick oldfiles")
+end
+
 M.pick_buffers = function()
     vim.cmd("Pick buffers")
 end

@@ -18,10 +18,11 @@ return {
         opts = require("config.plugins").mini_pick,
         cmd = "Pick",
         keys = {
-            { "<leader>pf", require("config.keys").pick_files, desc = "Buscar archivos" },
-            { "<leader>ph", require("config.keys").pick_help, desc = "Buscar ayuda" },
-            { "<leader>pb", require("config.keys").pick_buffers, desc = "Buscar buffers" },
-            { "<leader>gl", require("config.keys").pick_grep_live, desc = "Buscar texto en vivo" },
+            { "<leader>pf", require("config.keys").pick_files, desc = "Pick: Buscar archivos" },
+            { "<leader>pr", require("config.keys").pick_recent_files, desc = "Pick: Buscar archivos recientes" },
+            { "<leader>ph", require("config.keys").pick_help, desc = "Pick: Buscar ayuda" },
+            { "<leader>pb", require("config.keys").pick_buffers, desc = "Pick: Buscar buffers" },
+            { "<leader>gl", require("config.keys").pick_grep_live, desc = "Pick: Buscar texto en vivo" },
         },
     },
     {
