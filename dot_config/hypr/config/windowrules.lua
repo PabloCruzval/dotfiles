@@ -1,8 +1,5 @@
--- Window rules wiki https://wiki.hypr.land/Configuring/Basics/Window-Rules/
-
 local apps = require("config.apps")
 
--- Auto-assign windows to workspaces defined in apps.lua
 for _, app in pairs(apps) do
 	if app.workspace and app.title and not app.class then
 		hl.window_rule({
@@ -18,10 +15,8 @@ for _, app in pairs(apps) do
 	end
 end
 
--- Generic floating position
 hl.window_rule({ match = { float = true }, center = true, persistent_size = true })
 
--- Picture-in-Picture
 hl.window_rule({
     match             = { title = "^([Pp]icture[-\\s]?[Ii]n[-\\s]?[Pp]icture)(.*)$" },
     float             = true,
@@ -30,7 +25,6 @@ hl.window_rule({
     pin               = true,
 })
 
--- Gaming
 local gamingApps = "^(steam_app.*|gamescope)$"
 local gamingWorkspace = "name:gaming"
 

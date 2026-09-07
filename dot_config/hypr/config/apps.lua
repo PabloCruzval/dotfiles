@@ -1,7 +1,3 @@
--- Shared application definitions.
--- Change apps in one place — keybindings and window rules
--- pick up cmd, title matching, and workspace assignments.
-
 return {
 	browser = {
 		cmd = "uwsm app -- brave",

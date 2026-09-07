@@ -1,5 +1,3 @@
--- Look and feel configuration
-
 hl.config({
     general = {
         gaps_in = 3,

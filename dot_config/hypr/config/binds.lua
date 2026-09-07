@@ -15,7 +15,6 @@ hl.bind(mainMod .. " + F",           hl.dsp.window.fullscreen())
 hl.bind(mainMod .. " + M",           hl.dsp.window.fullscreen({ action = "toggle" }))
 hl.bind(mainMod .. " + SHIFT + T",   hl.dsp.layout("togglesplit"))
 
--- Change focus
 hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }))
 hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
 hl.bind(mainMod .. " + up",    hl.dsp.focus({ direction = "up" }))
@@ -28,7 +27,6 @@ hl.bind("ALT + Tab",           hl.dsp.window.cycle_next())
 hl.bind(mainMod .. " + Tab",   hl.dsp.exec_cmd(noctCall .. "window-switcher"))
 hl.bind(mainMod .. " + grave", hl.dsp.focus({ workspace = "previous" }))
 
--- Move active window around workspaces & monitors
 hl.bind(mainMod .. " + SHIFT + Up",                   hl.dsp.window.move({ direction = "u" }))
 hl.bind(mainMod .. " + SHIFT + Right",                hl.dsp.window.move({ direction = "r" }))
 hl.bind(mainMod .. " + SHIFT + Left",                 hl.dsp.window.move({ direction = "l" }))
@@ -47,7 +45,6 @@ for i = 1, NUM_WPM do
 	hl.bind(mainMod .. " + SHIFT + CONTROL + " .. key, hl.dsp.window.move({ workspace = "m~" .. i }))
 end
 
--- Move & Resize with mouse
 hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag())
 hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize())
 
@@ -66,7 +63,6 @@ hl.bind(mainMod .. " + O",          hl.dsp.exec_cmd(apps.obsidian.cmd))
 hl.bind("CONTROL + SHIFT + Escape", hl.dsp.exec_cmd(launchPrefix .. TERMINAL .. " -e btop"))
 hl.bind(mainMod .. " + SHIFT + M",  hl.dsp.exec_cmd("hyprshutdown"))
 
--- Noctalia panels
 hl.bind(mainMod .. " + Z",          hl.dsp.exec_cmd(noctCall .. "settings-toggle"))
 hl.bind(mainMod .. " + SUPER_L",    hl.dsp.exec_cmd(noctCall .. "panel-toggle control-center"))
 hl.bind(mainMod .. " + Space",      hl.dsp.exec_cmd(noctCall .. "panel-toggle launcher"))
@@ -131,9 +127,6 @@ hl.bind(mainMod .. " + SHIFT + C",      hl.dsp.layout("consume"))
 ---- WORKSPACES & MONITORS ---
 ------------------------------
 
-local hostname = HOSTNAME
-
-	-- Desktop: global fixed workspaces 1-10
 for i = 1, 10 do
 	local key = i % 10
 	hl.bind(mainMod .. " + " .. key,         hl.dsp.focus({ workspace = i }))
