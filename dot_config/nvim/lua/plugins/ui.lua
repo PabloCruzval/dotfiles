@@ -17,6 +17,8 @@ return {
         "lukas-reineke/indent-blankline.nvim",
         main = "ibl",
         event = "VeryLazy",
-        config = require("config.plugins").indent_blankline,
+        opts = function()
+            return require("config.plugins").indent_blankline()
+        end,
     },
 }

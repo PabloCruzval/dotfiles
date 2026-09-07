@@ -227,23 +227,21 @@ function M.which_key()
 end
 
 function M.indent_blankline()
-    return function()
-        local hooks = require("ibl.hooks")
-        hooks.register(hooks.type.WHITESPACE, hooks.builtin.hide_first_space_indent_level)
-        hooks.register(hooks.type.WHITESPACE, hooks.builtin.hide_first_tab_indent_level)
+    local hooks = require("ibl.hooks")
+    hooks.register(hooks.type.WHITESPACE, hooks.builtin.hide_first_space_indent_level)
+    hooks.register(hooks.type.WHITESPACE, hooks.builtin.hide_first_tab_indent_level)
 
-        require("ibl").setup({
-            indent = {
-                char = "│",
-            },
-            scope = {
-                enabled = true,
-                show_start = true,
-                show_end = true,
-                char = "│",
-            },
-        })
-    end
+    return {
+        indent = {
+            char = "│",
+        },
+        scope = {
+            enabled = true,
+            show_start = true,
+            show_end = true,
+            char = "│",
+        },
+    }
 end
 
 ---------------
