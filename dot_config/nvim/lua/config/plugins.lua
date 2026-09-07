@@ -133,8 +133,15 @@ function M.oil_git()
     }
 end
 
-function M.mini_pick()
-    return {}
+function M.telescope()
+    return {
+        defaults = {
+            layout_config = {
+                prompt_position = "top",
+            },
+            sorting_strategy = "ascending",
+        },
+    }
 end
 
 --------------

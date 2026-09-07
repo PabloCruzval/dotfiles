@@ -14,15 +14,15 @@ return {
         opts = require("config.plugins").oil_git,
     },
     {
-        "echasnovski/mini.pick",
-        opts = require("config.plugins").mini_pick,
-        cmd = "Pick",
+        "nvim-telescope/telescope.nvim",
+        dependencies = { "nvim-lua/plenary.nvim" },
+        opts = require("config.plugins").telescope,
         keys = {
-            { "<leader>pf", require("config.keys").pick_files, desc = "Pick: Buscar archivos" },
-            { "<leader>pr", require("config.keys").pick_recent_files, desc = "Pick: Buscar archivos recientes" },
-            { "<leader>ph", require("config.keys").pick_help, desc = "Pick: Buscar ayuda" },
-            { "<leader>pb", require("config.keys").pick_buffers, desc = "Pick: Buscar buffers" },
-            { "<leader>gl", require("config.keys").pick_grep_live, desc = "Pick: Buscar texto en vivo" },
+            { "<leader>pf", require("config.keys").telescope_files, desc = "Telescope: Buscar archivos" },
+            { "<leader>pr", require("config.keys").telescope_recent_files, desc = "Telescope: Buscar archivos recientes" },
+            { "<leader>ph", require("config.keys").telescope_help, desc = "Telescope: Buscar ayuda" },
+            { "<leader>pb", require("config.keys").telescope_buffers, desc = "Telescope: Buscar buffers" },
+            { "<leader>gl", require("config.keys").telescope_live_grep, desc = "Telescope: Buscar texto en vivo" },
         },
     },
     {

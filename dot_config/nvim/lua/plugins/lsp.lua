@@ -5,7 +5,6 @@ return {
     {
         "mason-org/mason.nvim",
         opts = require("config.plugins").mason,
-        dependencies = { "echasnovski/mini.pick" },
     },
     {
         "mason-org/mason-lspconfig.nvim",

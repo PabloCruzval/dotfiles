@@ -63,25 +63,25 @@ M.oil_toggle_hidden = function()
     require("oil").toggle_hidden()
 end
 
--- Mini.pick
-M.pick_files = function()
-    vim.cmd("Pick files")
+-- Telescope
+M.telescope_files = function()
+    require("telescope.builtin").find_files()
 end
 
-M.pick_recent_files = function()
-    vim.cmd("Pick oldfiles")
+M.telescope_recent_files = function()
+    require("telescope.builtin").oldfiles()
 end
 
-M.pick_buffers = function()
-    vim.cmd("Pick buffers")
+M.telescope_buffers = function()
+    require("telescope.builtin").buffers()
 end
 
-M.pick_help = function()
-    vim.cmd("Pick help")
+M.telescope_help = function()
+    require("telescope.builtin").help_tags()
 end
 
-M.pick_grep_live = function()
-    vim.cmd("Pick grep_live")
+M.telescope_live_grep = function()
+    require("telescope.builtin").live_grep()
 end
 
 return M
