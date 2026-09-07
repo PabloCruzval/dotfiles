@@ -19,4 +19,3 @@ if command -q rg
     alias grep 'rg'
 end
 
-alias ls='eza --color=always --group-directories-first --icons=always'
