@@ -89,6 +89,12 @@ vim.api.nvim_create_autocmd("LspAttach", {
     end,
 })
 
+-- Open the current file in the OS default application
+map("n", "<leader>fo", function()
+  vim.ui.open(vim.fn.expand("%"))
+end, { desc = "Open file in external app" })
+
+
 -- C/C++
 map('n', '<leader>ch', '<cmd>ClangdSwitchSourceHeader<CR>', { desc = "C/C++: Switch header/source" })
 

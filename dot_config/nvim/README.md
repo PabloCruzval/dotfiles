@@ -221,7 +221,8 @@ Installed automatically via Mason. Configured in [`after/lsp/`](after/lsp/):
 |-----|--------|
 | `<leader>lf` | Format buffer (LSP) |
 | `<leader>la` | Code actions |
-| `<leader>fm` | Format buffer (conform.nvim, manual) |
+| `<leader>ff` | Format buffer (conform.nvim, manual) |
+| `<leader>fo` | Open file in other app |
 | `<leader>ld` | Go to definition |
 | `<leader>lr` | Rename symbol |
 | `<leader>lh` | Show hover documentation |
@@ -486,7 +487,7 @@ Then restart Neovim to reinstall everything.
 ## 💡 Tips
 
 - **Save without formatting**: Use `:w` directly (no auto-format on save)
-- **Manual format**: `<leader>fm` in normal or visual mode
+- **Manual format**: `<leader>ff` in normal or visual mode
 - **Quick file tree**: `<leader>e` opens oil.nvim — edit paths like a buffer
 - **Find files**: `<leader>pf` uses Mini.pick with fuzzy matching
 - **Stage hunks**: Select lines visually, then `<leader>gs`

@@ -15,7 +15,7 @@ return {
         opts = require("config.plugins").conform,
         keys = {
             {
-                "<leader>fm",
+                "<leader>ff",
                 function()
                     require("conform").format({ async = true, lsp_format = "fallback" })
                 end,
