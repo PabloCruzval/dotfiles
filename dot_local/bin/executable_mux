@@ -291,14 +291,14 @@ open_session() {
 # FZF picker
 # ---------------------------------------------------------------------------
 _fzf() {
-    if [ -n "${TMUX:-}" ]; then
-        if command -v fzf-tmux >/dev/null 2>&1; then
-            fzf-tmux "$@"
-        else
-            fzf "$@"
-        fi
+    # fzf ejecuta preview/execute/reload con $SHELL; si el usuario usa fish,
+    # nuestros scripts de preview (sintaxis bash) fallan. Forzar bash.
+    local bash_bin
+    bash_bin=$(command -v bash)
+    if [ -n "${TMUX:-}" ] && command -v fzf-tmux >/dev/null 2>&1; then
+        SHELL="$bash_bin" fzf-tmux "$@"
     else
-        fzf "$@"
+        SHELL="$bash_bin" fzf "$@"
     fi
 }
 
@@ -336,11 +336,10 @@ fzf_mode() {
 
     local preview_cmd
     preview_cmd=$(cat <<PREVIEW
-line='{}'
-kind=\$(printf "%s" "\$line" | cut -f1)
-alias=\$(printf "%s" "\$line" | cut -f2)
-layout=\$(printf "%s" "\$line" | cut -f3)
-path=\$(printf "%s" "\$line" | cut -f4)
+kind={1}
+alias={2}
+layout={3}
+path={4}
 case "\$kind" in
 P)
     printf "%s\n" "\$path"
@@ -367,7 +366,7 @@ PREVIEW
         --preview="$preview_cmd" \
         --preview-window=up:5:wrap \
         --header="$header" \
-        --bind="ctrl-x:execute(tmux kill-session -t \$(printf '%s' {} | cut -f2) 2>/dev/null)+reload(mux --list-for-fzf)" \
+        --bind="ctrl-x:execute(tmux kill-session -t {2} 2>/dev/null)+reload(mux --list-for-fzf)" \
         --no-multi \
         || true)
 
