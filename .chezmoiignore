@@ -7,8 +7,9 @@
 ./DesktopImage.png
 ./install/
 ./dot_config/codebook/
-./dot_config/fcitx5/conf/cached_layouts
+.config/hypr/noctalia.lua
 ./dot_config/fish/fish_variables
+./dot_config/fcitx5/conf/cached_layouts
 
 # Documentation files are kept in the chezmoi source repo only
 **/*.md

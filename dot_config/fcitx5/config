@@ -71,7 +71,7 @@ CustomXkbOption=caps:escape
 # Force Enabled Addons
 EnabledAddons=
 # Force Disabled Addons
-DisabledAddons=
+DisabledAddons=emoji
 # Preload input method to be used by default
 PreloadInputMethod=True
 # Allow input method in the password field
@@ -80,4 +80,3 @@ AllowInputMethodForPassword=False
 ShowPreeditForPassword=False
 # Interval of saving user data in minutes
 AutoSavePeriod=30
-
