@@ -133,13 +133,11 @@ function M.oil_git()
     }
 end
 
-function M.telescope()
+function M.snacks()
     return {
-        defaults = {
-            layout_config = {
-                prompt_position = "top",
-            },
-            sorting_strategy = "ascending",
+        picker = {
+            enabled = true,
+            ui_select = true,
         },
     }
 end

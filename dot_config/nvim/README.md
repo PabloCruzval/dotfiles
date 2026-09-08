@@ -17,7 +17,7 @@ Personal Neovim configuration for web development featuring modular lazy-loading
 - **🏷️ nvim-ts-autotag** - Treesitter-powered auto-closing and renaming of HTML/JSX tags
 - **🔗 nvim-autopairs** - Smart bracket, quote, and HTML tag pair completion
 - **🔍 Git Signs** - Inline git change indicators, hunk staging, preview, and blame
-- **🗂️ Oil + Telescope** - Edit filesystem as a buffer + fuzzy picker for files/grep/buffers
+- **🗂️ Oil + Snacks** - Edit filesystem as a buffer + fuzzy picker for files/grep/buffers
 - **📦 JSON Schema Validation** - Automatic schema detection via SchemaStore for `package.json`, `tsconfig.json`, etc.
 - **🎨 Catppuccin Theme** - catppuccin-mocha with transparent background
 - **📋 Diagnostic Signs** - Custom Nerd Font icons for errors, warnings, info, and hints
@@ -38,7 +38,7 @@ nvim/
 │   │   └── keys.lua                # Plugin keymaps
 │   ├── plugins/
 │   │   ├── lsp.lua                 # LSP, Mason, blink.cmp, SchemaStore
-│   │   ├── nav.lua                 # oil.nvim, telescope.nvim
+│   │   ├── nav.lua                 # oil.nvim, snacks.nvim
 │   │   ├── syntax.lua              # nvim-treesitter, guess-indent
 │   │   ├── editing.lua             # nvim-autopairs, nvim-ts-autotag, conform.nvim
 │   │   ├── git.lua                 # gitsigns.nvim
@@ -106,7 +106,7 @@ nvim/
 | Plugin | Purpose |
 |--------|---------|
 | [oil.nvim](https://github.com/stevearc/oil.nvim) | File explorer as an editable buffer |
-| [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) | Fuzzy picker (files, recent files, buffers, grep, help) |
+| [snacks.nvim](https://github.com/folke/snacks.nvim) | Fuzzy picker and `vim.ui.select` (files, recent files, buffers, grep, help) |
 | [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) | Advanced syntax highlighting & parsing |
 | [catppuccin/nvim](https://github.com/catppuccin/nvim) | catppuccin-mocha colorscheme with transparent background |
 | [which-key.nvim](https://github.com/folke/which-key.nvim) | Keybinding popup menu |
@@ -237,9 +237,9 @@ Installed automatically via Mason. Configured in [`after/lsp/`](after/lsp/):
 
 | Key | Action |
 |-----|--------|
-| `<leader>pf` | Find files (Telescope) |
-| `<leader>pr` | Find recent files (Telescope) |
-| `<leader>pb` | Find buffers (Telescope) |
+| `<leader>pf` | Find files (Snacks) |
+| `<leader>pr` | Find recent files in the current project (Snacks) |
+| `<leader>pb` | Find buffers (Snacks) |
 | `<leader>gl` | Live grep search |
 | `<leader>ph` | Search help documentation |
 | `<leader>e` | Open Oil file explorer |
@@ -380,7 +380,7 @@ winborder = "rounded"    -- Rounded window borders
 - **Neovim 0.12+**
 - **Git** — plugin management and gitsigns
 - **Nerd Font** — diagnostic and UI icons
-- **Ripgrep** — live grep search (`Telescope live_grep`)
+- **Ripgrep** — live grep search (`Snacks.picker.grep`)
 - **npm/node** — LSP server installation via Mason
 
 </details>
@@ -490,7 +490,7 @@ Then restart Neovim to reinstall everything.
 - **Save without formatting**: Use `:w` directly (no auto-format on save)
 - **Manual format**: `<leader>ff` in normal or visual mode
 - **Quick file tree**: `<leader>e` opens oil.nvim — edit paths like a buffer
-- **Find files**: `<leader>pf` uses Telescope with fuzzy matching
+- **Find files**: `<leader>pf` uses Snacks with fuzzy matching
 - **Stage hunks**: Select lines visually, then `<leader>gs`
 - **Preview git changes**: `<leader>gh` shows hunk diff inline
 - **Toggle terminal**: `<leader>ts` opens a persistent split terminal

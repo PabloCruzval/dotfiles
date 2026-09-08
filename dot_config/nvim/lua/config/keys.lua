@@ -63,25 +63,25 @@ M.oil_toggle_hidden = function()
     require("oil").toggle_hidden()
 end
 
--- Telescope
-M.telescope_files = function()
-    require("telescope.builtin").find_files()
+-- Snacks picker
+M.snacks_files = function()
+    Snacks.picker.files()
 end
 
-M.telescope_recent_files = function()
-    require("telescope.builtin").oldfiles()
+M.snacks_recent_files = function()
+    Snacks.picker.recent({ filter = { cwd = true } })
 end
 
-M.telescope_buffers = function()
-    require("telescope.builtin").buffers()
+M.snacks_buffers = function()
+    Snacks.picker.buffers()
 end
 
-M.telescope_help = function()
-    require("telescope.builtin").help_tags()
+M.snacks_help = function()
+    Snacks.picker.help()
 end
 
-M.telescope_live_grep = function()
-    require("telescope.builtin").live_grep()
+M.snacks_live_grep = function()
+    Snacks.picker.grep()
 end
 
 return M

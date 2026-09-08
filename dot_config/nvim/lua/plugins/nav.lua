@@ -14,15 +14,14 @@ return {
         opts = require("config.plugins").oil_git,
     },
     {
-        "nvim-telescope/telescope.nvim",
-        dependencies = { "nvim-lua/plenary.nvim" },
-        opts = require("config.plugins").telescope,
+        "folke/snacks.nvim",
+        opts = require("config.plugins").snacks,
         keys = {
-            { "<leader>pf", require("config.keys").telescope_files, desc = "Telescope: Buscar archivos" },
-            { "<leader>pr", require("config.keys").telescope_recent_files, desc = "Telescope: Buscar archivos recientes" },
-            { "<leader>ph", require("config.keys").telescope_help, desc = "Telescope: Buscar ayuda" },
-            { "<leader>pb", require("config.keys").telescope_buffers, desc = "Telescope: Buscar buffers" },
-            { "<leader>gl", require("config.keys").telescope_live_grep, desc = "Telescope: Buscar texto en vivo" },
+            { "<leader>pf", require("config.keys").snacks_files, desc = "Snacks: Buscar archivos" },
+            { "<leader>pr", require("config.keys").snacks_recent_files, desc = "Snacks: Buscar archivos recientes" },
+            { "<leader>ph", require("config.keys").snacks_help, desc = "Snacks: Buscar ayuda" },
+            { "<leader>pb", require("config.keys").snacks_buffers, desc = "Snacks: Buscar buffers" },
+            { "<leader>gl", require("config.keys").snacks_live_grep, desc = "Snacks: Buscar texto en vivo" },
         },
     },
     {
