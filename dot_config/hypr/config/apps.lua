@@ -1,7 +1,7 @@
 return {
 	browser = {
-		cmd = "uwsm app -- brave",
-		title = ".*Brave.*",
+		cmd = "uwsm app -- " .. BROWSER,
+		class = "librewolf",
 		workspace = 2,
 	},
 	terminal = {
