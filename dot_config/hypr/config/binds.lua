@@ -24,7 +24,7 @@ hl.bind(mainMod .. " + l",     hl.dsp.focus({ direction = "right" }))
 hl.bind(mainMod .. " + k",     hl.dsp.focus({ direction = "up" }))
 hl.bind(mainMod .. " + j",     hl.dsp.focus({ direction = "down" }))
 hl.bind("ALT + Tab",           hl.dsp.window.cycle_next())
-hl.bind(mainMod .. " + Tab",   hl.dsp.exec_cmd(noctCall .. "window-switcher"))
+hl.bind(mainMod .. " + Tab",   hl.dsp.focus({ workspace = "previous" }))
 hl.bind(mainMod .. " + grave", hl.dsp.focus({ workspace = "previous" }))
 
 hl.bind(mainMod .. " + SHIFT + Up",                   hl.dsp.window.move({ direction = "u" }))
