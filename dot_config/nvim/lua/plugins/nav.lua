@@ -15,6 +15,7 @@ return {
     },
     {
         "folke/snacks.nvim",
+        lazy = false,
         opts = require("config.plugins").snacks,
         keys = {
             { "<leader>pf", require("config.keys").snacks_files, desc = "Snacks: Buscar archivos" },

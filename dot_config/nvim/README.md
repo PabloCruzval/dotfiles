@@ -106,7 +106,7 @@ nvim/
 | Plugin | Purpose |
 |--------|---------|
 | [oil.nvim](https://github.com/stevearc/oil.nvim) | File explorer as an editable buffer |
-| [snacks.nvim](https://github.com/folke/snacks.nvim) | Fuzzy picker and `vim.ui.select` (files, recent files, buffers, grep, help) |
+| [snacks.nvim](https://github.com/folke/snacks.nvim) | Fuzzy picker and global `vim.ui.select` interface (files, recent files, buffers, grep, help) |
 | [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) | Advanced syntax highlighting & parsing |
 | [catppuccin/nvim](https://github.com/catppuccin/nvim) | catppuccin-mocha colorscheme with transparent background |
 | [which-key.nvim](https://github.com/folke/which-key.nvim) | Keybinding popup menu |
