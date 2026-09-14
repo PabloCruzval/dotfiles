@@ -1,17 +1,18 @@
 return {
     {
         "stevearc/oil.nvim",
-        dependencies = { "nvim-tree/nvim-web-devicons" },
+        dependencies = {
+            "nvim-tree/nvim-web-devicons",
+            {
+                "malewicz1337/oil-git.nvim",
+                opts = require("config.plugins").oil_git,
+            },
+        },
         opts = require("config.plugins").oil,
         keys = {
             { "<leader>e", require("config.keys").oil_open, desc = "Explorador de archivos" },
             { "<S-h>", require("config.keys").oil_toggle_hidden, desc = "Mostrar/ocultar archivos ocultos" },
         },
-    },
-    {
-        "malewicz1337/oil-git.nvim",
-        dependencies = { "stevearc/oil.nvim" },
-        opts = require("config.plugins").oil_git,
     },
     {
         "folke/snacks.nvim",
