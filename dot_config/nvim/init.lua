@@ -36,3 +36,6 @@ end
 
 vim.cmd [[colorscheme catppuccin-mocha]]
 set_transparent_bg()
+
+vim.api.nvim_set_hl(0, "LineNr", { fg = "#9399b2" })
+vim.api.nvim_set_hl(0, "CursorLineNr", { fg = "#b4befe", bold = true })
