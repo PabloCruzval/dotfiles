@@ -69,6 +69,14 @@ function M.blink_cmp()
             ["<Tab>"] = { "select_next", "fallback" },
             ["<S-Tab>"] = { "select_prev", "fallback" },
             ["<CR>"] = { "accept", "fallback" },
+            ["<C-j>"] = { "select_next", "fallback" },
+            ["<C-k>"] = { "select_prev", "fallback" },
+            ["<Esc>"] = {
+                "cancel",
+                function()
+                    vim.fn.feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n")
+                end,
+            },
         },
         completion = {
             accept = {
