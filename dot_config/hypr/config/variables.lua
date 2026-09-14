@@ -10,5 +10,5 @@ MONITOR2 = "HDMI-A-1"
 MONITOR3 = ""
 PRIMARY_MONITOR = MONITOR1
 
--- Workspaces per monitor (laptop only)
+-- Workspaces assigned to each monitor group
 NUM_WPM = 3

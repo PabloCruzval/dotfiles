@@ -26,9 +26,9 @@ require("config.variables")
 require("config.environment")
 require("config.inputs")
 
--- Laptop: override monitor variables for auto-detection
+-- Laptop monitor layout
 if HOSTNAME ~= "t-nyx" then
-	MONITOR1 = ""
+	MONITOR1 = "eDP-1"
 	MONITOR2 = ""
 	MONITOR3 = ""
 	PRIMARY_MONITOR = MONITOR1
@@ -39,11 +39,11 @@ require("config.misc")
 
 if HOSTNAME == "t-nyx" then
 	require("config.monitors-desktop")
-	require("config.workspaces-desktop")
 else
 	require("config.monitors-laptop")
-	require("config.workspaces-laptop")
 end
+
+require("config.workspaces")
 
 require("config.windowrules")
 
