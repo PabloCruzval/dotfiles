@@ -1,7 +1,6 @@
 return {
     {
         "mfussenegger/nvim-dap",
-        event = "VeryLazy",
         keys = {
             { "<leader>db", require("config.keys").dap_toggle_breakpoint, desc = "DAP: Toggle breakpoint" },
             { "<leader>dB", require("config.keys").dap_conditional_breakpoint, desc = "DAP: Breakpoint condicional" },
@@ -23,22 +22,20 @@ return {
                 "theHamsta/nvim-dap-virtual-text",
                 opts = require("config.plugins").dap_virtual_text,
             },
+            {
+                "suketa/nvim-dap-ruby",
+                lazy = true,
+                config = function()
+                    require("dap-ruby").setup()
+                end,
+            },
+            {
+                "mfussenegger/nvim-dap-python",
+                lazy = true,
+                config = function()
+                    require("dap-python").setup("python3")
+                end,
+            },
         },
-    },
-    {
-        "suketa/nvim-dap-ruby",
-        ft = "ruby",
-        dependencies = { "mfussenegger/nvim-dap" },
-        config = function()
-            require("dap-ruby").setup()
-        end,
-    },
-    {
-        "mfussenegger/nvim-dap-python",
-        ft = "python",
-        dependencies = { "mfussenegger/nvim-dap" },
-        config = function()
-            require("dap-python").setup("python3")
-        end,
     },
 }
