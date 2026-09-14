@@ -23,6 +23,7 @@ vim.filetype.add({
 require("config.lazy")
 require("config.map")
 require("config.diagnostic")
+require("config.jsonls")
 require("utils.tinymist_status")
 require("utils.wordcount")
 

@@ -30,7 +30,6 @@ function M.mason_lspconfig()
             "vtsls",
             "astro",
             "emmet_language_server",
-            "jsonls",
             "cssls",
             "html",
             "tailwindcss",
