@@ -31,6 +31,7 @@ Personal dotfiles for CachyOS featuring a modern Hyprland setup where [Noctalia 
 - **[Noctalia v5](https://docs.noctalia.dev/v5/)** - Native Wayland desktop shell (C++) powering bars, launcher, control center, and themes
 - **Kitty** - GPU-accelerated terminal emulator
 - **Fish** - Shell with CachyOS defaults and custom tool integrations
+- **Fcitx5** - Input method framework (Mozc for Japanese + US/Latin keyboards)
 
 > 📚 Applications with their own detailed README are linked above.
 
@@ -49,17 +50,22 @@ bash -c "$(curl -fsSL [https://raw.githubusercontent.com/PabloCruzval/dotfiles/r
 ```
 
 ### What the installer does:
-1. **Packages:** Installs extra packages not included in CachyOS base (chezmoi, nvim, tmux, CLI tools, fonts).
-2. **Git Config:** Interactive global Git user configuration.
-3. **Dotfiles:** Applies chezmoi configurations from this repo.
-4. **Fonts:** Installs Funnel Display font.
+1. **Packages:** Installs extra packages not included in CachyOS base (chezmoi, nvim, tmux, CLI tools, fonts, Rust toolchain, fcitx5).
+2. **AUR:** Bootstraps an AUR helper (paru) if missing, then installs AUR packages (librewolf, etc.).
+3. **Git Config:** Interactive global Git user configuration.
+4. **Dotfiles:** Applies chezmoi configurations from this repo.
+5. **Fonts:** Installs Funnel Display font.
+6. **SDDM:** Installs the qylock SDDM theme.
+
+> The package installer is idempotent: it skips already-installed packages, auto-bootstraps an AUR helper, and falls back to per-package installs if a batch fails — so it is safe to re-run until everything is installed.
 
 ## 📋 Requirements
 
 - **OS**: CachyOS with Hyprland
 - **Display Server**: Wayland
 - **Shell**: Fish (default on CachyOS)
-- **Dependencies**: Listed in `install/packages.sh`.
+- **Dependencies**: Listed in `install/packages.sh` (Rust toolchain includes `rust-src` for the LSP).
+- **AUR Helper**: `paru` (auto-installed by the setup if missing).
 
 ## 📁 Structure
 
@@ -72,6 +78,7 @@ The repository is organized with chezmoi naming conventions:
 | **Neovim** | `dot_config/nvim/` | LSP, DAP, and plugin configurations |
 | **Kitty** | `dot_config/kitty/` | Terminal emulator config |
 | **Fish** | `dot_config/fish/` | Shell configuration with tool integrations |
+| **Fcitx5** | `dot_config/fcitx5/` | Input method (Mozc + Latin keyboard layouts) |
 | **UWSM** | `dot_config/uwsm/` | Wayland session environment variables |
 | **Scripts** | `dot_local/bin/` | Utility scripts (vc-mount, tmux-workspace) |
 
