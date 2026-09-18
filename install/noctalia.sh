@@ -11,12 +11,14 @@ if [ ! -f "$NOCTALIA_ASSET" ]; then
     exit 1
 fi
 
+mkdir -p "$NOCTALIA_DIR"
+
 if [ -f "$NOCTALIA_DIR/config.toml" ]; then
-    warn "Noctalia config already exists at $NOCTALIA_DIR/config.toml. Skipping."
-else
-    mkdir -p "$NOCTALIA_DIR"
-    cp "$NOCTALIA_ASSET" "$NOCTALIA_DIR/config.toml"
-    ok "Noctalia base config installed at $NOCTALIA_DIR/config.toml"
+    cp "$NOCTALIA_DIR/config.toml" "$NOCTALIA_DIR/config.toml.bak"
+    ok "Backed up existing config to $NOCTALIA_DIR/config.toml.bak"
 fi
+
+cp "$NOCTALIA_ASSET" "$NOCTALIA_DIR/config.toml"
+ok "Noctalia base config installed at $NOCTALIA_DIR/config.toml"
 
 eval "$_saved_opts"
