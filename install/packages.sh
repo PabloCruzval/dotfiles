@@ -28,6 +28,7 @@ PKGS=(
     noto-fonts-emoji
     ttf-jetbrains-mono-nerd
     ttf-meslo-nerd
+    ttf-firacode-nerd
     awesome-terminal-fonts
     fcitx5
     fcitx5-mozc
