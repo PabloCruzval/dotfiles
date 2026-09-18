@@ -72,7 +72,7 @@ install_repo_pkgs() {
     fi
 
     info "Installing ${#missing[@]} official packages..."
-    if sudo pacman -S --needed --noconfirm "${missing[@]}"; then
+    if yes '' | sudo pacman -S --needed --noconfirm "${missing[@]}"; then
         ok "Official packages installed."
         return 0
     fi
@@ -80,7 +80,7 @@ install_repo_pkgs() {
     warn "Batch install failed. Retrying per package to isolate failures..."
     local failed=0
     for p in "${missing[@]}"; do
-        if ! sudo pacman -S --needed --noconfirm "$p"; then
+        if ! yes '' | sudo pacman -S --needed --noconfirm "$p"; then
             err "  Failed to install: $p"
             failed=1
         fi
@@ -143,7 +143,7 @@ install_aur_pkgs() {
     fi
 
     info "Installing ${#missing[@]} AUR packages with $helper..."
-    "$helper" -S --needed --noconfirm --removemake --sudoloop "${missing[@]}" \
+    yes '' | "$helper" -S --needed --noconfirm --skipreview --removemake --sudoloop "${missing[@]}" \
         || warn "Some AUR packages failed. Review the output above."
 }
 
