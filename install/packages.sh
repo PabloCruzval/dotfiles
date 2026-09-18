@@ -31,7 +31,6 @@ PKGS=(
     awesome-terminal-fonts
     fcitx5
     fcitx5-mozc
-    fcitx5-im
     fcitx5-lua
     fcitx5-gtk
     fcitx5-qt
@@ -89,14 +88,21 @@ install_repo_pkgs() {
     return $failed
 }
 
-# Ensure an AUR helper is available, bootstrapping paru-bin if none exists.
-# Sets the global AUR_HELPER to the helper name ("paru"/"yay") on success.
+# Ensure an AUR helper is available, setting AUR_HELPER to "paru"/"yay" on
+# success. Prefer paru from the CachyOS repo (built against the system
+# libalpm); fall back to building paru from source. Do NOT use paru-bin, which
+# links against a fixed libalpm soname and fails to load on CachyOS.
 AUR_HELPER=""
 ensure_aur_helper() {
     if command -v paru >/dev/null 2>&1; then AUR_HELPER="paru"; return 0; fi
     if command -v yay  >/dev/null 2>&1; then AUR_HELPER="yay";  return 0; fi
 
-    info "No AUR helper found. Bootstrapping paru-bin..."
+    info "No AUR helper found. Installing paru from the CachyOS repo..."
+    if sudo pacman -S --needed --noconfirm paru; then
+        if command -v paru >/dev/null 2>&1; then AUR_HELPER="paru"; return 0; fi
+    fi
+
+    info "paru not in repos. Building paru from source..."
     sudo pacman -S --needed --noconfirm base-devel git || {
         err "Failed to install base-devel/git."
         return 1
@@ -104,13 +110,13 @@ ensure_aur_helper() {
 
     local tmp
     tmp="$(mktemp -d)"
-    if ! git clone https://aur.archlinux.org/paru-bin.git "$tmp/paru-bin"; then
-        err "Failed to clone paru-bin."
+    if ! git clone https://aur.archlinux.org/paru.git "$tmp/paru"; then
+        err "Failed to clone paru."
         rm -rf "$tmp"
         return 1
     fi
-    if ! (cd "$tmp/paru-bin" && makepkg -si --noconfirm); then
-        err "Failed to build/install paru-bin."
+    if ! (cd "$tmp/paru" && makepkg -si --noconfirm); then
+        err "Failed to build/install paru."
         rm -rf "$tmp"
         return 1
     fi
