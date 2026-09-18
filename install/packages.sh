@@ -46,11 +46,11 @@ PKGS=(
     docker-compose
     syncthing
     obsidian
+    librewolf
 )
 
 AUR=(
     crudini
-    librewolf-bin
     ttf-ms-fonts
 )
 
