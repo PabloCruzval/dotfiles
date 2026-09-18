@@ -27,6 +27,10 @@ if ask "Apply dotfiles with chezmoi?" "Y"; then
     source "$INSTALL_DIR/chezmoi.sh"
 fi
 
+if ask "Install Noctalia base config?" "Y"; then
+    source "$INSTALL_DIR/noctalia.sh"
+fi
+
 if ask "Install Funnel Display font?" "Y"; then
     source "$INSTALL_DIR/font.sh"
 fi
