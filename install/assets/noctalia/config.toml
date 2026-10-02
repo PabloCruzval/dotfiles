@@ -2,27 +2,24 @@
 ui_scale = 1.2
 
 [bar.default]
+background_opacity = 0.89
+capsule_group = []
 center = [ "spacer_1", "active_window" ]
 concave_edge_corners = true
 end = [ "tray", "notifications", "spacer_2", "volume", "spacer_1", "clock" ]
+font_weight = 600
 margin_edge = 0
-margin_ends = 0
-radius_bottom_left = 12
-radius_bottom_right = 12
-radius_top_left = 0
-radius_top_right = 0
-scale = 1.1
-start = [ "group:g1", "workspaces" ]
-thickness = 35
-
-    [[bar.default.capsule_group]]
-    border = ""
-    enabled = true
-    fill = "on_secondary"
-    id = "g1"
-    members = [ "temp", "sysmon_2", "sysmon_3", "media" ]
-    opacity = 1.0
-    padding = 6.0
+margin_ends = 10
+position = "bottom"
+radius = 0
+radius_bottom_left = 80
+radius_bottom_right = 80
+radius_top_left = 14
+radius_top_right = 15
+scale = 1.0
+start = [ "temp", "sysmon_2", "sysmon_3", "media", "spacer_3", "workspaces" ]
+thickness = 33
+widget_spacing = 10
 
 [brightness]
 enable_ddcutil = true
@@ -137,6 +134,9 @@ type = "spacer"
 [widget.spacer_2]
 type = "spacer"
 
+[widget.spacer_3]
+type = "spacer"
+
 [widget.sysmon_2]
 glyph = "gpu-usage"
 show_value = false
@@ -157,8 +157,9 @@ color = "secondary"
 
 [widget.workspaces]
 active_pill_size = 2.5
-capsule = true
+capsule = false
 capsule_fill = "on_primary"
 inactive_pill_size = 1.0
 label_source = "id"
-pill_scale = 0.8
+pill_scale = 0.6
+show_labels = false
