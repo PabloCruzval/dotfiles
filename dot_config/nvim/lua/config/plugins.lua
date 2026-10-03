@@ -246,6 +246,13 @@ function M.which_key()
         icons = {
             rules = false,
         },
+        disable = {
+            ft = {
+                "snacks_picker_list",
+                "snacks_picker_input",
+                "snacks_picker_preview",
+            },
+        },
     }
 end
 
