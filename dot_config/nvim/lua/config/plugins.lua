@@ -145,6 +145,17 @@ function M.snacks()
         picker = {
             enabled = true,
             ui_select = true,
+            sources = {
+                buffers = {
+                    win = {
+                        list = {
+                            keys = {
+                                ["d"] = "bufdelete",
+                            },
+                        },
+                    },
+                },
+            },
         },
     }
 end
