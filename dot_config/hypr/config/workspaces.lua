@@ -22,10 +22,11 @@ for workspace = 1, 10 do
 		workspace = tostring(workspace),
 		monitor = assigned[workspace] or PRIMARY_MONITOR,
 		persistent = true,
+		default = (workspace == 1),
 	})
 end
 
-hl.workspace_rule({ workspace = "name:gaming", monitor = PRIMARY_MONITOR, default = true })
+hl.workspace_rule({ workspace = "name:gaming", monitor = PRIMARY_MONITOR })
 hl.workspace_rule({ workspace = "3", layout = "scrolling" })
 
 -- Re-evaluate the secondary monitor groups when a display is connected.
