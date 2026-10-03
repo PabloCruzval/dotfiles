@@ -15,7 +15,7 @@ return {
 	obsidian = {
 		cmd = "uwsm app -- obsidian",
 		title = ".*Obsidian.*",
-		workspace = 4,
+		workspace = 3,
 	},
 	vscode = {
 		title = ".*Visual Studio.*",
