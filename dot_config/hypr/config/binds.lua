@@ -25,7 +25,8 @@ hl.bind(mainMod .. " + k",     hl.dsp.focus({ direction = "up" }))
 hl.bind(mainMod .. " + j",     hl.dsp.focus({ direction = "down" }))
 hl.bind("ALT + Tab",           hl.dsp.window.cycle_next())
 hl.bind(mainMod .. " + Tab",   hl.dsp.focus({ workspace = "previous" }))
-hl.bind(mainMod .. " + grave", hl.dsp.focus({ workspace = "previous" }))
+hl.bind(mainMod .. " + grave", hl.dsp.focus({ workspace = "name:gaming" }))
+hl.bind(mainMod .. " + SHIFT + grave", hl.dsp.window.move({ workspace = "name:gaming" }))
 
 hl.bind(mainMod .. " + SHIFT + Up",                   hl.dsp.window.move({ direction = "u" }))
 hl.bind(mainMod .. " + SHIFT + Right",                hl.dsp.window.move({ direction = "r" }))
@@ -132,9 +133,6 @@ for i = 1, 10 do
 	hl.bind(mainMod .. " + " .. key,         hl.dsp.focus({ workspace = i }))
 	hl.bind(mainMod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }))
 end
-
-hl.bind(mainMod .. " + G",         hl.dsp.focus({ workspace = "name:gaming" }))
-hl.bind(mainMod .. " + SHIFT + G", hl.dsp.window.move({ workspace = "name:gaming" }))
 
 hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
 hl.bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))

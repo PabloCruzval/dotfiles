@@ -58,6 +58,7 @@ hl.window_rule({
 })
 
 -- Apps
+hl.window_rule({ match = { class = "^(antigravity)$" }, workspace = gamingWorkspace })
 hl.window_rule({ match = { class = "^(.*\\.exe)$", float = true }, monitor = PRIMARY_MONITOR, center = true, fullscreen_state = 0 })
 hl.window_rule({ match = { class = "^(.*[Ll]auncher.*)$" }, float = true, monitor = PRIMARY_MONITOR })
 hl.window_rule({ match = { class = "^(vesktop|discord)$" }, monitor = PRIMARY_MONITOR })
