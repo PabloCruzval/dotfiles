@@ -32,6 +32,7 @@ Personal dotfiles for CachyOS featuring a modern Hyprland setup where [Noctalia 
 - **Kitty** - GPU-accelerated terminal emulator
 - **Fish** - Shell with CachyOS defaults and custom tool integrations
 - **Fcitx5** - Input method framework (Mozc for Japanese + US/Latin keyboards)
+- **[Sioyek](dot_config/sioyek/README.md)** - PDF viewer for research with keyboard-only highlights and Cloudflare R2 + Google Drive sync
 
 > 📚 Applications with their own detailed README are linked above.
 
@@ -79,8 +80,9 @@ The repository is organized with chezmoi naming conventions:
 | **Kitty** | `dot_config/kitty/` | Terminal emulator config |
 | **Fish** | `dot_config/fish/` | Shell configuration with tool integrations |
 | **Fcitx5** | `dot_config/fcitx5/` | Input method (Mozc + Latin keyboard layouts) |
+| **Sioyek** | `dot_config/sioyek/` | PDF reader + R2 database sync & Google Drive PDF bisync |
 | **UWSM** | `dot_config/uwsm/` | Wayland session environment variables |
-| **Scripts** | `dot_local/bin/` | Utility scripts (vc-mount, tmux-workspace) |
+| **Scripts** | `dot_local/bin/` | Utility scripts (vc-mount, tmux-workspace, sioyek-sync) |
 
 > 💡 **Chezmoi naming**: `dot_` → `.` (hidden files), `.tmpl` → template, `executable_` → executable bit
 
