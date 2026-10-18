@@ -1,0 +1,10 @@
+[Unit]
+Description=Sioyek PDF folder (GPdf) background synchronization with Google Drive
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/sioyek-sync --pdfs
+StandardOutput=journal
+StandardError=journal

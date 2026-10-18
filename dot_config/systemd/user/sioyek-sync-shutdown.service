@@ -1,0 +1,13 @@
+[Unit]
+Description=Sioyek Sync (shared.db + GPdf) safety net on session stop / shutdown
+After=default.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/true
+ExecStop=%h/.local/bin/sioyek-sync --push
+TimeoutStopSec=30s
+
+[Install]
+WantedBy=default.target

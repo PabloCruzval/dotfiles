@@ -1,0 +1,741 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+CONFIG_FILE="${SIOYEK_SYNC_CONFIG:-${HOME}/.config/sioyek-sync/config.env}"
+
+# Permitir --config como primer argumento para pruebas aisladas
+if [[ "${1:-}" == "--config" && -n "${2:-}" ]]; then
+    CONFIG_FILE="$2"
+    shift 2
+fi
+
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    echo "Error: no existe el archivo de configuración: $CONFIG_FILE" >&2
+    exit 1
+fi
+
+# shellcheck source=/dev/null
+source "$CONFIG_FILE"
+
+# Base de datos (Cloudflare R2)
+DB_RCLONE_REMOTE="${DB_RCLONE_REMOTE:-${RCLONE_REMOTE:-Cloudflare}}"
+DB_REMOTE_BUCKET="${DB_REMOTE_BUCKET:-nyx}"
+DB_REMOTE_DIR="${DB_REMOTE_DIR:-${REMOTE_DIR:-sioyek}}"
+DB_REMOTE_NAME="${DB_REMOTE_NAME:-${REMOTE_DB_NAME:-shared.db}}"
+
+# Carpeta de PDFs (Google Drive)
+SYNC_PDFS="${SYNC_PDFS:-0}"
+ASYNC_PDF_SYNC="${ASYNC_PDF_SYNC:-1}"
+PDF_RCLONE_REMOTE="${PDF_RCLONE_REMOTE:-${RCLONE_REMOTE:-Sioyek}}"
+LOCAL_PDF_DIR="${LOCAL_PDF_DIR:-${HOME}/Documents/GPdf}"
+REMOTE_PDF_DIR="${REMOTE_PDF_DIR:-GPdf}"
+REMOTE_PDF_TRASH_DIR="${REMOTE_PDF_TRASH_DIR:-sioyek/pdf-trash}"
+PDF_LOCK="${PDF_LOCK:-${LOCK_DIR}/pdf-sync.lock}"
+
+mkdir -p -m 700 "$LOCK_DIR"
+mkdir -p "$STATE_DIR" "$LOG_DIR" \
+         "${STATE_DIR}/local-backups" "${STATE_DIR}/conflicts" \
+         "${STATE_DIR}/bisync" "${STATE_DIR}/pdf-trash" \
+         "$(dirname "$LOCAL_DB")"
+
+CURRENT_TMP_DIR=""
+LOG_FILE="${LOG_DIR}/sioyek-sync.log"
+BASE_HASH_FILE="${STATE_DIR}/last_sync.sha256"
+HOST_TAG="$(uname -n)"
+SIOYEK_PROC_NAME="${SIOYEK_PROC_NAME:-$(basename "$SIOYEK_BIN")}"
+
+RCLONE_ARGS=(
+    "--contimeout=${RCLONE_CONTIMEOUT}"
+    "--timeout=${RCLONE_TIMEOUT}"
+    "--retries=${RCLONE_RETRIES}"
+    "--low-level-retries=2"
+    "--s3-no-check-bucket"
+)
+
+# --- Utilidades de log y notificaciones ---
+
+log() {
+    local level="$1"; shift
+    printf '%s [%s] [%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$HOST_TAG" "$level" "$*" >> "$LOG_FILE"
+}
+
+notify_user() {
+    local urgency="$1"
+    local title="$2"
+    local body="$3"
+    log "NOTIFY:${urgency}" "${title} — ${body}"
+    if command -v notify-send >/dev/null 2>&1; then
+        if [[ -z "${DBUS_SESSION_BUS_ADDRESS:-}" && -S "/run/user/$(id -u)/bus" ]]; then
+            export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
+        fi
+        notify-send -u "$urgency" -a "sioyek-sync" "$title" "$body" 2>/dev/null || true
+    fi
+}
+
+# --- Ventana flotante de progreso (zenity) ---
+
+SHOW_SYNC_WINDOW="${SHOW_SYNC_WINDOW:-1}"
+UI_FIFO=""
+UI_PID=""
+
+ui_start() {
+    local msg="${1:-Sincronizando Sioyek...}"
+    if (( SHOW_SYNC_WINDOW != 1 )) || ! command -v zenity >/dev/null 2>&1; then
+        return 0
+    fi
+    if [[ -z "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]]; then
+        return 0
+    fi
+    ui_stop
+    UI_FIFO="${LOCK_DIR}/ui.$$.fifo"
+    rm -f "$UI_FIFO"
+    mkfifo "$UI_FIFO"
+    zenity --progress --pulsate --no-cancel --auto-close \
+        --title="Sioyek Sync" \
+        --text="$msg" \
+        --width=360 < "$UI_FIFO" 7>&- 8>&- 9>&- >/dev/null 2>&1 &
+    UI_PID=$!
+    exec 6>"$UI_FIFO"
+}
+
+ui_msg() {
+    if [[ -n "$UI_PID" ]]; then
+        printf '# %s\n' "$1" >&6 2>/dev/null || true
+    fi
+}
+
+ui_stop() {
+    if [[ -n "$UI_PID" ]]; then
+        printf '100\n' >&6 2>/dev/null || true
+        exec 6>&- 2>/dev/null || true
+        kill "$UI_PID" 2>/dev/null || true
+        wait "$UI_PID" 2>/dev/null || true
+        UI_PID=""
+    fi
+    if [[ -n "$UI_FIFO" ]]; then
+        rm -f "$UI_FIFO"
+        UI_FIFO=""
+    fi
+}
+
+cleanup_on_exit() {
+    ui_stop
+    if [[ -n "${CURRENT_TMP_DIR:-}" && -d "$CURRENT_TMP_DIR" ]]; then
+        rm -rf "$CURRENT_TMP_DIR"
+        CURRENT_TMP_DIR=""
+    fi
+}
+trap 'cleanup_on_exit' EXIT INT TERM
+
+sha256_of() {
+    sha256sum "$1" | awk '{print $1}'
+}
+
+mtime_of() {
+    stat -c '%Y' "$1" 2>/dev/null || echo 0
+}
+
+remote_dir_path() {
+    if [[ -n "${DB_REMOTE_DIR:-}" ]]; then
+        printf '%s:%s/%s' "$DB_RCLONE_REMOTE" "$DB_REMOTE_BUCKET" "$DB_REMOTE_DIR"
+    else
+        printf '%s:%s' "$DB_RCLONE_REMOTE" "$DB_REMOTE_BUCKET"
+    fi
+}
+
+remote_target() {
+    printf '%s/%s' "$(remote_dir_path)" "$DB_REMOTE_NAME"
+}
+
+# --- SQLite: snapshot consistente y verificación de integridad ---
+
+verify_sqlite_integrity() {
+    local db_file="$1"
+    if [[ ! -s "$db_file" ]]; then
+        log "ERROR" "El archivo SQLite está vacío o no existe: ${db_file}"
+        return 1
+    fi
+
+    local check_out
+    if ! check_out="$(sqlite3 -batch -noheader -list "$db_file" ".timeout ${SQLITE_TIMEOUT_MS}" "PRAGMA integrity_check;" 2>>"$LOG_FILE")"; then
+        log "ERROR" "sqlite3 falló ejecutando PRAGMA integrity_check en ${db_file}"
+        return 1
+    fi
+
+    if [[ "$check_out" != "ok" ]]; then
+        log "ERROR" "PRAGMA integrity_check falló en ${db_file}: ${check_out}"
+        return 1
+    fi
+    return 0
+}
+
+create_verified_snapshot() {
+    local src_db="$1"
+    local dst_snap="$2"
+
+    rm -f "$dst_snap" "${dst_snap}-wal" "${dst_snap}-shm" "${dst_snap}-journal"
+
+    if ! sqlite3 "$src_db" ".timeout ${SQLITE_TIMEOUT_MS}" ".backup '${dst_snap}'" 2>>"$LOG_FILE"; then
+        log "ERROR" "Fallo al crear snapshot SQLite (.backup) desde ${src_db}"
+        return 1
+    fi
+
+    verify_sqlite_integrity "$dst_snap"
+}
+
+rotate_local_backups() {
+    local backup_dir="${STATE_DIR}/local-backups"
+    local -a old_files=()
+    mapfile -t old_files < <(ls -1t "${backup_dir}"/shared.*.db 2>/dev/null | tail -n +"$((LOCAL_BACKUP_KEEP + 1))" || true)
+    if (( ${#old_files[@]} > 0 )); then
+        rm -f "${old_files[@]}"
+    fi
+}
+
+rotate_remote_backups() {
+    local remote_backups_root
+    remote_backups_root="$(remote_dir_path)/backups"
+    local -a dirs=()
+    mapfile -t dirs < <(rclone lsf --dirs-only "${RCLONE_ARGS[@]}" "$remote_backups_root" 2>/dev/null | sed 's:/$::' | sort -r || true)
+    if (( ${#dirs[@]} > REMOTE_BACKUP_KEEP )); then
+        local d
+        for d in "${dirs[@]:REMOTE_BACKUP_KEEP}"; do
+            [[ -z "$d" ]] && continue
+            if (( DRY_RUN == 1 )); then
+                log "DRY-RUN" "rclone purge --dry-run ${remote_backups_root}/${d}"
+                rclone purge --dry-run "${RCLONE_ARGS[@]}" "${remote_backups_root}/${d}" >>"$LOG_FILE" 2>&1 || true
+            else
+                log "INFO" "Rotando backup remoto antiguo: ${remote_backups_root}/${d}"
+                rclone purge "${RCLONE_ARGS[@]}" "${remote_backups_root}/${d}" >>"$LOG_FILE" 2>&1 || true
+            fi
+        done
+    fi
+}
+
+# --- Descarga remota a temporal para inspección de hash, integridad y mtime ---
+# Códigos de retorno:
+#   0 = descargado y verificado OK en $1
+#   2 = el archivo o directorio remoto aún no existe en el remoto (red OK)
+#   1 = error de red / rclone / integridad
+fetch_remote_to_temp() {
+    local tmp_remote="$1"
+    local r_dir r_file
+    r_dir="$(remote_dir_path)"
+    r_file="$(remote_target)"
+
+    rm -f "$tmp_remote"
+
+    local lsf_out=""
+    local lsf_rc=0
+    lsf_out="$(rclone lsf --files-only --include "$DB_REMOTE_NAME" "${RCLONE_ARGS[@]}" "$r_dir" 2>>"$LOG_FILE")" || lsf_rc=$?
+
+    # En rclone: exit 3 = directory not found, exit 4 = file not found
+    if (( lsf_rc == 3 || lsf_rc == 4 )); then
+        log "INFO" "El directorio/archivo remoto (${r_file}) aún no existe (código rclone=${lsf_rc})."
+        return 2
+    elif (( lsf_rc != 0 )); then
+        log "WARN" "No se pudo consultar el remoto (${r_dir}, código=${lsf_rc}). ¿Sin conexión a internet?"
+        return 1
+    fi
+
+    if [[ -z "$lsf_out" ]]; then
+        log "INFO" "El archivo remoto ${r_file} aún no existe."
+        return 2
+    fi
+
+    if ! rclone copyto "${RCLONE_ARGS[@]}" "$r_file" "$tmp_remote" >>"$LOG_FILE" 2>&1; then
+        log "WARN" "Fallo al descargar copia temporal desde ${r_file}"
+        rm -f "$tmp_remote"
+        return 1
+    fi
+
+    if ! verify_sqlite_integrity "$tmp_remote"; then
+        notify_user "critical" "Sioyek Sync: remoto corrupto" \
+            "El shared.db en el remoto no pasó PRAGMA integrity_check. Se aborta la descarga."
+        rm -f "$tmp_remote"
+        return 1
+    fi
+
+    return 0
+}
+
+handle_conflict() {
+    local local_snap="$1"
+    local remote_tmp="$2"
+    local ts
+    ts="$(date '+%Y%m%d-%H%M%S')"
+
+    local conflict_local="${STATE_DIR}/conflicts/shared.local-${HOST_TAG}-${ts}.db"
+    local conflict_remote="${STATE_DIR}/conflicts/shared.remote-${ts}.db"
+
+    if (( DRY_RUN == 1 )); then
+        log "DRY-RUN" "CONFLICTO detectado. Se conservarían ${conflict_local} y ${conflict_remote} sin sobrescribir nada."
+        return 3
+    fi
+
+    cp -p "$local_snap" "$conflict_local"
+    cp -p "$remote_tmp" "$conflict_remote"
+
+    local remote_conflict
+    remote_conflict="$(remote_dir_path)/conflicts/shared.${HOST_TAG}.${ts}.db"
+    rclone copyto "${RCLONE_ARGS[@]}" "$conflict_local" "$remote_conflict" >>"$LOG_FILE" 2>&1 || true
+
+    notify_user "critical" "Sioyek Sync: CONFLICTO detectado" \
+        "shared.db cambió tanto localmente como en la nube. No se sobrescribió ninguno. Copias guardadas en ${STATE_DIR}/conflicts/"
+    return 3
+}
+
+# --- Sincronización bidireccional de carpeta de PDFs (~/Documents/GPdf en Google Drive) ---
+
+sync_pdfs() {
+    if (( SYNC_PDFS != 1 )); then
+        return 0
+    fi
+
+    exec 7>"$PDF_LOCK"
+    if ! flock -w 60 7; then
+        log "WARN" "Timeout esperando lock de PDFs (${PDF_LOCK})."
+        return 1
+    fi
+    trap 'flock -u 7 2>/dev/null || true' RETURN
+
+    mkdir -p "$LOCAL_PDF_DIR" "${STATE_DIR}/bisync" "${STATE_DIR}/pdf-trash"
+
+    local remote_pdf_path="${PDF_RCLONE_REMOTE}:${REMOTE_PDF_DIR}"
+    local ts
+    ts="$(date '+%Y%m%d-%H%M%S')"
+    local local_trash="${STATE_DIR}/pdf-trash/${ts}"
+    local remote_trash="${PDF_RCLONE_REMOTE}:${REMOTE_PDF_TRASH_DIR}/${ts}-${HOST_TAG}"
+
+    # Verificar conectividad / crear carpeta remota si aún no existe
+    if (( DRY_RUN == 0 )); then
+        if ! rclone mkdir "${RCLONE_ARGS[@]}" "$remote_pdf_path" >>"$LOG_FILE" 2>&1; then
+            log "WARN" "PDF sync omitido: no se pudo contactar ${remote_pdf_path} (¿sin red?)."
+            return 1
+        fi
+    fi
+
+    local -a bisync_flags=(
+        "--workdir=${STATE_DIR}/bisync"
+        "--recover"
+        "--resilient"
+        "--conflict-resolve=newer"
+        "--conflict-loser=num"
+        "--backup-dir1=${local_trash}"
+        "--backup-dir2=${remote_trash}"
+        "--create-empty-src-dirs"
+    )
+
+    # Si no existen archivos de estado .lst en bisync, ejecutar inicialización con --resync-mode newer
+    if ! compgen -G "${STATE_DIR}/bisync/*.lst" >/dev/null; then
+        log "INFO" "PDF sync: primera ejecución de bisync en este equipo; inicializando con --resync-mode newer..."
+        bisync_flags+=("--resync" "--resync-mode=newer")
+    fi
+
+    if (( DRY_RUN == 1 )); then
+        bisync_flags+=("--dry-run")
+        log "DRY-RUN" "PDF sync: rclone bisync ${bisync_flags[*]} ${LOCAL_PDF_DIR} ${remote_pdf_path}"
+    else
+        log "INFO" "Iniciando sincronización bidireccional de PDFs (${LOCAL_PDF_DIR} <-> ${remote_pdf_path})..."
+    fi
+
+    if ! rclone bisync "$LOCAL_PDF_DIR" "$remote_pdf_path" "${bisync_flags[@]}" "${RCLONE_ARGS[@]}" >>"$LOG_FILE" 2>&1; then
+        log "WARN" "rclone bisync devolvió error al sincronizar ${LOCAL_PDF_DIR} <-> ${remote_pdf_path}. Revisa ${LOG_FILE}."
+        return 1
+    fi
+
+    log "INFO" "Sincronización de PDFs (${LOCAL_PDF_DIR}) completada con éxito."
+    return 0
+}
+
+# --- Operación PULL (al abrir Sioyek) ---
+
+sync_pull() {
+    local tmp_dir=""
+    exec 8>"$TRANSFER_LOCK"
+    if ! flock -w 30 8; then
+        log "WARN" "Timeout esperando lock de transferencia en pull."
+        return 1
+    fi
+    trap '[[ -n "${tmp_dir:-}" ]] && rm -rf "$tmp_dir"; CURRENT_TMP_DIR=""; flock -u 8 2>/dev/null || true' RETURN
+
+    if pgrep -u "$USER" -x "$SIOYEK_PROC_NAME" >/dev/null 2>&1; then
+        log "INFO" "Sioyek (${SIOYEK_PROC_NAME}) ya está en ejecución; se omite pull para no tocar la base en uso."
+        return 0
+    fi
+
+    log "INFO" "Iniciando verificación de bajada (pull)..."
+
+    tmp_dir="$(mktemp -d "${LOCK_DIR}/pull.XXXXXX")"
+    CURRENT_TMP_DIR="$tmp_dir"
+    local remote_tmp="${tmp_dir}/remote.db"
+    local local_snap="${tmp_dir}/local.db"
+
+    local rc=0
+    fetch_remote_to_temp "$remote_tmp" || rc=$?
+    if (( rc == 1 )); then
+        log "WARN" "Pull omitido (sin red o error remoto). Se usará la base local actual."
+        return 0
+    elif (( rc == 2 )); then
+        log "INFO" "No hay base remota todavía. Nada que descargar."
+        return 0
+    fi
+
+    local remote_hash
+    remote_hash="$(sha256_of "$remote_tmp")"
+    local base_hash=""
+    [[ -f "$BASE_HASH_FILE" ]] && base_hash="$(<"$BASE_HASH_FILE")"
+    local r_file
+    r_file="$(remote_target)"
+
+    # Si no existe shared.db local, instalar directamente la remota
+    if [[ ! -f "$LOCAL_DB" ]]; then
+        if (( DRY_RUN == 1 )); then
+            log "DRY-RUN" "Pull: se instalaría shared.db remoto (${remote_hash}) en ${LOCAL_DB}"
+            rclone copyto --dry-run --update "${RCLONE_ARGS[@]}" "$r_file" "$LOCAL_DB" >>"$LOG_FILE" 2>&1 || true
+            return 0
+        fi
+        rm -f "${LOCAL_DB}-wal" "${LOCAL_DB}-shm" "${LOCAL_DB}-journal"
+        mv -f "$remote_tmp" "$LOCAL_DB"
+        printf '%s\n' "$remote_hash" > "$BASE_HASH_FILE"
+        log "INFO" "Base local creada desde el remoto (hash=${remote_hash})."
+        return 0
+    fi
+
+    if ! create_verified_snapshot "$LOCAL_DB" "$local_snap"; then
+        notify_user "critical" "Sioyek Sync: base local corrupta" \
+            "Tu shared.db local falló PRAGMA integrity_check antes de bajar. No se modificó nada."
+        return 1
+    fi
+
+    local local_hash
+    local_hash="$(sha256_of "$local_snap")"
+
+    if [[ "$local_hash" == "$remote_hash" ]]; then
+        log "INFO" "Pull: local y remoto son idénticos (hash=${local_hash})."
+        [[ "$base_hash" != "$local_hash" && "$DRY_RUN" -eq 0 ]] && printf '%s\n' "$local_hash" > "$BASE_HASH_FILE"
+        return 0
+    fi
+
+    # Detección de 3 vías por hash
+    if [[ -n "$base_hash" ]]; then
+        if [[ "$remote_hash" == "$base_hash" && "$local_hash" != "$base_hash" ]]; then
+            log "INFO" "Pull: el remoto no cambió, pero tienes cambios locales pendientes de subir. Se conserva el local."
+            return 0
+        fi
+        if [[ "$local_hash" != "$base_hash" && "$remote_hash" != "$base_hash" ]]; then
+            handle_conflict "$local_snap" "$remote_tmp"
+            return $?
+        fi
+    else
+        # Sin base_hash previo y archivos distintos: no pisar nunca el local
+        log "WARN" "Pull sin base_hash previo y el contenido local difiere del remoto."
+        handle_conflict "$local_snap" "$remote_tmp"
+        return $?
+    fi
+
+    # Cinturón adicional: verificar que el remoto no tenga mtime más viejo que el local
+    local local_mtime remote_mtime
+    local_mtime="$(mtime_of "$LOCAL_DB")"
+    remote_mtime="$(mtime_of "$remote_tmp")"
+    if (( remote_mtime < local_mtime )); then
+        log "WARN" "El archivo remoto cambió respecto al base_hash pero tiene mtime menor que el local (${remote_mtime} < ${local_mtime}). Se aborta por seguridad."
+        handle_conflict "$local_snap" "$remote_tmp"
+        return $?
+    fi
+
+    if (( DRY_RUN == 1 )); then
+        log "DRY-RUN" "Pull: se actualizaría ${LOCAL_DB} con la versión remota (${remote_hash})."
+        rclone copyto --dry-run --update "${RCLONE_ARGS[@]}" "$r_file" "$LOCAL_DB" >>"$LOG_FILE" 2>&1 || true
+        return 0
+    fi
+
+    local ts
+    ts="$(date '+%Y%m%d-%H%M%S')"
+    cp -p "$local_snap" "${STATE_DIR}/local-backups/shared.${ts}.db"
+    rotate_local_backups
+
+    rm -f "${LOCAL_DB}-wal" "${LOCAL_DB}-shm" "${LOCAL_DB}-journal"
+    mv -f "$remote_tmp" "$LOCAL_DB"
+    printf '%s\n' "$remote_hash" > "$BASE_HASH_FILE"
+    log "INFO" "Pull completado con éxito: actualizado a ${remote_hash}."
+}
+
+# --- Operación PUSH (al cerrar Sioyek o en apagado) ---
+
+sync_push() {
+    local tmp_dir=""
+    exec 8>"$TRANSFER_LOCK"
+    if ! flock -w 30 8; then
+        log "WARN" "Timeout esperando lock de transferencia en push."
+        return 1
+    fi
+    trap '[[ -n "${tmp_dir:-}" ]] && rm -rf "$tmp_dir"; CURRENT_TMP_DIR=""; flock -u 8 2>/dev/null || true' RETURN
+
+    if [[ ! -f "$LOCAL_DB" ]]; then
+        log "INFO" "Push: no existe ${LOCAL_DB}, nada que subir."
+        return 0
+    fi
+
+    log "INFO" "Iniciando verificación de subida (push)..."
+
+    tmp_dir="$(mktemp -d "${LOCK_DIR}/push.XXXXXX")"
+    CURRENT_TMP_DIR="$tmp_dir"
+    local local_snap="${tmp_dir}/${DB_REMOTE_NAME}"
+    local remote_tmp="${tmp_dir}/remote.db"
+
+    # 1. Crear snapshot consistente (.backup) y verificar PRAGMA integrity_check
+    if ! create_verified_snapshot "$LOCAL_DB" "$local_snap"; then
+        notify_user "critical" "Sioyek Sync: ERROR DE INTEGRIDAD" \
+            "shared.db falló PRAGMA integrity_check. NO se subió a la nube para proteger el respaldo remoto."
+        return 1
+    fi
+    touch -r "$LOCAL_DB" "$local_snap"
+
+    local local_hash
+    local_hash="$(sha256_of "$local_snap")"
+    local base_hash=""
+    [[ -f "$BASE_HASH_FILE" ]] && base_hash="$(<"$BASE_HASH_FILE")"
+
+    # 2. Consultar el estado remoto para evitar sobrescribir cambios remotos o más nuevos
+    local rc=0
+    fetch_remote_to_temp "$remote_tmp" || rc=$?
+    if (( rc == 1 )); then
+        log "WARN" "Push aplazado: sin conexión a internet o error al verificar remoto. Queda pendiente para el próximo intento."
+        return 1
+    fi
+
+    local ts
+    ts="$(date '+%Y%m%d-%H%M%S')"
+    local remote_dest remote_backup_dir
+    remote_dest="$(remote_target)"
+    remote_backup_dir="$(remote_dir_path)/backups/${ts}-${HOST_TAG}"
+
+    if (( rc == 0 )); then
+        local remote_hash
+        remote_hash="$(sha256_of "$remote_tmp")"
+
+        if [[ "$local_hash" == "$remote_hash" ]]; then
+            log "INFO" "Push: el remoto ya tiene exactamente este contenido (hash=${local_hash})."
+            [[ "$DRY_RUN" -eq 0 ]] && printf '%s\n' "$local_hash" > "$BASE_HASH_FILE"
+            return 0
+        fi
+
+        # Si el hash local no cambió respecto al base_hash, no hay cambios locales para subir
+        if [[ -n "$base_hash" && "$local_hash" == "$base_hash" ]]; then
+            log "INFO" "Push: sin cambios locales desde la última sincronización (hash=${local_hash})."
+            return 0
+        fi
+
+        # Si el remoto cambió desde nuestra última sincronización, hay conflicto
+        if [[ -n "$base_hash" && "$remote_hash" != "$base_hash" ]]; then
+            handle_conflict "$local_snap" "$remote_tmp"
+            return $?
+        fi
+
+        # Si no teníamos base_hash y el remoto ya existía con distinto contenido, conflicto preventivo
+        if [[ -z "$base_hash" ]]; then
+            log "WARN" "Push sin base_hash previo pero el remoto ya existe y difiere del local."
+            handle_conflict "$local_snap" "$remote_tmp"
+            return $?
+        fi
+
+        # Garantizar que nunca se sobrescriba un remoto con mtime más reciente
+        local local_mtime remote_mtime
+        local_mtime="$(mtime_of "$local_snap")"
+        remote_mtime="$(mtime_of "$remote_tmp")"
+        if (( local_mtime < remote_mtime )); then
+            log "WARN" "El archivo remoto tiene mtime más reciente (${remote_mtime} > ${local_mtime}). Se aborta push."
+            handle_conflict "$local_snap" "$remote_tmp"
+            return $?
+        fi
+    fi
+
+    # 3. Subir el snapshot verificado usando --update y --backup-dir con marca de tiempo
+    if (( DRY_RUN == 1 )); then
+        log "DRY-RUN" "Push: rclone copyto --dry-run --update --backup-dir ${remote_backup_dir} ${local_snap} ${remote_dest}"
+        rclone copyto --dry-run --update --backup-dir "$remote_backup_dir" "${RCLONE_ARGS[@]}" \
+            "$local_snap" "$remote_dest" >>"$LOG_FILE" 2>&1
+        return 0
+    fi
+
+    if ! rclone copyto --update --backup-dir "$remote_backup_dir" "${RCLONE_ARGS[@]}" \
+        "$local_snap" "$remote_dest" >>"$LOG_FILE" 2>&1; then
+        log "ERROR" "Fallo en rclone copyto al subir ${local_snap} hacia ${remote_dest}"
+        return 1
+    fi
+
+    printf '%s\n' "$local_hash" > "$BASE_HASH_FILE"
+    log "INFO" "Push completado con éxito (hash=${local_hash}, backup=${remote_backup_dir})."
+    rotate_remote_backups
+}
+
+# --- Estado actual (--status) ---
+
+show_status() {
+    local base_hash="<ninguno>"
+    [[ -f "$BASE_HASH_FILE" ]] && base_hash="$(<"$BASE_HASH_FILE")"
+    local local_hash="<no existe>"
+    if [[ -f "$LOCAL_DB" ]]; then
+        local tmp_snap
+        tmp_snap="$(mktemp "${LOCK_DIR}/status.XXXXXX.db")"
+        if sqlite3 "$LOCAL_DB" ".timeout ${SQLITE_TIMEOUT_MS}" ".backup '${tmp_snap}'" 2>/dev/null; then
+            local_hash="$(sha256_of "$tmp_snap")"
+        else
+            local_hash="$(sha256_of "$LOCAL_DB") (raw)"
+        fi
+        rm -f "$tmp_snap"
+    fi
+
+    echo "Configuración : $CONFIG_FILE"
+    echo "Base local    : $LOCAL_DB"
+    echo "Remoto DB     : $(remote_target)"
+    echo "Carpeta PDFs  : $LOCAL_PDF_DIR <-> ${PDF_RCLONE_REMOTE}:${REMOTE_PDF_DIR} (SYNC_PDFS=${SYNC_PDFS})"
+    echo "Hash local    : $local_hash"
+    echo "Último sync   : $base_hash"
+    if [[ "$local_hash" != "$base_hash" && -f "$LOCAL_DB" ]]; then
+        echo "Estado local  : PENDIENTE DE SUBIR (modificado localmente)"
+    else
+        echo "Estado local  : Sincronizado con la última marca local"
+    fi
+}
+
+# --- Espera sin polling de CPU a que cierren todas las instancias de Sioyek ---
+
+wait_for_sioyek_exit() {
+    while pgrep -u "$USER" -x "$SIOYEK_PROC_NAME" >/dev/null 2>&1; do
+        if command -v pidwait >/dev/null 2>&1; then
+            pidwait -u "$USER" -x "$SIOYEK_PROC_NAME" 2>/dev/null || sleep 1
+        else
+            sleep 1
+        fi
+    done
+}
+
+# --- Parseo de argumentos y modo wrapper ---
+
+MODE="wrapper"
+SIOYEK_ARGS=()
+
+while (( $# > 0 )); do
+    case "$1" in
+        --dry-run)
+            DRY_RUN=1
+            shift
+            ;;
+        --no-pdfs)
+            SYNC_PDFS=0
+            shift
+            ;;
+        --pdfs)
+            MODE="pdfs"
+            shift
+            ;;
+        --pull)
+            MODE="pull"
+            shift
+            ;;
+        --push)
+            MODE="push"
+            shift
+            ;;
+        --status)
+            MODE="status"
+            shift
+            ;;
+        --)
+            shift
+            SIOYEK_ARGS+=("$@")
+            break
+            ;;
+        *)
+            SIOYEK_ARGS+=("$1")
+            shift
+            ;;
+    esac
+done
+
+case "$MODE" in
+    pull)
+        sync_pull
+        exit $?
+        ;;
+    push)
+        rc=0
+        sync_push || rc=$?
+        sync_pdfs || true
+        exit $rc
+        ;;
+    pdfs)
+        sync_pdfs
+        exit $?
+        ;;
+    status)
+        show_status
+        exit 0
+        ;;
+    wrapper)
+        export QT_QPA_PLATFORM="${SIOYEK_QT_QPA_PLATFORM:-xcb}"
+        # Adquirir lock de sesión para el ciclo abrir -> esperar -> subir.
+        # Si otro wrapper ya tiene el lock (incluso si aún está en medio del pull inicial),
+        # esperamos a que libere TRANSFER_LOCK y entregamos el PDF a la instancia activa.
+        exec 9>"$SESSION_LOCK"
+        if ! flock -n 9; then
+            exec 8>"$TRANSFER_LOCK"
+            flock -w 30 8 || true
+            flock -u 8 || true
+            exec 8>&-
+            for _ in {1..20}; do
+                if pgrep -u "$USER" -x "$SIOYEK_PROC_NAME" >/dev/null 2>&1; then
+                    log "INFO" "Sesión de sioyek-sync ya activa; entregando argumentos a la instancia en curso."
+                    exec "$SIOYEK_BIN" "${SIOYEK_ARGS[@]}" 9>&-
+                fi
+                sleep 0.1
+            done
+            ui_start "Esperando sincronización previa de Sioyek..."
+            log "INFO" "Esperando a que termine la sincronización previa..."
+            flock 9
+        fi
+
+        # 1. Mostrar ventana de progreso y bajar primero shared.db (ultra-rápido en R2)
+        ui_start "Sincronizando anotaciones con Cloudflare R2..."
+        sync_pull || true
+        ui_msg "Abriendo Sioyek..."
+
+        # 2. Lanzar la sincronización de ~/Documents/GPdf en segundo plano sin retrasar la apertura
+        if (( SYNC_PDFS == 1 )); then
+            ( exec 6>&- 7>&- 8>&- 9>&- ; nohup "$0" --pdfs </dev/null >/dev/null 2>&1 & )
+        fi
+
+        log "INFO" "Lanzando Sioyek (QT_QPA_PLATFORM=${QT_QPA_PLATFORM}): ${SIOYEK_BIN} ${SIOYEK_ARGS[*]:-}"
+        "$SIOYEK_BIN" "${SIOYEK_ARGS[@]}" 6>&- 8>&- 9>&- &
+        SIOYEK_PID=$!
+        sleep 0.3
+        ui_stop
+
+        # 3. Esperar al cierre de Sioyek
+        wait "$SIOYEK_PID" 2>/dev/null || true
+        wait_for_sioyek_exit
+
+        # 4. Subir shared.db a R2 inmediatamente (ultra-rápido en R2, ~0.2s)
+        log "INFO" "Todos los procesos sioyek terminaron. Ejecutando push..."
+        ui_start "Guardando anotaciones en Cloudflare R2..."
+        sync_push || true
+        ui_stop
+
+        # 5. Liberar lock de sesión de interfaz y sincronizar PDFs
+        flock -u 9 2>/dev/null || true
+        exec 9>&- 2>/dev/null || true
+
+        if (( SYNC_PDFS == 1 )); then
+            if (( ASYNC_PDF_SYNC == 1 )); then
+                log "INFO" "Lanzando sincronización de PDFs en segundo plano (asíncrono)..."
+                ( exec 6>&- 7>&- 8>&- 9>&- ; nohup "$0" --pdfs </dev/null >/dev/null 2>&1 & )
+            else
+                ui_start "Sincronizando carpeta GPdf con Google Drive..."
+                sync_pdfs || true
+                ui_stop
+            fi
+        fi
+        ;;
+esac

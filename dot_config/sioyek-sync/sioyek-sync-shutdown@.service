@@ -1,0 +1,24 @@
+# /etc/systemd/system/sioyek-sync-shutdown@.service
+[Unit]
+Description=Red de seguridad para subir shared.db de Sioyek al apagar (%i)
+# Al apagar, systemd detiene las unidades en orden INVERSO a After/Before:
+# 1. Como esta unidad tiene Before=user@%i.service, primero se detiene la sesión del usuario (cerrando Sioyek).
+# 2. Luego corre el ExecStop de esta unidad.
+# 3. Como tiene After=NetworkManager.service systemd-resolved.service network-online.target,
+#    la red y el DNS permanecen activos hasta que termine este ExecStop.
+After=network-online.target NetworkManager.service systemd-resolved.service nss-lookup.target
+Before=user@%i.service systemd-user-sessions.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=%i
+Environment="HOME=/home/%i"
+Environment="XDG_RUNTIME_DIR=/run/user/%U"
+ExecStart=/usr/bin/true
+ExecStop=/home/%i/.local/bin/sioyek-sync --push
+TimeoutStopSec=25s
+
+[Install]
+WantedBy=multi-user.target
