@@ -301,6 +301,19 @@ sync_pdfs() {
 
     mkdir -p "$LOCAL_PDF_DIR" "${STATE_DIR}/bisync" "${STATE_DIR}/pdf-trash"
 
+    # Limpiar locks huérfanos de bisync si el proceso que lo creó ya no existe
+    local lck
+    for lck in "${STATE_DIR}/bisync/"*.lck; do
+        if [[ -f "$lck" ]]; then
+            local lck_pid
+            lck_pid="$(grep -oP '"PID":"\K[0-9]+' "$lck" 2>/dev/null || true)"
+            if [[ -z "$lck_pid" ]] || ! kill -0 "$lck_pid" 2>/dev/null; then
+                log "INFO" "Eliminando lock huérfano de bisync (${lck}, pid=${lck_pid:-desconocido})."
+                rm -f "$lck"
+            fi
+        fi
+    done
+
     local remote_pdf_path="${PDF_RCLONE_REMOTE}:${REMOTE_PDF_DIR}"
     local ts
     ts="$(date '+%Y%m%d-%H%M%S')"
@@ -319,6 +332,7 @@ sync_pdfs() {
         "--workdir=${STATE_DIR}/bisync"
         "--recover"
         "--resilient"
+        "--max-lock=2m"
         "--conflict-resolve=newer"
         "--conflict-loser=num"
         "--backup-dir1=${local_trash}"
@@ -339,10 +353,26 @@ sync_pdfs() {
         log "INFO" "Iniciando sincronización bidireccional de PDFs (${LOCAL_PDF_DIR} <-> ${remote_pdf_path})..."
     fi
 
-    if ! rclone bisync "$LOCAL_PDF_DIR" "$remote_pdf_path" "${bisync_flags[@]}" "${RCLONE_ARGS[@]}" >>"$LOG_FILE" 2>&1; then
-        log "WARN" "rclone bisync devolvió error al sincronizar ${LOCAL_PDF_DIR} <-> ${remote_pdf_path}. Revisa ${LOG_FILE}."
+    local bisync_log
+    bisync_log="$(mktemp "${LOCK_DIR}/bisync.XXXXXX.log")"
+    local bisync_rc=0
+    rclone bisync "$LOCAL_PDF_DIR" "$remote_pdf_path" "${bisync_flags[@]}" "${RCLONE_ARGS[@]}" >"$bisync_log" 2>&1 || bisync_rc=$?
+    cat "$bisync_log" >> "$LOG_FILE"
+
+    if (( bisync_rc != 0 )); then
+        if grep -q "Must run --resync to recover" "$bisync_log" 2>/dev/null; then
+            log "WARN" "Bisync requiere resync para recuperarse tras una interrupción previa. Reintentando con --resync..."
+            if rclone bisync "$LOCAL_PDF_DIR" "$remote_pdf_path" "${bisync_flags[@]}" "${RCLONE_ARGS[@]}" --resync --resync-mode=newer >>"$LOG_FILE" 2>&1; then
+                log "INFO" "Recuperación con --resync completada con éxito."
+                rm -f "$bisync_log"
+                return 0
+            fi
+        fi
+        log "WARN" "rclone bisync devolvió error (${bisync_rc}) al sincronizar ${LOCAL_PDF_DIR} <-> ${remote_pdf_path}. Revisa ${LOG_FILE}."
+        rm -f "$bisync_log"
         return 1
     fi
+    rm -f "$bisync_log"
 
     log "INFO" "Sincronización de PDFs (${LOCAL_PDF_DIR}) completada con éxito."
     return 0
