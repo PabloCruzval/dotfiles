@@ -259,6 +259,104 @@ fetch_remote_to_temp() {
     return 0
 }
 
+merge_sqlite_databases() {
+    local src_local="$1"
+    local src_remote="$2"
+    local dst_merged="$3"
+
+    rm -f "$dst_merged"
+    cp -p "$src_local" "$dst_merged"
+
+    local sql_merge="
+ATTACH '${src_remote}' AS remote;
+
+-- 1. Bookmarks: insertar por uuid
+INSERT OR IGNORE INTO bookmarks (document_path, desc, creation_time, modification_time, uuid, font_size, color_red, color_green, color_blue, font_face, begin_x, begin_y, end_x, end_y, offset_y)
+SELECT document_path, desc, creation_time, modification_time, uuid, font_size, color_red, color_green, color_blue, font_face, begin_x, begin_y, end_x, end_y, offset_y
+FROM remote.bookmarks
+WHERE uuid NOT IN (SELECT uuid FROM bookmarks WHERE uuid IS NOT NULL);
+
+UPDATE bookmarks SET
+    desc = (SELECT r.desc FROM remote.bookmarks r WHERE r.uuid = bookmarks.uuid),
+    modification_time = (SELECT r.modification_time FROM remote.bookmarks r WHERE r.uuid = bookmarks.uuid)
+WHERE uuid IN (
+    SELECT r.uuid FROM remote.bookmarks r
+    WHERE r.uuid = bookmarks.uuid AND r.modification_time > bookmarks.modification_time
+);
+
+-- 2. Highlights: insertar por uuid
+INSERT OR IGNORE INTO highlights (document_path, desc, text_annot, type, creation_time, modification_time, uuid, begin_x, begin_y, end_x, end_y)
+SELECT document_path, desc, text_annot, type, creation_time, modification_time, uuid, begin_x, begin_y, end_x, end_y
+FROM remote.highlights
+WHERE uuid NOT IN (SELECT uuid FROM highlights WHERE uuid IS NOT NULL);
+
+UPDATE highlights SET
+    desc = (SELECT r.desc FROM remote.highlights r WHERE r.uuid = highlights.uuid),
+    text_annot = (SELECT r.text_annot FROM remote.highlights r WHERE r.uuid = highlights.uuid),
+    modification_time = (SELECT r.modification_time FROM remote.highlights r WHERE r.uuid = highlights.uuid)
+WHERE uuid IN (
+    SELECT r.uuid FROM remote.highlights r
+    WHERE r.uuid = highlights.uuid AND r.modification_time > highlights.modification_time
+);
+
+-- 3. Marks: UNIQUE(document_path, symbol)
+INSERT OR IGNORE INTO marks (document_path, symbol, offset_x, offset_y, zoom_level, creation_time, modification_time, uuid)
+SELECT document_path, symbol, offset_x, offset_y, zoom_level, creation_time, modification_time, uuid
+FROM remote.marks
+WHERE (document_path, symbol) NOT IN (SELECT document_path, symbol FROM marks);
+
+UPDATE marks SET
+    offset_x = (SELECT r.offset_x FROM remote.marks r WHERE r.document_path = marks.document_path AND r.symbol = marks.symbol),
+    offset_y = (SELECT r.offset_y FROM remote.marks r WHERE r.document_path = marks.document_path AND r.symbol = marks.symbol),
+    zoom_level = (SELECT r.zoom_level FROM remote.marks r WHERE r.document_path = marks.document_path AND r.symbol = marks.symbol),
+    modification_time = (SELECT r.modification_time FROM remote.marks r WHERE r.document_path = marks.document_path AND r.symbol = marks.symbol)
+WHERE (document_path, symbol) IN (
+    SELECT r.document_path, r.symbol FROM remote.marks r
+    WHERE r.document_path = marks.document_path AND r.symbol = marks.symbol AND r.modification_time > marks.modification_time
+);
+
+-- 4. Opened books: UNIQUE(path)
+INSERT OR IGNORE INTO opened_books (path, document_name, zoom_level, offset_x, offset_y, last_access_time)
+SELECT path, document_name, zoom_level, offset_x, offset_y, last_access_time
+FROM remote.opened_books
+WHERE path NOT IN (SELECT path FROM opened_books);
+
+UPDATE opened_books SET
+    zoom_level = (SELECT r.zoom_level FROM remote.opened_books r WHERE r.path = opened_books.path),
+    offset_x = (SELECT r.offset_x FROM remote.opened_books r WHERE r.path = opened_books.path),
+    offset_y = (SELECT r.offset_y FROM remote.opened_books r WHERE r.path = opened_books.path),
+    last_access_time = (SELECT r.last_access_time FROM remote.opened_books r WHERE r.path = opened_books.path)
+WHERE path IN (
+    SELECT r.path FROM remote.opened_books r
+    WHERE r.path = opened_books.path AND r.last_access_time > opened_books.last_access_time
+);
+
+-- 5. Links
+INSERT OR IGNORE INTO links (creation_time, modification_time, uuid, src_document, dst_document, src_offset_y, src_offset_x, dst_offset_x, dst_offset_y, dst_zoom_level)
+SELECT creation_time, modification_time, uuid, src_document, dst_document, src_offset_y, src_offset_x, dst_offset_x, dst_offset_y, dst_zoom_level
+FROM remote.links
+WHERE uuid NOT IN (SELECT uuid FROM links WHERE uuid IS NOT NULL);
+
+DETACH remote;
+PRAGMA integrity_check;
+"
+
+    local out=""
+    out="$(sqlite3 "$dst_merged" ".timeout ${SQLITE_TIMEOUT_MS}" "$sql_merge" 2>>"$LOG_FILE")" || true
+    if [[ "$out" != "ok" ]]; then
+        log "WARN" "Fallo en merge SQLite de shared.db: ${out}"
+        rm -f "$dst_merged"
+        return 1
+    fi
+
+    local final_norm="${dst_merged}.norm"
+    if sqlite3 "$dst_merged" ".timeout ${SQLITE_TIMEOUT_MS}" ".backup '${final_norm}'" 2>>"$LOG_FILE"; then
+        mv -f "$final_norm" "$dst_merged"
+    fi
+
+    verify_sqlite_integrity "$dst_merged"
+}
+
 handle_conflict() {
     local local_snap="$1"
     local remote_tmp="$2"
@@ -276,12 +374,14 @@ handle_conflict() {
     cp -p "$local_snap" "$conflict_local"
     cp -p "$remote_tmp" "$conflict_remote"
 
-    local remote_conflict
-    remote_conflict="$(remote_dir_path)/conflicts/shared.${HOST_TAG}.${ts}.db"
-    rclone copyto "${RCLONE_ARGS[@]}" "$conflict_local" "$remote_conflict" >>"$LOG_FILE" 2>&1 || true
+    local -a old_conflicts=()
+    mapfile -t old_conflicts < <(ls -1t "${STATE_DIR}/conflicts"/shared.*.db 2>/dev/null | tail -n +11 || true)
+    if (( ${#old_conflicts[@]} > 0 )); then
+        rm -f "${old_conflicts[@]}"
+    fi
 
     notify_user "critical" "Sioyek Sync: CONFLICTO detectado" \
-        "shared.db cambió tanto localmente como en la nube. No se sobrescribió ninguno. Copias guardadas en ${STATE_DIR}/conflicts/"
+        "shared.db no pudo fusionarse automáticamente. Copias locales guardadas en ${STATE_DIR}/conflicts/"
     return 3
 }
 
@@ -448,47 +548,82 @@ sync_pull() {
     fi
 
     # Detección de 3 vías por hash
+    local ts
+    ts="$(date '+%Y%m%d-%H%M%S')"
+
     if [[ -n "$base_hash" ]]; then
         if [[ "$remote_hash" == "$base_hash" && "$local_hash" != "$base_hash" ]]; then
             log "INFO" "Pull: el remoto no cambió, pero tienes cambios locales pendientes de subir. Se conserva el local."
             return 0
         fi
-        if [[ "$local_hash" != "$base_hash" && "$remote_hash" != "$base_hash" ]]; then
+
+        if [[ "$local_hash" == "$base_hash" && "$remote_hash" != "$base_hash" ]]; then
+            if (( DRY_RUN == 1 )); then
+                log "DRY-RUN" "Pull: se actualizaría ${LOCAL_DB} con la versión remota (${remote_hash})."
+                rclone copyto --dry-run --update "${RCLONE_ARGS[@]}" "$r_file" "$LOCAL_DB" >>"$LOG_FILE" 2>&1 || true
+                return 0
+            fi
+            cp -p "$local_snap" "${STATE_DIR}/local-backups/shared.${ts}.db"
+            rotate_local_backups
+            rm -f "${LOCAL_DB}-wal" "${LOCAL_DB}-shm" "${LOCAL_DB}-journal"
+            mv -f "$remote_tmp" "$LOCAL_DB"
+            printf '%s\n' "$remote_hash" > "$BASE_HASH_FILE"
+            log "INFO" "Pull completado con éxito: actualizado a ${remote_hash}."
+            return 0
+        fi
+
+        # Ambos lados cambiaron respecto al último sync: fusionar SQLite
+        log "INFO" "Pull: cambios concurrentes detectados en local y remoto. Fusionando bases SQLite..."
+        local merged_snap="${tmp_dir}/merged.db"
+        if merge_sqlite_databases "$local_snap" "$remote_tmp" "$merged_snap"; then
+            cp -p "$local_snap" "${STATE_DIR}/local-backups/shared.${ts}.db"
+            rotate_local_backups
+            rm -f "${LOCAL_DB}-wal" "${LOCAL_DB}-shm" "${LOCAL_DB}-journal"
+            cp -p "$merged_snap" "$LOCAL_DB"
+            local merged_hash
+            merged_hash="$(sha256_of "$LOCAL_DB")"
+            printf '%s\n' "$merged_hash" > "$BASE_HASH_FILE"
+            log "INFO" "Pull: fusión SQLite completada con éxito (hash=${merged_hash})."
+
+            if [[ "$merged_hash" != "$remote_hash" && "$DRY_RUN" -eq 0 ]]; then
+                local remote_backup_dir
+                remote_backup_dir="$(remote_dir_path)/backups/${ts}-${HOST_TAG}"
+                rclone copyto --update --backup-dir "$remote_backup_dir" "${RCLONE_ARGS[@]}" \
+                    "$merged_snap" "$r_file" >>"$LOG_FILE" 2>&1 || true
+                rotate_remote_backups
+            fi
+            return 0
+        else
             handle_conflict "$local_snap" "$remote_tmp"
             return $?
         fi
     else
-        # Sin base_hash previo y archivos distintos: no pisar nunca el local
-        log "WARN" "Pull sin base_hash previo y el contenido local difiere del remoto."
-        handle_conflict "$local_snap" "$remote_tmp"
-        return $?
+        # Sin base_hash previo y el contenido difiere: fusionar de forma segura
+        log "INFO" "Pull sin base_hash previo: intentando fusión SQLite..."
+        local merged_snap="${tmp_dir}/merged.db"
+        if merge_sqlite_databases "$local_snap" "$remote_tmp" "$merged_snap"; then
+            cp -p "$local_snap" "${STATE_DIR}/local-backups/shared.${ts}.db"
+            rotate_local_backups
+            rm -f "${LOCAL_DB}-wal" "${LOCAL_DB}-shm" "${LOCAL_DB}-journal"
+            cp -p "$merged_snap" "$LOCAL_DB"
+            local merged_hash
+            merged_hash="$(sha256_of "$LOCAL_DB")"
+            printf '%s\n' "$merged_hash" > "$BASE_HASH_FILE"
+            log "INFO" "Pull: fusión inicial SQLite completada (hash=${merged_hash})."
+
+            if [[ "$merged_hash" != "$remote_hash" && "$DRY_RUN" -eq 0 ]]; then
+                local remote_backup_dir
+                remote_backup_dir="$(remote_dir_path)/backups/${ts}-${HOST_TAG}"
+                rclone copyto --update --backup-dir "$remote_backup_dir" "${RCLONE_ARGS[@]}" \
+                    "$merged_snap" "$r_file" >>"$LOG_FILE" 2>&1 || true
+                rotate_remote_backups
+            fi
+            return 0
+        else
+            handle_conflict "$local_snap" "$remote_tmp"
+            return $?
+        fi
     fi
-
-    # Cinturón adicional: verificar que el remoto no tenga mtime más viejo que el local
-    local local_mtime remote_mtime
-    local_mtime="$(mtime_of "$LOCAL_DB")"
-    remote_mtime="$(mtime_of "$remote_tmp")"
-    if (( remote_mtime < local_mtime )); then
-        log "WARN" "El archivo remoto cambió respecto al base_hash pero tiene mtime menor que el local (${remote_mtime} < ${local_mtime}). Se aborta por seguridad."
-        handle_conflict "$local_snap" "$remote_tmp"
-        return $?
-    fi
-
-    if (( DRY_RUN == 1 )); then
-        log "DRY-RUN" "Pull: se actualizaría ${LOCAL_DB} con la versión remota (${remote_hash})."
-        rclone copyto --dry-run --update "${RCLONE_ARGS[@]}" "$r_file" "$LOCAL_DB" >>"$LOG_FILE" 2>&1 || true
-        return 0
-    fi
-
-    local ts
-    ts="$(date '+%Y%m%d-%H%M%S')"
-    cp -p "$local_snap" "${STATE_DIR}/local-backups/shared.${ts}.db"
-    rotate_local_backups
-
-    rm -f "${LOCAL_DB}-wal" "${LOCAL_DB}-shm" "${LOCAL_DB}-journal"
-    mv -f "$remote_tmp" "$LOCAL_DB"
-    printf '%s\n' "$remote_hash" > "$BASE_HASH_FILE"
-    log "INFO" "Pull completado con éxito: actualizado a ${remote_hash}."
 }
 
 # --- Operación PUSH (al cerrar Sioyek o en apagado) ---
@@ -557,27 +692,22 @@ sync_push() {
             return 0
         fi
 
-        # Si el remoto cambió desde nuestra última sincronización, hay conflicto
-        if [[ -n "$base_hash" && "$remote_hash" != "$base_hash" ]]; then
-            handle_conflict "$local_snap" "$remote_tmp"
-            return $?
-        fi
-
-        # Si no teníamos base_hash y el remoto ya existía con distinto contenido, conflicto preventivo
-        if [[ -z "$base_hash" ]]; then
-            log "WARN" "Push sin base_hash previo pero el remoto ya existe y difiere del local."
-            handle_conflict "$local_snap" "$remote_tmp"
-            return $?
-        fi
-
-        # Garantizar que nunca se sobrescriba un remoto con mtime más reciente
-        local local_mtime remote_mtime
-        local_mtime="$(mtime_of "$local_snap")"
-        remote_mtime="$(mtime_of "$remote_tmp")"
-        if (( local_mtime < remote_mtime )); then
-            log "WARN" "El archivo remoto tiene mtime más reciente (${remote_mtime} > ${local_mtime}). Se aborta push."
-            handle_conflict "$local_snap" "$remote_tmp"
-            return $?
+        # Si el remoto cambió desde nuestra última sincronización (o sin base_hash), fusionar SQLite
+        if [[ (-n "$base_hash" && "$remote_hash" != "$base_hash") || -z "$base_hash" ]]; then
+            log "INFO" "Push: detectada divergencia con remoto. Fusionando bases SQLite..."
+            local merged_snap="${tmp_dir}/merged.db"
+            if merge_sqlite_databases "$local_snap" "$remote_tmp" "$merged_snap"; then
+                cp -p "$local_snap" "${STATE_DIR}/local-backups/shared.${ts}.db"
+                rotate_local_backups
+                rm -f "${LOCAL_DB}-wal" "${LOCAL_DB}-shm" "${LOCAL_DB}-journal"
+                cp -p "$merged_snap" "$LOCAL_DB"
+                local_snap="$merged_snap"
+                local_hash="$(sha256_of "$local_snap")"
+                log "INFO" "Push: fusión SQLite completada con éxito (hash=${local_hash})."
+            else
+                handle_conflict "$local_snap" "$remote_tmp"
+                return $?
+            fi
         fi
     fi
 

@@ -14,7 +14,7 @@ Personal Sioyek configuration for reading technical papers, textbooks, and unive
 - **📁 PDF Library Bisync** - `~/Documents/GPdf` syncs bidirectionally with Google Drive via `rclone bisync`.
 - **🚀 Instant Exit** - Uploads `shared.db` synchronously on close (~0.2s) and dispatches PDF sync to the background (`ASYNC_PDF_SYNC=1`).
 - **⌨️ Keyboard-Only Highlights** - Highlights via visual mark ruler (`yh`) and smart word selection (`ah`), eliminating intrusive `f` hint overlays.
-- **🔒 Data Safety & Conflict Handling** - SQLite `.backup` snapshots with `PRAGMA integrity_check`, 3-way hash comparison, and automatic versioned remote backups.
+- **🔒 Data Safety & Smart SQLite Merge** - Automatic SQLite merge on divergence (bookmarks, highlights, reading positions) with PRAGMA integrity checks and bounded backups.
 - **⏱️ Systemd Automation** - User timer (`sioyek-pdf-sync.timer`) runs every 30 min, and a shutdown service (`sioyek-sync-shutdown.service`) guards against data loss on power-off.
 - **🖥️ Wayland / NVIDIA Safe** - Uses `QT_QPA_PLATFORM=xcb` to prevent EGL platform context error 3009 on NVIDIA drivers.
 
