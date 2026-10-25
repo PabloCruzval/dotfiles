@@ -84,4 +84,12 @@ M.snacks_live_grep = function()
     Snacks.picker.grep()
 end
 
+M.snacks_references = function()
+    Snacks.picker.lsp_references()
+end
+
+M.snacks_definitions = function()
+    Snacks.picker.lsp_definitions()
+end
+
 return M

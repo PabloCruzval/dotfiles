@@ -13,3 +13,4 @@
 
 # Documentation files are kept in the chezmoi source repo only
 **/*.md
+.agents/

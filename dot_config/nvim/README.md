@@ -223,7 +223,10 @@ Installed automatically via Mason. Configured in [`after/lsp/`](after/lsp/):
 | `<leader>la` | Code actions |
 | `<leader>ff` | Format buffer (conform.nvim, manual) |
 | `<leader>fo` | Open file in other app |
-| `<leader>ld` | Go to definition |
+| `<leader>ld` / `gd` | Go to definition (Snacks picker) |
+| `<leader>lR` / `gr` | References (Snacks picker) |
+| `<leader>li` / `gi` | Go to implementation (Snacks picker) |
+| `<leader>ly` / `gy` | Go to type definition (Snacks picker) |
 | `<leader>lr` | Rename symbol |
 | `<leader>lh` | Show hover documentation |
 | `<leader>lD` | Open diagnostic float |

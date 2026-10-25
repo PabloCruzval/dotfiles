@@ -36,6 +36,7 @@ The source directory IS the chezmoi source (`~/.local/share/chezmoi`). No CI, te
 | `install/*.sh` | Interactive CachyOS setup scripts (modular) |
 | `dot_config/<app>/` | Per-app config (hypr, nvim, kitty, tmux, systemd) |
 | `dot_local/bin/executable_*` | Custom scripts (vc-mount, tmux-workspace) |
+| `.agents/skills/` | Agent skills (hyprland, nvim, tmux, fish, chezmoi) |
 | `.chezmoi.toml.tmpl` | Chezmoi config / template data |
 | `.chezmoiignore` | Files excluded from chezmoi management |
 | `.env.example` | Template for VeraCrypt credentials (`.env` is gitignored) |
