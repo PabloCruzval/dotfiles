@@ -10,6 +10,13 @@ vim.lsp.handlers["tinymist/compileStatus"] = function(err, result, ctx)
     M.buffer[bufnr] = result
 end
 
+vim.api.nvim_create_autocmd({ "BufDelete", "BufWipeout" }, {
+    group = vim.api.nvim_create_augroup("TinymistStatusClean", { clear = true }),
+    callback = function(args)
+        M.buffer[args.buf] = nil
+    end,
+})
+
 function M.get_word_count(bufnr)
     bufnr = bufnr or vim.api.nvim_get_current_buf()
     local status = M.buffer[bufnr]

@@ -22,20 +22,8 @@ return {
                 "theHamsta/nvim-dap-virtual-text",
                 opts = require("config.plugins").dap_virtual_text,
             },
-            {
-                "suketa/nvim-dap-ruby",
-                lazy = true,
-                config = function()
-                    require("dap-ruby").setup()
-                end,
-            },
-            {
-                "mfussenegger/nvim-dap-python",
-                lazy = true,
-                config = function()
-                    require("dap-python").setup("python3")
-                end,
-            },
+            { "suketa/nvim-dap-ruby", lazy = true },
+            { "mfussenegger/nvim-dap-python", lazy = true },
         },
     },
 }
