@@ -29,6 +29,7 @@ sioyek/
 sioyek-sync/ (related components)
 ├── config.env                        # Remotes, paths, and timeout options
 ├── executable_sioyek-sync            # Sync wrapper script (~/.local/bin/sioyek-sync)
+├── executable_sioyek-translate       # Translation helper (~/.local/bin/sioyek-translate)
 ├── sioyek.desktop.tmpl               # Desktop entry pointing to wrapper
 ├── sioyek-sync-shutdown.service      # Systemd user service for clean shutdown push
 ├── sioyek-pdf-sync.service           # Systemd user service for background PDF sync
@@ -49,6 +50,13 @@ sioyek-sync/ (related components)
 | `dh` | Delete highlight | Removes the highlight under the cursor. |
 | `gy` | Select text | Enters manual mouse/cursor selection mode. |
 | `ys` | Highlight search match | Highlights the current active search result (`/`). |
+| `T` | Table of contents | Opens document table of contents outline. |
+| `t` (o `tt`) | **Translate selection** | Translates selected text to Spanish via integrated popup and clipboard. |
+| `yt` | **Translate ruler** | Translates the ruler-selected line via integrated popup and clipboard. |
+| `gd` | Translate in DeepL | Opens selection in DeepL in the default browser. |
+| `yd` | Ruler in DeepL | Opens ruler line in DeepL in the default browser. |
+| `gt` | Translate in Google | Opens selection in Google Translate in the default browser. |
+| `yT` | Ruler in Google | Opens ruler line in Google Translate in the default browser. |
 | `q` | Close overlays | Closes open portals, overviews, or the visual ruler. |
 | `ZZ` | Quit | Saves and exits Sioyek (vim style). |
 

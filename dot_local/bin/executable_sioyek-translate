@@ -1,0 +1,499 @@
+#!/usr/bin/env python3
+"""
+sioyek-translate: Translate selected text or ruler lines from Sioyek and show
+an integrated Catppuccin Macchiato floating popup (PyQt6) tailored for academic
+and mathematical definitions, or open DeepL/Google in the default browser.
+"""
+
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+import unicodedata
+import urllib.parse
+import urllib.request
+
+
+def parse_arguments():
+    mode = "popup"
+    args = sys.argv[1:]
+    if args and args[0] in ("--deepl", "--google"):
+        mode = args[0][2:]
+        args = args[1:]
+
+    # Text passed as argument from Sioyek (%{selected_text} or %{line_text})
+    text = " ".join(args).strip()
+    if (text.startswith('"') and text.endswith('"')) or (text.startswith("'") and text.endswith("'")):
+        text = text[1:-1].strip()
+
+    # Only fallback to Wayland clipboard if executed manually without arguments
+    if not text and len(sys.argv) <= (2 if mode in ("deepl", "google") else 1):
+        for cmd in [["wl-paste", "-p"], ["wl-paste"]]:
+            try:
+                res = subprocess.run(cmd, capture_output=True, text=True, timeout=1)
+                output = res.stdout.strip()
+                if res.returncode == 0 and output and output != "Nothing is copied":
+                    text = output
+                    break
+            except Exception:
+                pass
+
+    return mode, text
+
+
+def clean_pdf_text(text: str) -> str:
+    # 1. Normalize unicode ligatures (e.g., 'ﬁ' -> 'fi', 'ﬀ' -> 'ff')
+    text = unicodedata.normalize("NFKD", text)
+
+    # 2. Strip soft hyphens and zero-width spaces
+    text = text.replace("\xad", "").replace("\u200b", "")
+
+    # 3. Re-join hyphenated words across line breaks (preserving minus signs: 'a - b')
+    text = re.sub(r"(\b[a-zA-Z]+)-\s*\n\s*([a-zA-Z]+\b)", r"\1\2", text)
+
+    # 4. Academic TeX/OCR repair rules (Computer Modern & legacy Acrobat OCR artifacts)
+    # 4a. Semicolons: 'statesj' -> 'states;', '{3}j' -> '{3};'
+    text = re.sub(r"(\w|\})j(?=\s|[.,)]|$)", r"\1;", text)
+    text = re.sub(r"\bOJ\b", "0;", text)
+
+    # 4b. DFA/NFA tuple and TeX math symbols (6 -> delta, ~ -> Sigma)
+    text = re.sub(r"(?<=[(\s,])6(?=[,\s)])", "delta", text)
+    text = re.sub(r"\b6\s*:", "delta :", text)
+    text = re.sub(r"\b6\s*\(", "delta(", text)
+    text = re.sub(r"\bo\s*\(", "delta(", text)
+    text = re.sub(r"(?<=[(\s,])~(?=[,\s)])", "Sigma", text)
+    text = re.sub(r"I:\*", "Sigma*", text)
+    text = re.sub(r"\bI:\b", "Sigma", text)
+    text = re.sub(r"\bSEQ\b", "s in Q", text)
+    text = re.sub(r"\b[eE]\s+I:\*", "in Sigma*", text)
+    text = re.sub(r"\b[eE]\s+Q\b", "in Q", text)
+    text = re.sub(r"-\+", "->", text)
+    text = re.sub(r":::\}?", "=>", text)
+    text = re.sub(r":j:\.|\bi=\b", "!=", text)
+    text = re.sub(r":5", "<=", text)
+
+    # 4c. Quantifiers ('Vx, Vz, Va, Vw -> for all x, z, a, w)
+    text = re.sub(r"[\'’]V([a-z])", r"for all \1", text)
+    text = re.sub(r"\bV([a-z])(?=\s*(?:e|E|\bin\b))", r"for all \1", text)
+
+    # 4d. Mathematical variables (u, v, y)
+    text = re.sub(r"[\'’](?:11\.|It)\b", "u", text)
+    text = re.sub(r"\b1\.1\.\b", "u", text)
+    text = re.sub(r"(\bu,\s*)V(\s*,\s*w\b)", r"\1v\2", text)
+    text = re.sub(r"\bstates\s+u,\s*V\b", "states u, v", text)
+    text = re.sub(r"\bV\s*E\s*Q\b", "v in Q", text)
+    text = re.sub(r"\bV\s*=\s*uvw\b", "v = uvw", text)
+    text = re.sub(r"(\bx\s*=\s*)V(?=\b|\s)", r"\1y", text)
+    text = re.sub(r"(\bx,\s*)V(?=\b|\s)", r"\1y", text)
+
+    # 5. Replace single line breaks with spaces, preserving double line breaks (paragraphs)
+    text = re.sub(r"(?<!\n)\n(?!\n)", " ", text)
+
+    # 6. Collapse excessive whitespace inside lines
+    text = re.sub(r"[ \t]+", " ", text)
+
+    return text.strip()
+
+
+
+def translate_text(text: str, target_lang: str = "es") -> str:
+    # 1. Google Translate via Chrome extension client (supports POST for long text, resilient against 429)
+    try:
+        url = (
+            "https://translate.googleapis.com/translate_a/single"
+            f"?client=dict-chrome-ex&sl=auto&tl={target_lang}&dt=t"
+        )
+        data = urllib.parse.urlencode({"q": text}).encode("utf-8")
+        req = urllib.request.Request(
+            url,
+            data=data,
+            headers={
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                    "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+                )
+            },
+        )
+        with urllib.request.urlopen(req, timeout=6) as resp:
+            data_json = json.loads(resp.read().decode("utf-8"))
+            segments = [seg[0] for seg in data_json[0] if seg and seg[0]]
+            res = "".join(segments).strip()
+            if res:
+                return res
+    except Exception:
+        pass
+
+    # 2. Fallback: MyMemory API
+    try:
+        url = "https://api.mymemory.translated.net/get"
+        params = urllib.parse.urlencode({"q": text, "langpair": f"en|{target_lang}"})
+        req = urllib.request.Request(
+            f"{url}?{params}",
+            headers={"User-Agent": "Mozilla/5.0 (X11; Linux x86_64)"},
+        )
+        with urllib.request.urlopen(req, timeout=6) as resp:
+            data_json = json.loads(resp.read().decode("utf-8"))
+            translated = data_json.get("responseData", {}).get("translatedText", "").strip()
+            if translated:
+                return translated
+    except Exception:
+        pass
+
+    raise RuntimeError("No se pudo conectar con los proveedores de traduccion.")
+
+
+def copy_to_clipboard(text: str) -> None:
+    try:
+        subprocess.Popen(
+            ["wl-copy", "--", text],
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+    except Exception:
+        pass
+
+
+def open_browser(url: str) -> None:
+    try:
+        subprocess.Popen(
+            ["xdg-open", url],
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+    except Exception:
+        pass
+
+
+def send_notification(title: str, body: str, urgency: str = "normal") -> None:
+    icon_path = "/usr/share/pixmaps/sioyek-icon-linux.png"
+    cmd = ["notify-send", "-a", "Sioyek", "-u", urgency, "-t", "6000"]
+    if os.path.exists(icon_path):
+        cmd.extend(["-i", icon_path])
+    cmd.extend([title, body])
+    try:
+        subprocess.run(cmd, check=False)
+    except Exception:
+        pass
+
+
+PID_FILE = os.path.join(os.environ.get("XDG_RUNTIME_DIR", "/tmp"), "sioyek-translate.pid")
+LAST_RUN_FILE = os.path.join(os.environ.get("XDG_RUNTIME_DIR", "/tmp"), "sioyek-translate.last")
+
+
+def check_duplicate_or_kill_previous(text: str) -> bool:
+    """
+    Prevents duplicate runs on rapid key presses (e.g. typing 'tt' within 1s)
+    and kills previous floating popups when a new translation is requested.
+    """
+    now = time.time()
+    my_pid = os.getpid()
+
+    # 1. Debounce rapid identical requests (like 'tt' double-tap)
+    if os.path.exists(LAST_RUN_FILE):
+        try:
+            with open(LAST_RUN_FILE, "r") as f:
+                content = f.read()
+            if "|||" in content:
+                last_time_str, last_text = content.split("|||", 1)
+                last_time = float(last_time_str)
+                if (now - last_time < 1.0) and (last_text.strip() == text.strip()):
+                    return False
+        except Exception:
+            pass
+
+    # Save current invocation timestamp and text
+    try:
+        with open(LAST_RUN_FILE, "w") as f:
+            f.write(f"{now}|||{text}")
+    except Exception:
+        pass
+
+    # 2. Terminate older popup process
+    if os.path.exists(PID_FILE):
+        try:
+            with open(PID_FILE, "r") as f:
+                old_pid = int(f.read().strip())
+            if old_pid != my_pid:
+                os.kill(old_pid, 15)
+        except Exception:
+            pass
+
+    # Save active PID
+    try:
+        with open(PID_FILE, "w") as f:
+            f.write(str(my_pid))
+    except Exception:
+        pass
+
+    return True
+
+
+def show_integrated_popup(text: str) -> None:
+    try:
+        from PyQt6.QtCore import QEvent, QObject, Qt, QTimer
+        from PyQt6.QtGui import QColor
+        from PyQt6.QtWidgets import (
+            QApplication,
+            QFrame,
+            QGraphicsDropShadowEffect,
+            QHBoxLayout,
+            QLabel,
+            QPushButton,
+            QScrollArea,
+            QVBoxLayout,
+            QWidget,
+        )
+
+        app = QApplication(sys.argv[:1])
+        app.setApplicationName("sioyek-translate")
+        app.setDesktopFileName("sioyek-translate")
+
+        window = QWidget()
+        window.setWindowTitle("sioyek-translate")
+        window.setWindowFlags(
+            Qt.WindowType.FramelessWindowHint
+            | Qt.WindowType.Dialog
+        )
+        window.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        window.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+        window.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        window.closeEvent = lambda event: app.quit()
+
+        # Keyboard dismiss filter: Esc, q, Return, Space dismisses popup immediately
+        class DismissFilter(QObject):
+            def eventFilter(self, obj, event):
+                if event.type() == QEvent.Type.KeyPress:
+                    if event.key() in (
+                        Qt.Key.Key_Escape,
+                        Qt.Key.Key_Q,
+                        Qt.Key.Key_Return,
+                        Qt.Key.Key_Space,
+                    ):
+                        window.close()
+                        return True
+                return super().eventFilter(obj, event)
+
+        dismiss_filter = DismissFilter(window)
+        app.installEventFilter(dismiss_filter)
+
+        # Close when window loses focus (e.g. user clicks back onto Sioyek)
+        has_been_active = False
+
+        def on_change(event):
+            nonlocal has_been_active
+            if event.type() == QEvent.Type.ActivationChange:
+                if window.isActiveWindow():
+                    has_been_active = True
+                elif has_been_active:
+                    window.close()
+            return QWidget.changeEvent(window, event)
+
+        window.changeEvent = on_change
+
+        # Container styling - Catppuccin Macchiato
+        container = QFrame(window)
+        container.setObjectName("container")
+        container.setStyleSheet("""
+            #container {
+                background-color: #24273a;
+                border: 1px solid #5b6078;
+                border-radius: 10px;
+            }
+        """)
+
+        shadow = QGraphicsDropShadowEffect(window)
+        shadow.setBlurRadius(24)
+        shadow.setColor(QColor(0, 0, 0, 180))
+        shadow.setOffset(0, 6)
+        container.setGraphicsEffect(shadow)
+
+        layout = QVBoxLayout(container)
+        layout.setContentsMargins(14, 10, 14, 12)
+        layout.setSpacing(8)
+
+        # Header bar
+        header = QHBoxLayout()
+        header.setContentsMargins(0, 0, 0, 0)
+
+        badge = QLabel("TRADUCCIÓN")
+        badge.setStyleSheet("""
+            background-color: #363a4f;
+            color: #eed49f;
+            font-weight: bold;
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 5px;
+            border: 1px solid #494d64;
+        """)
+        header.addWidget(badge)
+
+        hint = QLabel("Esc / q para cerrar • Copiado")
+        hint.setStyleSheet("color: #8087a2; font-size: 11px;")
+        header.addSpacing(10)
+        header.addWidget(hint)
+        header.addStretch()
+
+        # Discreet close button '✕'
+        close_btn = QPushButton("✕")
+        close_btn.setFixedSize(22, 20)
+        close_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        close_btn.setStyleSheet("""
+            QPushButton {
+                background: transparent;
+                color: #8087a2;
+                border: none;
+                font-size: 13px;
+                font-weight: bold;
+                padding-bottom: 2px;
+            }
+            QPushButton:hover {
+                color: #ed8796;
+            }
+        """)
+        close_btn.clicked.connect(window.close)
+        header.addWidget(close_btn)
+
+        layout.addLayout(header)
+
+        # Content label (selectable text for formulas/math definitions)
+        content = QLabel(text)
+        content.setWordWrap(True)
+        content.setTextInteractionFlags(
+            Qt.TextInteractionFlag.TextSelectableByMouse
+            | Qt.TextInteractionFlag.TextSelectableByKeyboard
+        )
+        content.setStyleSheet("""
+            color: #cad3f5;
+            font-size: 13px;
+            line-height: 1.5;
+            background: transparent;
+            border: none;
+            padding-top: 2px;
+            padding-right: 4px;
+        """)
+
+        # Scroll area for multi-line mathematical definitions or longer excerpts
+        scroll = QScrollArea()
+        scroll.setWidget(content)
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background: transparent;
+            }
+            QScrollBar:vertical {
+                background: #1e2030;
+                width: 6px;
+                border-radius: 3px;
+                margin: 0px;
+            }
+            QScrollBar::handle:vertical {
+                background: #5b6078;
+                border-radius: 3px;
+                min-height: 20px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: #8087a2;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                height: 0px;
+            }
+        """)
+
+        if len(text) > 300:
+            scroll.setFixedHeight(min(380, max(120, len(text) // 2)))
+        else:
+            scroll.setMaximumHeight(260)
+
+        layout.addWidget(scroll)
+
+        main_layout = QVBoxLayout(window)
+        main_layout.setContentsMargins(8, 8, 8, 8)
+        main_layout.addWidget(container)
+
+        window.setMinimumWidth(380)
+        window.setMaximumWidth(620)
+        window.adjustSize()
+
+        # Auto-dismiss after 40 seconds (generous for complex theorems/proofs)
+        timer = QTimer(window)
+        timer.setSingleShot(True)
+        timer.timeout.connect(window.close)
+        timer.start(40000)
+
+        window.show()
+        window.raise_()
+        window.activateWindow()
+
+        app.exec()
+
+    except Exception:
+        # Fallback to desktop notification if Qt overlay fails
+        send_notification("Traducción (ES)", text)
+
+
+def main() -> None:
+    try:
+        mode, raw_text = parse_arguments()
+        if not raw_text or raw_text in ('"%{selected_text}"', "%{selected_text}", '"%{line_text}"', "%{line_text}"):
+            send_notification(
+                "Sioyek Translate",
+                "No se detectó texto seleccionado para traducir.",
+                urgency="low",
+            )
+            return
+
+        cleaned = clean_pdf_text(raw_text)
+        if not cleaned:
+            send_notification(
+                "Sioyek Translate",
+                "El texto seleccionado está vacío.",
+                urgency="low",
+            )
+            return
+
+        if not check_duplicate_or_kill_previous(cleaned):
+            # Rapid identical call within 1s (e.g. typing 'tt'), ignore duplicate
+            return
+
+        if mode == "deepl":
+            open_browser(
+                "https://www.deepl.com/translator#auto/es/"
+                + urllib.parse.quote(cleaned)
+            )
+            return
+
+        if mode == "google":
+            open_browser(
+                "https://translate.google.com/?sl=auto&tl=es&text="
+                + urllib.parse.quote(cleaned)
+            )
+            return
+
+        translated = translate_text(cleaned, target_lang="es")
+        if translated:
+            copy_to_clipboard(translated)
+            show_integrated_popup(translated)
+        else:
+            send_notification(
+                "Sioyek Translate",
+                "Respuesta vacía del servicio de traducción.",
+                urgency="low",
+            )
+    except Exception as e:
+        send_notification(
+            "Error de Traducción",
+            f"No se pudo completar la traducción: {e}",
+            urgency="critical",
+        )
+
+
+if __name__ == "__main__":
+    main()

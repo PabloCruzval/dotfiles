@@ -35,7 +35,7 @@ status_bar_font_size                     14
 
 # --- Search, Links & Visual Marks ---
 text_highlight_color                     #eed49f
-# visual_mark_color requires 4 floats (RGBA) — Catppuccin Overlay1 (#8087a2) with 0.25 alpha
+# visual_mark_color requires 4 floats (RGBA) - Catppuccin Overlay1 (#8087a2) with 0.25 alpha
 visual_mark_color                        0.50 0.53 0.64 0.25
 search_highlight_color                   #eed49f
 link_highlight_color                     #8aadf4
@@ -52,14 +52,26 @@ highlight_color_g                        #f5a97f
 
 # Ctrl-d / Ctrl-u mueven media pantalla
 move_screen_ratio                        0.5
-# Modo rectángulo alrededor de la línea en la regla visual
+# Modo rectangulo alrededor de la linea en la regla visual
 ruler_mode                               1
 sort_bookmarks_by_location               1
 show_closest_bookmark_in_statusbar       1
 show_close_portal_in_statusbar           1
-# Indexa el texto para búsquedas rápidas y regex_search
+# Indexa el texto para busquedas rapidas y regex_search
 super_fast_search                        1
 create_table_of_contents_if_not_exists   1
 
 # --- Shared Database Path (synced via sioyek-sync) ---
 shared_database_path                     {{ .chezmoi.homeDir }}/.local/share/sioyek/shared.db
+
+# --- External Search & Translation ---
+search_url_d                             https://www.deepl.com/translator#auto/es/
+search_url_t                             https://translate.google.com/?sl=auto&tl=es&text=
+
+# --- Custom Commands ---
+new_command _translate_text {{ .chezmoi.homeDir }}/.local/bin/sioyek-translate "%{selected_text}"
+new_command _translate_deepl {{ .chezmoi.homeDir }}/.local/bin/sioyek-translate --deepl "%{selected_text}"
+new_command _translate_google {{ .chezmoi.homeDir }}/.local/bin/sioyek-translate --google "%{selected_text}"
+
+
+

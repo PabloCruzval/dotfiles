@@ -103,6 +103,15 @@ local floatApps = {
 }
 for _, m in ipairs(floatApps) do hl.window_rule({ match = m, float = true }) end
 
+hl.window_rule({
+    match = { class = "^(sioyek-translate)$" },
+    float = true,
+    move = {
+        "max(20, min(cursor_x + 15, monitor_w - window_w - 20))",
+        "max(20, min(cursor_y + 15, monitor_h - window_h - 20))"
+    },
+})
+
 -- Float Common Modals
 local modalMatches = {
     { title = "^(Open|Authentication Required|Add Folder to Workspace|Choose Files|Save As|Confirm to replace files|File Operation Progress)$" },
