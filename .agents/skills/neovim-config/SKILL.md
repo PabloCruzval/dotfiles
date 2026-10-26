@@ -16,27 +16,28 @@ Todos los archivos residen en `dot_config/nvim/` y chezmoi los despliega en `~/.
 ```text
 dot_config/nvim/
 ├── init.lua                   # Opciones básicas (vim.opt), colorscheme y arranque
+├── after/
+│   └── lsp/                   # Configuraciones nativas por servidor LSP (jsonls, tailwindcss, etc.)
 ├── lua/
 │   ├── config/
 │   │   ├── lazy.lua           # Bootstrap de Lazy.nvim (importa 'plugins')
-│   │   ├── plugins.lua        # Módulo central de opciones (tabla M con funciones opts)
+│   │   ├── plugins.lua        # Módulo central de opciones (tabla M con funciones opts/config)
 │   │   ├── map.lua            # Atajos generales y navegación de ventanas/buffers
 │   │   ├── keys.lua           # Tabla adicional de keymaps
-│   │   ├── diagnostic.lua     # Configuración de signos y mensajes de diagnóstico
-│   │   └── jsonls.lua         # Integración de esquemas JSON
+│   │   └── diagnostic.lua     # Configuración de signos y mensajes de diagnóstico
 │   ├── plugins/               # Especificaciones declarativas para Lazy.nvim
-│   │   ├── lsp.lua            # LSP, Mason, Blink.cmp y LuaSnip
+│   │   ├── lsp.lua            # LSP, Mason, typescript-tools, Blink.cmp y LuaSnip
 │   │   ├── dap.lua            # Depuración (nvim-dap)
-│   │   ├── nav.lua            # Navegación (Telescope, Oil, etc.)
-│   │   ├── ui.lua             # Interfaz visual (Lualine, Trouble, etc.)
-│   │   ├── editing.lua        # Auto-completado de pares, surround, comentarios
-│   │   ├── syntax.lua         # Treesitter e indentación
+│   │   ├── nav.lua            # Navegación (Snacks, Oil, vim-tmux-navigator)
+│   │   ├── ui.lua             # Interfaz visual (Which-key, nvim-highlight-colors)
+│   │   ├── editing.lua        # Autopairs, autotag, nvim-surround, conform
+│   │   ├── syntax.lua         # Treesitter, textobjects e indentación
 │   │   ├── test.lua           # Neotest
 │   │   ├── lint.lua           # nvim-lint
-│   │   ├── git.lua            # Gitsigns y herramientas git
+│   │   ├── git.lua            # Gitsigns
 │   │   ├── typst.lua          # Soporte y previsualización para Typst
 │   │   ├── cmake.lua          # Herramientas para CMake
-│   │   └── theme.lua          # Configuración de temas
+│   │   └── theme.lua          # Configuración de temas (Catppuccin)
 │   └── utils/
 │       ├── tinymist_status.lua# Estado del compilador de Typst
 │       └── wordcount.lua      # Contador de palabras
@@ -53,21 +54,22 @@ El proyecto mantiene una separación estricta:
    -- En lua/plugins/nav.lua
    return {
        {
-           "nvim-telescope/telescope.nvim",
-           opts = require("config.plugins").telescope,
+           "folke/snacks.nvim",
+           opts = require("config.plugins").snacks,
        },
    }
    ```
 
 2. **Configuración (`lua/config/plugins.lua`)**:
    - Contiene la tabla `M`.
-   - Cada función retorna la tabla de opciones o la función de configuración.
+   - Si se usa con `opts = require("config.plugins").foo`, la función retorna la tabla de opciones.
+   - Si se usa con `config = require("config.plugins").foo`, la función ejecuta la configuración directamente (sin envolver en `return function()`).
    ```lua
    -- En lua/config/plugins.lua
-   function M.telescope()
+   function M.snacks()
        return {
-           defaults = {
-               -- opciones aquí
+           picker = {
+               enabled = true,
            },
        }
    end
@@ -82,14 +84,15 @@ Al añadir un plugin nuevo o modificar uno existente:
 Los servidores LSP instalados automáticamente están definidos en `lua/config/plugins.lua` bajo `M.mason_lspconfig`:
 
 ```lua
-ensure_installed = {
-    "vtsls", "jsonls", "lua_ls", "tinymist", "clangd", "pyright", "ruff", "rust_analyzer", ...
+local servers = {
+    "astro", "emmet_language_server", "jsonls", "cssls", "html", "tailwindcss",
+    "lua_ls", "tinymist", "codebook", "clangd", "pyright", "ruff", "rust_analyzer",
 }
 ```
 
 Para activar un nuevo LSP:
-1. Agrégalo a la lista `ensure_installed` de `M.mason_lspconfig`.
-2. Si requiere configuración particular de `lspconfig`, configúralo en `M.lspconfig` dentro de `lua/config/plugins.lua`.
+1. Agrégalo a la lista `servers` de `M.mason_lspconfig`.
+2. Si requiere configuración particular, crea un archivo `after/lsp/<servidor>.lua` que retorne la tabla de configuración para `vim.lsp.config`.
 
 ## Flujo de Trabajo y Validación
 

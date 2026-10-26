@@ -11,9 +11,9 @@ Personal Neovim configuration for web development featuring modular lazy-loading
 ## ✨ Features
 
 - **⚡ Lazy Loading** - Plugins load only when needed via lazy.nvim for fast startup
-- **🔧 Native LSP** - Zero-overhead language server integration (vtsls, tailwindcss, lua_ls, astro, tinymist, more)
+- **🔧 Native LSP + TypeScript Tools** - Fast language server integration (typescript-tools.nvim, tailwindcss, lua_ls, astro, tinymist, more)
 - **🧠 blink.cmp** - Performant autocompletion with ghost text, auto-brackets, and signature help
-- **📐 conform.nvim** - Manual multi-formatter orchestration (prettierd, stylua, ruff\_format)
+- **📐 conform.nvim** - Manual multi-formatter orchestration (biome-check, prettierd, stylua, ruff\_format)
 - **🏷️ nvim-ts-autotag** - Treesitter-powered auto-closing and renaming of HTML/JSX tags
 - **🔗 nvim-autopairs** - Smart bracket, quote, and HTML tag pair completion
 - **🔍 Git Signs** - Inline git change indicators, hunk staging, preview, and blame
@@ -37,21 +37,23 @@ nvim/
 │   │   ├── plugins.lua             # Centralized plugin option definitions
 │   │   └── keys.lua                # Plugin keymaps
 │   ├── plugins/
-│   │   ├── lsp.lua                 # LSP, Mason, blink.cmp, SchemaStore
-│   │   ├── nav.lua                 # oil.nvim, snacks.nvim
-│   │   ├── syntax.lua              # nvim-treesitter, guess-indent
+│   │   ├── lsp.lua                 # LSP, Mason, typescript-tools, blink.cmp, SchemaStore
+│   │   ├── nav.lua                 # oil.nvim, snacks.nvim, vim-tmux-navigator
+│   │   ├── syntax.lua              # nvim-treesitter, textobjects, guess-indent
 │   │   ├── editing.lua             # nvim-autopairs, nvim-ts-autotag, conform.nvim
+│   │   ├── lint.lua                # nvim-lint
+│   │   ├── dap.lua                 # nvim-dap & UI
+│   │   ├── test.lua                # neotest
+│   │   ├── cmake.lua               # cmake-tools.nvim
 │   │   ├── git.lua                 # gitsigns.nvim
 │   │   ├── theme.lua               # catppuccin
-│   │   ├── ui.lua                  # which-key.nvim
+│   │   ├── ui.lua                  # which-key.nvim, nvim-highlight-colors
 │   │   └── typst.lua               # typst-preview.nvim, nvim-prose
 │   └── utils/
-│       ├── terminal.lua            # Toggle terminal utility
 │       ├── tinymist_status.lua     # Tinymist compile status handler
 │       └── wordcount.lua           # Word count and reading time
 └── after/
     └── lsp/
-        ├── vtsls.lua               # TypeScript/JavaScript LSP config
         ├── astro.lua               # Astro LSP config
         ├── jsonls.lua              # JSON LSP with SchemaStore
         ├── tailwindcss.lua         # Tailwind CSS LSP config
@@ -78,6 +80,7 @@ nvim/
 |--------|---------|
 | [blink.cmp](https://github.com/saghen/blink.cmp) | Performant autocompletion with LSP, path, buffer, and snippet sources |
 | [friendly-snippets](https://github.com/rafamadriz/friendly-snippets) | Pre-built snippet collection |
+| [typescript-tools.nvim](https://github.com/pmizio/typescript-tools.nvim) | Native TypeScript/JavaScript integration over tsserver |
 | [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig) | LSP server configuration |
 | [mason.nvim](https://github.com/mason-org/mason.nvim) | LSP/formatter/linter package manager |
 | [mason-lspconfig.nvim](https://github.com/mason-org/mason-lspconfig.nvim) | Bridge between Mason and lspconfig |
@@ -93,6 +96,7 @@ nvim/
 |--------|---------|
 | [nvim-autopairs](https://github.com/windwp/nvim-autopairs) | Auto-close brackets, quotes, and HTML tags |
 | [nvim-ts-autotag](https://github.com/windwp/nvim-ts-autotag) | Treesitter-based HTML/JSX tag renaming |
+| [nvim-surround](https://github.com/kylechui/nvim-surround) | Add, change, and delete surrounding pairs and HTML/JSX tags |
 | [conform.nvim](https://github.com/stevearc/conform.nvim) | Multi-formatter runner (manual trigger) |
 | [guess-indent.nvim](https://github.com/NMAC427/guess-indent.nvim) | Automatic indent detection |
 
@@ -106,9 +110,10 @@ nvim/
 | Plugin | Purpose |
 |--------|---------|
 | [oil.nvim](https://github.com/stevearc/oil.nvim) | File explorer as an editable buffer |
-| [snacks.nvim](https://github.com/folke/snacks.nvim) | Fuzzy picker and global `vim.ui.select` interface (files, recent files, buffers, grep, help) |
+| [snacks.nvim](https://github.com/folke/snacks.nvim) | Fuzzy picker, indent guides, notifier, terminal, word references, and `vim.ui` |
 | [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) | Advanced syntax highlighting & parsing |
 | [catppuccin/nvim](https://github.com/catppuccin/nvim) | catppuccin-mocha colorscheme with transparent background |
+| [nvim-highlight-colors](https://github.com/brenoprata10/nvim-highlight-colors) | Inline Tailwind CSS & hex color previews |
 | [which-key.nvim](https://github.com/folke/which-key.nvim) | Keybinding popup menu |
 
 </details>
@@ -157,7 +162,7 @@ Installed automatically via Mason. Configured in [`after/lsp/`](after/lsp/):
 
 | Server | Config | Purpose |
 |--------|--------|---------|
-| **vtsls** | [`after/lsp/vtsls.lua`](after/lsp/vtsls.lua) | TypeScript/JavaScript — inlay hints, auto-imports, server-side fuzzy |
+| **typescript-tools** | [`lua/config/plugins.lua`](lua/config/plugins.lua) | TypeScript/JavaScript — native tsserver protocol, separate diagnostic server |
 | **astro** | [`after/lsp/astro.lua`](after/lsp/astro.lua) | Astro framework LSP |
 | **emmet\_language\_server** | [`after/lsp/emmet_language_server.lua`](after/lsp/emmet_language_server.lua) | Emmet abbreviation expansion in HTML/CSS/JSX |
 | **jsonls** | [`after/lsp/jsonls.lua`](after/lsp/jsonls.lua) | JSON/JSONC with SchemaStore validation |
@@ -188,12 +193,12 @@ Installed automatically via Mason. Configured in [`after/lsp/`](after/lsp/):
 |-----|------|--------|
 | `<leader>w` | Normal | Save file |
 | `<leader>so` | Normal | Save and source current file |
-| `<leader>y` | Normal/Visual/Select | Yank to system clipboard |
-| `<leader>d` | Normal/Visual/Select | Delete to system clipboard |
-| `<leader>s` | Normal/Visual/Select | Switch to alternate buffer |
-| `<leader>h` | Normal/Visual/Select | Clear search highlighting |
+| `<leader>y` | Normal/Visual | Yank to system clipboard |
+| `<leader>d` | Normal/Visual | Cut/delete to system clipboard |
+| `<leader>s` | Normal/Visual | Switch to alternate buffer |
+| `<leader>h` | Normal/Visual | Clear search highlighting |
 | `<A-j>` / `<A-k>` | Normal/Insert | Move line down/up |
-| `<A-j>` / `<A-k>` | Visual/Select | Move selected lines down/up |
+| `<A-j>` / `<A-k>` | Visual | Move selected lines down/up |
 | `<ESC>` | Terminal | Exit terminal mode |
 
 </details>
@@ -227,9 +232,19 @@ Installed automatically via Mason. Configured in [`after/lsp/`](after/lsp/):
 | `<leader>lR` / `gr` | References (Snacks picker) |
 | `<leader>li` / `gi` | Go to implementation (Snacks picker) |
 | `<leader>ly` / `gy` | Go to type definition (Snacks picker) |
+| `<leader>ls` | Document symbols (Snacks picker) |
+| `<leader>lS` | Workspace symbols (Snacks picker) |
+| `<leader>lx` | Buffer diagnostics (Snacks picker) |
+| `<leader>lX` | Workspace diagnostics (Snacks picker) |
 | `<leader>lr` | Rename symbol |
 | `<leader>lh` | Show hover documentation |
 | `<leader>lD` | Open diagnostic float |
+| `<leader>lw` | Toggle symbol reference highlighting |
+| `]]` / `[[` | Jump to next/previous symbol reference |
+| `<leader>lo` | TypeScript: Organize imports |
+| `<leader>lu` | TypeScript: Remove unused imports |
+| `<leader>lm` | TypeScript: Add missing imports |
+| `<leader>lF` | TypeScript: Fix all |
 
 </details>
 
