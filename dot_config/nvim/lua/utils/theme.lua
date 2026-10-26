@@ -113,17 +113,35 @@ local function apply_transparency()
 end
 
 local transparent_opacity = "0.65" -- debe coincidir con background_opacity de kitty.conf
-local in_kitty = vim.env.KITTY_WINDOW_ID ~= nil
+local in_kitty = vim.env.KITTY_WINDOW_ID ~= nil or vim.env.KITTY_LISTEN_ON ~= nil
 local last_kitty_state
 
 local function kitty_send(seq)
+    if vim.env.TMUX then
+        -- passthrough de tmux: requiere `set -g allow-passthrough on`
+        seq = "\27Ptmux;" .. seq:gsub("\27", "\27\27") .. "\27\\"
+    end
     vim.api.nvim_chan_send(vim.v.stderr, seq)
+end
+
+-- Dentro de tmux, KITTY_LISTEN_ON puede venir de un kitty que ya no existe.
+-- tmux guarda el valor actual en el entorno de la sesión.
+local function kitty_socket()
+    if vim.env.TMUX then
+        local out = vim.fn.system({ "tmux", "show-environment", "KITTY_LISTEN_ON" })
+        local sock = out:match("^KITTY_LISTEN_ON=(.-)%s*$")
+        if vim.v.shell_error == 0 and sock and sock ~= "" then
+            return sock
+        end
+    end
+    return vim.env.KITTY_LISTEN_ON
 end
 
 local warned_socket = false
 
 local function kitty_opacity(value, sync)
-    if not vim.env.KITTY_LISTEN_ON then
+    local socket = kitty_socket()
+    if not socket then
         if not warned_socket then
             warned_socket = true
             vim.notify(
@@ -133,7 +151,7 @@ local function kitty_opacity(value, sync)
         end
         return
     end
-    local cmd = { "kitten", "@", "set-background-opacity", value }
+    local cmd = { "kitten", "@", "--to", socket, "set-background-opacity", value }
     if sync then
         vim.fn.system(cmd)
         return

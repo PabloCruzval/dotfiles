@@ -19,7 +19,7 @@ Personal Neovim configuration for web development featuring modular lazy-loading
 - **🔍 Git Signs** - Inline git change indicators, hunk staging, preview, and blame
 - **🗂️ Oil + Snacks** - Edit filesystem as a buffer + fuzzy picker for files/grep/buffers
 - **📦 JSON Schema Validation** - Automatic schema detection via SchemaStore for `package.json`, `tsconfig.json`, etc.
-- **🎨 Dynamic Theme System** - Lazy-loaded themes (`catppuccin`, `rose-pine`, `tokyonight`, `kanagawa`, `gruvbox-material`, `vesper`) with persistent state and live transparency toggle
+- **🎨 Catppuccin Theme** - catppuccin-mocha with transparent background
 - **📋 Diagnostic Signs** - Custom Nerd Font icons for errors, warnings, info, and hints
 - **🖥️ Integrated Terminal** - Toggle floating/split terminal with session persistence
 - **📝 Writing Tools** - Typst LSP/preview, prose wordcount (:WordCount), reading-time estimates, and codebook spell checking
@@ -46,11 +46,10 @@ nvim/
 │   │   ├── test.lua                # neotest
 │   │   ├── cmake.lua               # cmake-tools.nvim
 │   │   ├── git.lua                 # gitsigns.nvim
-│   │   ├── theme.lua               # Lazy-loaded colorschemes (catppuccin, rose-pine, tokyonight, kanagawa, gruvbox-material, vesper)
+│   │   ├── theme.lua               # catppuccin
 │   │   ├── ui.lua                  # which-key.nvim, nvim-highlight-colors
 │   │   └── typst.lua               # typst-preview.nvim, nvim-prose
 │   └── utils/
-│       ├── theme.lua               # Dynamic theme & transparency persistence
 │       ├── tinymist_status.lua     # Tinymist compile status handler
 │       └── wordcount.lua           # Word count and reading time
 └── after/
@@ -198,7 +197,6 @@ Installed automatically via Mason. Configured in [`after/lsp/`](after/lsp/):
 | `<leader>d` | Normal/Visual | Cut/delete to system clipboard |
 | `<leader>s` | Normal/Visual | Switch to alternate buffer |
 | `<leader>h` | Normal/Visual | Clear search highlighting |
-| `<leader>tb` | Normal | Toggle transparent/opaque background |
 | `<A-j>` / `<A-k>` | Normal/Insert | Move line down/up |
 | `<A-j>` / `<A-k>` | Visual | Move selected lines down/up |
 | `<ESC>` | Terminal | Exit terminal mode |
@@ -260,7 +258,6 @@ Installed automatically via Mason. Configured in [`after/lsp/`](after/lsp/):
 | `<leader>pf` | Find files (Snacks) |
 | `<leader>pr` | Find recent files in the current project (Snacks) |
 | `<leader>pb` | Find buffers (Snacks) |
-| `<leader>pc` | Switch colorscheme with live preview (Snacks) |
 | `<leader>gl` | Live grep search |
 | `<leader>ph` | Search help documentation |
 | `<leader>e` | Open Oil file explorer |
@@ -347,10 +344,10 @@ Installed automatically via Mason. Configured in [`after/lsp/`](after/lsp/):
 
 <br>
 
-- **Default Theme**: [catppuccin-mocha](https://github.com/catppuccin/nvim) with transparent background
-- **Available Themes**: `catppuccin`, `rose-pine`, `tokyonight`, `kanagawa`, `gruvbox-material`, `vesper` (lazy-loaded on demand, persisted in `~/.local/state/nvim/theme.txt`)
+- **Theme**: [catppuccin-mocha](https://github.com/catppuccin/nvim) with transparent background
+- **Fallback**: None — catppuccin-mocha is the single theme
 - **Borders**: Rounded (`winborder = "rounded"`)
-- **Statusline & Floats**: Transparent by default (`<leader>tb` toggles between transparent and opaque)
+- **Statusline**: Transparent background (`guibg=NONE`)
 - **Line Numbers**: Relative with absolute current line
 - **Sign Column**: Always visible for diagnostics and git signs
 - **Diagnostic Icons**: Nerd Font symbols — ` ` Error, ` ` Warning, ` ` Hint, ` ` Info
