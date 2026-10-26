@@ -59,10 +59,6 @@ M.oil_open = function()
     require("oil").open()
 end
 
-M.oil_toggle_hidden = function()
-    require("oil").toggle_hidden()
-end
-
 -- Snacks picker
 M.snacks_files = function()
     Snacks.picker.files()
@@ -82,14 +78,6 @@ end
 
 M.snacks_live_grep = function()
     Snacks.picker.grep()
-end
-
-M.snacks_references = function()
-    Snacks.picker.lsp_references()
-end
-
-M.snacks_definitions = function()
-    Snacks.picker.lsp_definitions()
 end
 
 return M

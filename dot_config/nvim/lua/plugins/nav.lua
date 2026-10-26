@@ -1,6 +1,8 @@
 return {
     {
         "stevearc/oil.nvim",
+        cmd = "Oil",
+        init = require("config.plugins").oil_init,
         dependencies = {
             "nvim-tree/nvim-web-devicons",
             {
@@ -11,11 +13,11 @@ return {
         opts = require("config.plugins").oil,
         keys = {
             { "<leader>e", require("config.keys").oil_open, desc = "Explorador de archivos" },
-            { "<S-h>", require("config.keys").oil_toggle_hidden, desc = "Mostrar/ocultar archivos ocultos" },
         },
     },
     {
         "folke/snacks.nvim",
+        priority = 1000,
         lazy = false,
         opts = require("config.plugins").snacks,
         keys = {
@@ -28,6 +30,19 @@ return {
     },
     {
         "christoomey/vim-tmux-navigator",
-        lazy = false,
+        cmd = {
+            "TmuxNavigateLeft",
+            "TmuxNavigateDown",
+            "TmuxNavigateUp",
+            "TmuxNavigateRight",
+            "TmuxNavigatePrevious",
+        },
+        keys = {
+            { "<c-h>", "<cmd><C-U>TmuxNavigateLeft<cr>" },
+            { "<c-j>", "<cmd><C-U>TmuxNavigateDown<cr>" },
+            { "<c-k>", "<cmd><C-U>TmuxNavigateUp<cr>" },
+            { "<c-l>", "<cmd><C-U>TmuxNavigateRight<cr>" },
+            { "<c-\\>", "<cmd><C-U>TmuxNavigatePrevious<cr>" },
+        },
     },
 }

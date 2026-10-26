@@ -5,31 +5,33 @@ local map = vim.keymap.set
 map('t', '<ESC>', "<C-\\><C-n>", { remap = true, desc = "Salir del modo terminal" })
 
 -- Core
-map('n', '<leader>so', ':update<CR> :source<CR>', { desc = "Guardar y recargar archivo" })
+map('n', '<leader>so', '<cmd>update<CR><cmd>source<CR>', { desc = "Guardar y recargar archivo" })
 map({ 'n', 'i' }, "<A-k>", '<cmd>m -2<CR>', { desc = "Mover línea arriba" })
 map({ 'n', 'i' }, "<A-j>", '<cmd>m +1<CR>', { desc = "Mover línea abajo" })
-map({ 'x', 'v' }, "<A-k>", ":m '<-2<CR>gv=gv", { desc = "Mover selección arriba" })
-map({ 'x', 'v' }, "<A-j>", ":m '>+1<CR>gv=gv", { desc = "Mover selección abajo" })
-map('n', '<leader>ts', require "utils.terminal", { desc = "Abrir/cerrar terminal" })
+map('x', "<A-k>", ":m '<-2<CR>gv=gv", { desc = "Mover selección arriba" })
+map('x', "<A-j>", ":m '>+1<CR>gv=gv", { desc = "Mover selección abajo" })
+map({ 'n', 't' }, '<leader>ts', function()
+    Snacks.terminal.toggle()
+end, { desc = "Abrir/cerrar terminal" })
 
 -- Comment
 map('n', '<leader>/', "gcc", { remap = true, desc = "Comentar línea" })
-map('v', '<leader>/', "gc", { remap = true, desc = "Comentar selección" })
+map('x', '<leader>/', "gc", { remap = true, desc = "Comentar selección" })
 
 -- Write and buffer
-map('n', '<leader>w', ':write<CR>', { desc = "Guardar archivo" })
-map('n', '<leader>bx', ':bdelete<CR>', { desc = "Cerrar buffer" })
-map('n', '<leader>bn', ':bnext<CR>', { desc = "Siguiente buffer" })
-map('n', '<leader>bp', ':bprevious<CR>', { desc = "Buffer anterior" })
-map({ 'n', 'v', 'x' }, '<leader>y', '"+y<CR>', { desc = "Copiar al portapapeles" })
-map({ 'n', 'v', 'x' }, '<leader>d', '"+y<CR>', { desc = "Copiar al portapapeles" })
-map({ 'n', 'v', 'x' }, '<leader>s', ':e #<CR>', { desc = "Alternar al archivo previo" })
-map({ 'n', 'v', 'x' }, '<leader>h', ':noh<CR>', { desc = "Limpiar resaltado de búsqueda" })
+map('n', '<leader>w', '<cmd>write<CR>', { desc = "Guardar archivo" })
+map('n', '<leader>bx', '<cmd>bdelete<CR>', { desc = "Cerrar buffer" })
+map('n', '<leader>bn', '<cmd>bnext<CR>', { desc = "Siguiente buffer" })
+map('n', '<leader>bp', '<cmd>bprevious<CR>', { desc = "Buffer anterior" })
+map({ 'n', 'x' }, '<leader>y', '"+y', { desc = "Copiar al portapapeles" })
+map({ 'n', 'x' }, '<leader>d', '"+d', { desc = "Cortar al portapapeles" })
+map({ 'n', 'x' }, '<leader>s', '<cmd>e #<CR>', { desc = "Alternar al archivo previo" })
+map({ 'n', 'x' }, '<leader>h', '<cmd>noh<CR>', { desc = "Limpiar resaltado de búsqueda" })
 
 local line_wrap_navigation_active = false
 
 local function toggle_wrap_navigation()
-  local modes = { 'n', 'v' }
+  local modes = { 'n', 'x' }
 
   if line_wrap_navigation_active then
     for _, mode in ipairs(modes) do
@@ -48,59 +50,72 @@ end
 
 vim.keymap.set('n', '<leader>tw', toggle_wrap_navigation, { desc = "Toggle wrap navigation (gk/gj)" })
 
--- Redirigir funciones de navegación LSP a Snacks.picker si está disponible
-local orig_references = vim.lsp.buf.references
-vim.lsp.buf.references = function(context, options)
-    if _G.Snacks and Snacks.picker then
-        local opts = type(options) == "table" and vim.deepcopy(options) or {}
-        if type(context) == "table" and context.includeDeclaration ~= nil then
-            opts.include_declaration = context.includeDeclaration
+local lsp_picker_patched = false
+local function patch_lsp_buf_picker()
+    if lsp_picker_patched then
+        return
+    end
+    lsp_picker_patched = true
+
+    local orig_references = vim.lsp.buf.references
+    vim.lsp.buf.references = function(context, options)
+        if _G.Snacks and Snacks.picker then
+            local opts = type(options) == "table" and vim.deepcopy(options) or {}
+            if type(context) == "table" and context.includeDeclaration ~= nil then
+                opts.include_declaration = context.includeDeclaration
+            end
+            Snacks.picker.lsp_references(opts)
+        else
+            orig_references(context, options)
         end
-        Snacks.picker.lsp_references(opts)
-    else
-        orig_references(context, options)
     end
-end
 
-local orig_definition = vim.lsp.buf.definition
-vim.lsp.buf.definition = function(options)
-    if _G.Snacks and Snacks.picker then
-        Snacks.picker.lsp_definitions(type(options) == "table" and options or nil)
-    else
-        orig_definition(options)
+    local orig_definition = vim.lsp.buf.definition
+    vim.lsp.buf.definition = function(options)
+        if _G.Snacks and Snacks.picker then
+            Snacks.picker.lsp_definitions(type(options) == "table" and options or nil)
+        else
+            orig_definition(options)
+        end
     end
-end
 
-local orig_implementation = vim.lsp.buf.implementation
-vim.lsp.buf.implementation = function(options)
-    if _G.Snacks and Snacks.picker then
-        Snacks.picker.lsp_implementations(type(options) == "table" and options or nil)
-    else
-        orig_implementation(options)
+    local orig_implementation = vim.lsp.buf.implementation
+    vim.lsp.buf.implementation = function(options)
+        if _G.Snacks and Snacks.picker then
+            Snacks.picker.lsp_implementations(type(options) == "table" and options or nil)
+        else
+            orig_implementation(options)
+        end
     end
-end
 
-local orig_type_definition = vim.lsp.buf.type_definition
-vim.lsp.buf.type_definition = function(options)
-    if _G.Snacks and Snacks.picker then
-        Snacks.picker.lsp_type_definitions(type(options) == "table" and options or nil)
-    else
-        orig_type_definition(options)
+    local orig_type_definition = vim.lsp.buf.type_definition
+    vim.lsp.buf.type_definition = function(options)
+        if _G.Snacks and Snacks.picker then
+            Snacks.picker.lsp_type_definitions(type(options) == "table" and options or nil)
+        else
+            orig_type_definition(options)
+        end
     end
 end
 
 vim.api.nvim_create_autocmd("LspAttach", {
     group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
     callback = function(args)
+        patch_lsp_buf_picker()
+
         local client = vim.lsp.get_client_by_id(args.data.client_id)
+        if not client then
+            return
+        end
         local bufnr = args.buf
 
         if client.name == "ruff" then
             client.server_capabilities.hoverProvider = false
         end
 
-        local function lsp_map(keys, func, desc)
-            vim.keymap.set("n", keys, func, { buffer = bufnr, desc = "LSP: " .. desc })
+        local function lsp_map(keys, func, desc, scope)
+            local prefix = scope and ("LSP(" .. scope .. "): ") or "LSP: "
+            vim.keymap.set("n", keys, func, { buffer = bufnr, desc = prefix .. desc })
         end
 
         if client:supports_method("textDocument/formatting") then
@@ -118,6 +133,40 @@ vim.api.nvim_create_autocmd("LspAttach", {
             end, "Acciones de código")
         end
         lsp_map("<leader>lD", vim.diagnostic.open_float, "Abrir diagnóstico flotante")
+        lsp_map("<leader>lx", function()
+            Snacks.picker.diagnostics_buffer()
+        end, "Diagnósticos del buffer")
+        lsp_map("<leader>lX", function()
+            Snacks.picker.diagnostics()
+        end, "Diagnósticos del proyecto")
+        if client:supports_method("textDocument/documentSymbol") then
+            lsp_map("<leader>ls", function()
+                Snacks.picker.lsp_symbols()
+            end, "Símbolos del documento")
+        end
+        if client:supports_method("workspace/symbol") then
+            lsp_map("<leader>lS", function()
+                Snacks.picker.lsp_workspace_symbols()
+            end, "Símbolos del proyecto")
+        end
+        if client:supports_method("textDocument/documentHighlight") then
+            lsp_map("<leader>lw", function()
+                if Snacks.words.enabled then
+                    Snacks.words.disable()
+                    vim.notify("Resaltado de referencias: desactivado")
+                else
+                    Snacks.words.enable()
+                    Snacks.words.update()
+                    vim.notify("Resaltado de referencias: activado")
+                end
+            end, "Alternar resaltado de referencias")
+            lsp_map("]]", function()
+                Snacks.words.jump(vim.v.count1)
+            end, "Siguiente referencia")
+            lsp_map("[[", function()
+                Snacks.words.jump(-vim.v.count1)
+            end, "Referencia anterior")
+        end
         if client:supports_method("textDocument/definition") then
             lsp_map("<leader>ld", vim.lsp.buf.definition, "Ir a definición")
             lsp_map("gd", vim.lsp.buf.definition, "Ir a definición")
@@ -140,6 +189,15 @@ vim.api.nvim_create_autocmd("LspAttach", {
         if client:supports_method("textDocument/hover") then
             lsp_map("<leader>lh", vim.lsp.buf.hover, "Mostrar documentación")
         end
+
+        if client.name == "typescript-tools" then
+            lsp_map("<leader>lo", "<cmd>TSToolsOrganizeImports<CR>", "Organizar imports", "TS")
+            lsp_map("<leader>lu", "<cmd>TSToolsRemoveUnusedImports<CR>", "Quitar imports sin usar", "TS")
+            lsp_map("<leader>lm", "<cmd>TSToolsAddMissingImports<CR>", "Añadir imports faltantes", "TS")
+            lsp_map("<leader>lF", "<cmd>TSToolsFixAll<CR>", "Corregir todo", "TS")
+        elseif client.name == "clangd" then
+            lsp_map("<leader>ch", "<cmd>ClangdSwitchSourceHeader<CR>", "Switch header/source", "C/C++")
+        end
     end,
 })
 
@@ -147,10 +205,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
 map("n", "<leader>fo", function()
   vim.ui.open(vim.fn.expand("%"))
 end, { desc = "Open file in external app" })
-
-
--- C/C++
-map('n', '<leader>ch', '<cmd>ClangdSwitchSourceHeader<CR>', { desc = "C/C++: Switch header/source" })
 
 -- CMake
 map('n', '<leader>mg', '<cmd>CMakeGenerate<CR>', { desc = "CMake: Generate" })

@@ -14,11 +14,8 @@ return {
         },
     },
     {
-        "lukas-reineke/indent-blankline.nvim",
-        main = "ibl",
-        event = "VeryLazy",
-        opts = function()
-            return require("config.plugins").indent_blankline()
-        end,
+        "brenoprata10/nvim-highlight-colors",
+        event = { "BufReadPost", "BufNewFile" },
+        opts = require("config.plugins").highlight_colors,
     },
 }
