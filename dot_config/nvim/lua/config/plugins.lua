@@ -389,9 +389,14 @@ end
 ----------
 
 function M.catppuccin()
+    local transparent = require("utils.theme").is_transparent()
     return {
         flavour = "mocha",
-        transparent_background = true,
+        transparent_background = transparent,
+        float = {
+            transparent = transparent,
+            solid = false,
+        },
         default_integrations = false,
         integrations = {
             blink_cmp = true,
@@ -413,6 +418,72 @@ function M.catppuccin()
         end,
     }
 end
+
+function M.rose_pine()
+    local transparent = require("utils.theme").is_transparent()
+    return {
+        variant = "main",
+        dark_variant = "main",
+        styles = {
+            bold = true,
+            italic = true,
+            transparency = transparent,
+        },
+    }
+end
+
+function M.tokyonight()
+    local transparent = require("utils.theme").is_transparent()
+    return {
+        style = "night",
+        transparent = transparent,
+        styles = {
+            sidebars = transparent and "transparent" or "dark",
+            floats = transparent and "transparent" or "dark",
+        },
+    }
+end
+
+function M.kanagawa()
+    local transparent = require("utils.theme").is_transparent()
+    return {
+        transparent = transparent,
+        theme = "wave",
+        colors = {
+            theme = {
+                all = {
+                    ui = {
+                        bg_gutter = "none",
+                    },
+                },
+            },
+        },
+    }
+end
+
+function M.gruvbox_material()
+    local transparent = require("utils.theme").is_transparent()
+    vim.g.gruvbox_material_background = "medium"
+    vim.g.gruvbox_material_foreground = "material"
+    vim.g.gruvbox_material_transparent_background = transparent and 2 or 0
+    vim.g.gruvbox_material_enable_italic = 1
+    vim.g.gruvbox_material_better_performance = 1
+end
+
+function M.vesper()
+    local transparent = require("utils.theme").is_transparent()
+    return {
+        transparent = transparent,
+        italics = {
+            comments = true,
+            keywords = true,
+            functions = false,
+            strings = false,
+            variables = false,
+        },
+    }
+end
+
 
 function M.which_key()
     return {

@@ -25,6 +25,7 @@ return {
             { "<leader>pr", require("config.keys").snacks_recent_files, desc = "Snacks: Buscar archivos recientes" },
             { "<leader>ph", require("config.keys").snacks_help, desc = "Snacks: Buscar ayuda" },
             { "<leader>pb", require("config.keys").snacks_buffers, desc = "Snacks: Buscar buffers" },
+            { "<leader>pc", require("config.keys").snacks_colorschemes, desc = "Snacks: Cambiar tema" },
             { "<leader>gl", require("config.keys").snacks_live_grep, desc = "Snacks: Buscar texto en vivo" },
         },
     },

@@ -49,6 +49,9 @@ local function toggle_wrap_navigation()
 end
 
 vim.keymap.set('n', '<leader>tw', toggle_wrap_navigation, { desc = "Toggle wrap navigation (gk/gj)" })
+vim.keymap.set('n', '<leader>tb', function()
+    require("utils.theme").toggle_transparency()
+end, { desc = "Alternar fondo transparente/opaco" })
 
 local lsp_picker_patched = false
 local function patch_lsp_buf_picker()

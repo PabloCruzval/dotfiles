@@ -68,4 +68,4 @@ vim.api.nvim_create_autocmd("User", {
     end,
 })
 
-vim.cmd.colorscheme("catppuccin-mocha")
+require("utils.theme").setup()

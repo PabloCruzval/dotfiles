@@ -80,4 +80,9 @@ M.snacks_live_grep = function()
     Snacks.picker.grep()
 end
 
+M.snacks_colorschemes = function()
+    require("utils.theme").pick()
+end
+
 return M
+
