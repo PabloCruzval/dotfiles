@@ -1,0 +1,197 @@
+#!/usr/bin/env bash
+#
+# qr - Genera un código QR a partir de texto o stdin y lo guarda en ~/Pictures
+#
+
+set -euo pipefail
+
+show_help() {
+    cat <<EOF
+Uso:
+  qr [OPCIONES] <texto>
+  echo <texto> | qr [OPCIONES]
+  qr -c [OPCIONES]
+
+Opciones:
+  -o, --output ARCHIVO   Nombre o ruta del archivo de salida (.png)
+  -s, --size NUM         Tamaño de cada módulo en píxeles (por defecto: 10)
+  -m, --margin NUM       Margen en módulos (por defecto: 4)
+  -l, --level {L,M,Q,H}  Nivel de corrección de errores (por defecto: M)
+  -c, --clip             Usar el texto desde el portapapeles (wl-paste)
+  -C, --copy             Copiar la imagen QR generada al portapapeles (wl-copy)
+  -t, --terminal         Mostrar también el código QR en la terminal
+  -n, --no-notify        Desactivar la notificación de escritorio
+  -h, --help             Mostrar esta ayuda
+
+Ejemplos:
+  qr "https://github.com"
+  qr Hola mundo desde la terminal
+  echo "https://example.com" | qr
+  qr -c -t
+  qr -o mi_wifi.png "WIFI:S:MiRed;T:WPA;P:MiClave;;"
+EOF
+}
+
+# Comprobar dependencias
+if ! command -v qrencode >/dev/null 2>&1; then
+    echo "Error: 'qrencode' no está instalado. Instálalo con: sudo pacman -S qrencode" >&2
+    exit 1
+fi
+
+# Variables por defecto
+output_name=""
+size=10
+margin=4
+level="M"
+from_clip=false
+copy_to_clip=false
+show_in_terminal=false
+notify=true
+declare -a text_parts=()
+
+# Parseo de argumentos
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        -o|--output)
+            output_name="$2"
+            shift 2
+            ;;
+        --output=*)
+            output_name="${1#*=}"
+            shift
+            ;;
+        -s|--size)
+            size="$2"
+            shift 2
+            ;;
+        --size=*)
+            size="${1#*=}"
+            shift
+            ;;
+        -m|--margin)
+            margin="$2"
+            shift 2
+            ;;
+        --margin=*)
+            margin="${1#*=}"
+            shift
+            ;;
+        -l|--level)
+            level="$2"
+            shift 2
+            ;;
+        --level=*)
+            level="${1#*=}"
+            shift
+            ;;
+        -c|--clip)
+            from_clip=true
+            shift
+            ;;
+        -C|--copy)
+            copy_to_clip=true
+            shift
+            ;;
+        -t|--terminal)
+            show_in_terminal=true
+            shift
+            ;;
+        -n|--no-notify)
+            notify=false
+            shift
+            ;;
+        --)
+            shift
+            while [[ $# -gt 0 ]]; do
+                text_parts+=("$1")
+                shift
+            done
+            break
+            ;;
+        -*)
+            echo "Opción desconocida: $1" >&2
+            echo "Usa 'qr --help' para ver las opciones disponibles." >&2
+            exit 1
+            ;;
+        *)
+            text_parts+=("$1")
+            shift
+            ;;
+    esac
+done
+
+# Obtener el texto
+text="${text_parts[*]:-}"
+
+if [[ -z "$text" ]]; then
+    if [[ "$from_clip" = true ]]; then
+        if command -v wl-paste >/dev/null 2>&1; then
+            text=$(wl-paste 2>/dev/null || true)
+        elif command -v xclip >/dev/null 2>&1; then
+            text=$(xclip -selection clipboard -o 2>/dev/null || true)
+        fi
+    elif [[ ! -t 0 ]]; then
+        # Leer desde stdin
+        text=$(cat)
+    fi
+fi
+
+if [[ -z "$text" ]]; then
+    echo "Error: No se proporcionó texto para generar el código QR." >&2
+    echo "Usa: qr <texto>, echo <texto> | qr, o qr -c" >&2
+    exit 1
+fi
+
+# Directorio de destino
+pictures_dir="${XDG_PICTURES_DIR:-$(xdg-user-dir PICTURES 2>/dev/null || echo "$HOME/Pictures")}"
+mkdir -p "$pictures_dir"
+
+# Determinar nombre del archivo
+if [[ -n "$output_name" ]]; then
+    [[ "$output_name" != *.png ]] && output_name="${output_name}.png"
+    if [[ "$output_name" = /* || "$output_name" = ./* || "$output_name" = ../* ]]; then
+        target_file="$output_name"
+        mkdir -p "$(dirname "$target_file")"
+    else
+        target_file="$pictures_dir/$output_name"
+    fi
+else
+    timestamp=$(date +%Y%m%d_%H%M%S)
+    target_file="$pictures_dir/qr_${timestamp}.png"
+    if [[ -f "$target_file" ]]; then
+        counter=1
+        while [[ -f "$pictures_dir/qr_${timestamp}_${counter}.png" ]]; do
+            ((counter++))
+        done
+        target_file="$pictures_dir/qr_${timestamp}_${counter}.png"
+    fi
+fi
+
+# Generar el código QR
+qrencode -s "$size" -m "$margin" -l "$level" -t PNG -o "$target_file" "$text"
+
+# Copiar la imagen al portapapeles si se solicitó
+if [[ "$copy_to_clip" = true ]]; then
+    if command -v wl-copy >/dev/null 2>&1; then
+        wl-copy -t image/png < "$target_file"
+    elif command -v xclip >/dev/null 2>&1; then
+        xclip -selection clipboard -target image/png -i "$target_file" 2>/dev/null || true
+    fi
+fi
+
+# Mostrar en terminal si se solicitó
+if [[ "$show_in_terminal" = true ]]; then
+    qrencode -t UTF8 -m "$margin" -l "$level" "$text"
+fi
+
+# Notificación de escritorio
+if [[ "$notify" = true ]] && command -v notify-send >/dev/null 2>&1; then
+    notify-send -a "QR" -i "$target_file" "Código QR generado" "$target_file" 2>/dev/null || true
+fi
+
+# Imprimir la ruta del archivo generado
+echo "$target_file"

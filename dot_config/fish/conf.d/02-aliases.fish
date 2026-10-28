@@ -2,6 +2,7 @@ alias dot 'chezmoi cd'
 alias nv 'nvim'
 alias py 'python'
 alias ws 'cd ~/Workspace'
+alias git-boom 'git add . && git stash && git stash drop'
 
 alias .. 'cd ..'
 alias ... 'cd ../..'
