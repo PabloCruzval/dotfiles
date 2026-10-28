@@ -12,6 +12,8 @@ M.plugins = {
     "kanagawa.nvim",
     "gruvbox-material",
     "vesper.nvim",
+    "cyberdream.nvim",
+    "onedarkpro.nvim",
 }
 
 function M.is_transparent()
@@ -229,6 +231,12 @@ local function reconfigure_loaded_themes()
     end
     if package.loaded["vesper"] then
         require("vesper").setup(cfg.vesper())
+    end
+    if package.loaded["cyberdream"] then
+        require("cyberdream").setup(cfg.cyberdream())
+    end
+    if package.loaded["onedarkpro"] then
+        require("onedarkpro").setup(cfg.onedarkpro())
     end
     if vim.g.gruvbox_material_background ~= nil then
         cfg.gruvbox_material()

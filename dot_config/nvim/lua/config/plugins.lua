@@ -64,8 +64,71 @@ function M.mason_tool_installer()
     }
 end
 
+local ts_notified_roots = {}
+
+local function find_tsserver(bufnr)
+    local uv = vim.uv or vim.loop
+    local fname = vim.api.nvim_buf_get_name(bufnr)
+    if fname == "" then
+        fname = vim.fn.getcwd()
+    end
+
+    local stat = uv.fs_stat(fname)
+    local start_dir = (stat and stat.type == "directory") and fname or vim.fs.dirname(fname)
+
+    if start_dir and (
+        uv.fs_stat(start_dir .. "/node_modules/typescript/lib/tsserver.js")
+        or uv.fs_stat(start_dir .. "/.yarn/sdks/typescript/lib/tsserver.js")
+    ) then
+        return true
+    end
+
+    for parent in vim.fs.parents(fname) do
+        if
+            uv.fs_stat(parent .. "/node_modules/typescript/lib/tsserver.js")
+            or uv.fs_stat(parent .. "/.yarn/sdks/typescript/lib/tsserver.js")
+        then
+            return true
+        end
+    end
+
+    if vim.fn.executable("tsserver") == 1 then
+        return true
+    end
+
+    local mason_tsserver = vim.fn.stdpath("data")
+        .. "/mason/packages/typescript-language-server/node_modules/typescript/lib/tsserver.js"
+    if uv.fs_stat(mason_tsserver) then
+        return true
+    end
+
+    return false
+end
+
 function M.typescript_tools()
     return {
+        single_file_support = false,
+        root_dir = function(bufnr, on_dir)
+            local ok, util = pcall(require, "typescript-tools.utils")
+            local root = ok and util.get_root_dir(bufnr)
+                or vim.fs.root(bufnr, { "package.json", "tsconfig.json", ".git" })
+                or vim.fn.getcwd()
+
+            if not find_tsserver(bufnr) then
+                local project_key = root or "global"
+                if not ts_notified_roots[project_key] then
+                    ts_notified_roots[project_key] = true
+                    local has_pkg = vim.fs.root(bufnr, { "package.json" })
+                    local msg = has_pkg
+                            and "TypeScript: faltan instalar los paquetes del proyecto. Ejecuta 'npm install' (o pnpm/bun) para activar el LSP."
+                        or "TypeScript: no se encontró 'typescript' en el proyecto ni en el sistema. Ejecuta 'npm install' o instala TypeScript globalmente."
+                    vim.notify(msg, vim.log.levels.WARN, { title = "TypeScript" })
+                end
+                return
+            end
+
+            on_dir(root)
+        end,
         settings = {
             separate_diagnostic_server = true,
             publish_diagnostic_on = "insert_leave",
@@ -480,6 +543,31 @@ function M.vesper()
             functions = false,
             strings = false,
             variables = false,
+        },
+    }
+end
+
+function M.cyberdream()
+    local transparent = require("utils.theme").is_transparent()
+    return {
+        transparent = transparent,
+        italic_comments = true,
+        hide_fillchars = false,
+        borderless_pickers = false,
+        terminal_colors = true,
+    }
+end
+
+function M.onedarkpro()
+    local transparent = require("utils.theme").is_transparent()
+    return {
+        caching = false,
+        options = {
+            transparency = transparent,
+            terminal_colors = true,
+        },
+        styles = {
+            comments = "italic",
         },
     }
 end

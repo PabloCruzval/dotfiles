@@ -37,7 +37,7 @@ dot_config/nvim/
 │   │   ├── git.lua            # Gitsigns
 │   │   ├── typst.lua          # Soporte y previsualización para Typst
 │   │   ├── cmake.lua          # Herramientas para CMake
-│   │   └── theme.lua          # Esquemas de colores con lazy loading (Catppuccin, Rose Pine, Tokyo Night, Kanagawa, Gruvbox Material, Vesper)
+│   │   └── theme.lua          # Esquemas de colores con lazy loading (Catppuccin, Rose Pine, Tokyo Night, Kanagawa, Gruvbox Material, Vesper, Cyberdream, OneDarkPro)
 │   └── utils/
 │       ├── theme.lua          # Gestión dinámica de temas, persistencia y toggle de transparencia
 │       ├── tinymist_status.lua# Estado del compilador de Typst

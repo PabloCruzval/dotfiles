@@ -39,4 +39,16 @@ return {
         priority = 1000,
         opts = plugins.vesper,
     },
+    {
+        "scottmckendry/cyberdream.nvim",
+        lazy = true,
+        priority = 1000,
+        opts = plugins.cyberdream,
+    },
+    {
+        "olimorris/onedarkpro.nvim",
+        lazy = true,
+        priority = 1000,
+        opts = plugins.onedarkpro,
+    },
 }
