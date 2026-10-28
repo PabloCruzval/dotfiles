@@ -15,7 +15,7 @@ return {
 	obsidian = {
 		cmd = "uwsm app -- obsidian",
 		title = ".*Obsidian.*",
-		workspace = 3,
+		workspace = 4,
 	},
 	vscode = {
 		title = ".*Visual Studio.*",
@@ -32,4 +32,9 @@ return {
 	emote = {
 		cmd = "uwsm app -- emote",
 	},
+	pdfreader = {
+		cmd = "uwsm app -- " .. PDFREADER,
+		class = "sioyek",
+		workspace = 1,
+	}
 }

@@ -92,7 +92,7 @@ hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd(noctCall .. "brightness-down"),
 ---- UTILITIES ----
 ------------------
 
-hl.bind(mainMod .. " + P",           hl.dsp.exec_cmd("hyprpicker -a -n"))
+hl.bind(mainMod .. " + P",           hl.dsp.exec_cmd(apps.pdfreader.cmd))
 hl.bind(mainMod .. " + SHIFT + P",   hl.dsp.exec_cmd("hyprpicker -a"))
 hl.bind(mainMod .. " + SHIFT + S",   hl.dsp.exec_cmd(noctCall .. "screenshot-region"))
 hl.bind(mainMod .. " + SHIFT + F",   hl.dsp.exec_cmd(noctCall .. "screenshot-fullscreen"))

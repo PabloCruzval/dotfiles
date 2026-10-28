@@ -3,6 +3,7 @@ FILE_MANAGER = "dolphin"
 BROWSER      = "librewolf"
 EDITOR       = "gnome-text-editor --new-window"
 CALCULATOR   = "gnome-calculator"
+PDFREADER    = "sioyek"
 
 -- Monitors (desktop: t-nyx)
 MONITOR1 = "DP-1"
@@ -11,4 +12,4 @@ MONITOR3 = ""
 PRIMARY_MONITOR = MONITOR1
 
 -- Workspaces assigned to each monitor group
-NUM_WPM = 3
+NUM_WPM = 4

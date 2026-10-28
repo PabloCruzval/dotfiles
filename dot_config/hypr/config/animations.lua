@@ -20,7 +20,8 @@ hl.animation({ leaf = "windowsMove",         enabled = true, speed = 3,   bezier
 hl.animation({ leaf = "fadeIn",              enabled = true, speed = 5,   bezier = "default" })
 hl.animation({ leaf = "fadeOut",             enabled = true, speed = 5,   bezier = "default" })
 hl.animation({ leaf = "fadeSwitch",          enabled = true, speed = 5,   bezier = "default" })
-hl.animation({ leaf = "workspaces",          enabled = true, speed = 5,   bezier = "quick", style = "slide" })
+-- Transición vertical pura (desplazamiento vertical 100% de pantalla, sin fade):
+hl.animation({ leaf = "workspaces",          enabled = true, speed = 2.5, bezier = "easeOutQuint", style = "slidevert" })
 hl.animation({ leaf = "specialWorkspaceIn",  enabled = true, speed = 2,   bezier = "quick", style = "slide top"})
 hl.animation({ leaf = "specialWorkspaceOut", enabled = true, speed = 2,   bezier = "quick", style = "slide bottom"})
 hl.animation({ leaf = "layers",              enabled = true, speed = 1,   bezier = "bounce",  style = "slide" })
