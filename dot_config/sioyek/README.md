@@ -28,9 +28,10 @@ sioyek/
 │
 sioyek-sync/ (related components)
 ├── config.env                        # Remotes, paths, and timeout options
+├── executable_sioyek-open            # URI scheme handler & smart launcher (~/.local/bin/sioyek-open)
 ├── executable_sioyek-sync            # Sync wrapper script (~/.local/bin/sioyek-sync)
 ├── executable_sioyek-translate       # Translation helper (~/.local/bin/sioyek-translate)
-├── sioyek.desktop.tmpl               # Desktop entry pointing to wrapper
+├── sioyek.desktop.tmpl               # Desktop entry (PDFs & x-scheme-handler/sioyek)
 ├── sioyek-sync-shutdown.service      # Systemd user service for clean shutdown push
 ├── sioyek-pdf-sync.service           # Systemd user service for background PDF sync
 └── sioyek-pdf-sync.timer             # Systemd user timer (every 30m)

@@ -135,6 +135,61 @@ mtime_of() {
     stat -c '%Y' "$1" 2>/dev/null || echo 0
 }
 
+# --- Pre-población de local.db (document_hash) para Sioyek ---
+# Sioyek usa get_checksum_fast() al abrir un PDF, el cual solo consulta la caché
+# local cargada desde local.db. Si un PDF nuevo llega de la nube (Drive/bisync),
+# no tiene entrada local, Sioyek ignora shared.db y abre en página 1.
+# Pre-calcular el MD5 garantiza que Sioyek siempre restaure la posición de lectura.
+
+prime_document_hash() {
+    local target="$1"
+    [[ -f "$target" ]] || return 0
+    python3 -c "
+import os, sys, sqlite3, hashlib
+fpath = os.path.realpath(sys.argv[1])
+db_path = os.path.expanduser('~/.local/share/sioyek/local.db')
+try:
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+    with sqlite3.connect(db_path, timeout=5.0) as conn:
+        c = conn.cursor()
+        c.execute('CREATE TABLE IF NOT EXISTS document_hash (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT, hash TEXT, UNIQUE(path, hash));')
+        c.execute('SELECT hash FROM document_hash WHERE path = ? LIMIT 1;', (fpath,))
+        if not c.fetchone():
+            with open(fpath, 'rb') as f:
+                h = hashlib.md5(f.read()).hexdigest()
+            c.execute('INSERT OR IGNORE INTO document_hash (path, hash) VALUES (?, ?);', (fpath, h))
+            conn.commit()
+except Exception:
+    pass
+" "$target" 2>/dev/null || true
+}
+
+prime_pdf_dir_hashes() {
+    local dir="$1"
+    [[ -d "$dir" ]] || return 0
+    python3 -c "
+import os, glob, sys, sqlite3, hashlib
+dir_path = sys.argv[1]
+db_path = os.path.expanduser('~/.local/share/sioyek/local.db')
+try:
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+    with sqlite3.connect(db_path, timeout=5.0) as conn:
+        c = conn.cursor()
+        c.execute('CREATE TABLE IF NOT EXISTS document_hash (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT, hash TEXT, UNIQUE(path, hash));')
+        c.execute('SELECT path FROM document_hash;')
+        existing = set(r[0] for r in c.fetchall())
+        for f in glob.glob(os.path.join(dir_path, '*.pdf')):
+            real = os.path.realpath(f)
+            if real not in existing:
+                with open(real, 'rb') as fp:
+                    h = hashlib.md5(fp.read()).hexdigest()
+                c.execute('INSERT OR IGNORE INTO document_hash (path, hash) VALUES (?, ?);', (real, h))
+        conn.commit()
+except Exception:
+    pass
+" "$dir" 2>/dev/null || true
+}
+
 remote_dir_path() {
     if [[ -n "${DB_REMOTE_DIR:-}" ]]; then
         printf '%s:%s/%s' "$DB_RCLONE_REMOTE" "$DB_REMOTE_BUCKET" "$DB_REMOTE_DIR"
@@ -474,6 +529,9 @@ sync_pdfs() {
     fi
     rm -f "$bisync_log"
 
+    # Pre-poblar hashes en local.db para que Sioyek restaure posiciones de lectura de R2
+    prime_pdf_dir_hashes "$LOCAL_PDF_DIR"
+
     log "INFO" "Sincronización de PDFs (${LOCAL_PDF_DIR}) completada con éxito."
     return 0
 }
@@ -808,6 +866,13 @@ while (( $# > 0 )); do
             SIOYEK_ARGS+=("$@")
             break
             ;;
+        sioyek://*|sioyek:*|file://*)
+            if [[ -x "${HOME}/.local/bin/sioyek-open" ]]; then
+                exec "${HOME}/.local/bin/sioyek-open" "$@"
+            fi
+            SIOYEK_ARGS+=("$1")
+            shift
+            ;;
         *)
             SIOYEK_ARGS+=("$1")
             shift
@@ -866,6 +931,14 @@ case "$MODE" in
         if (( SYNC_PDFS == 1 )); then
             ( exec 6>&- 7>&- 8>&- 9>&- ; nohup "$0" --pdfs </dev/null >/dev/null 2>&1 & )
         fi
+
+        # Pre-poblar hashes en local.db de cualquier archivo PDF pasado como argumento
+        local doc_arg
+        for doc_arg in "${SIOYEK_ARGS[@]:-}"; do
+            if [[ -f "$doc_arg" && "$doc_arg" == *.pdf ]]; then
+                prime_document_hash "$doc_arg"
+            fi
+        done
 
         log "INFO" "Lanzando Sioyek (QT_QPA_PLATFORM=${QT_QPA_PLATFORM}): ${SIOYEK_BIN} ${SIOYEK_ARGS[*]:-}"
         "$SIOYEK_BIN" "${SIOYEK_ARGS[@]}" 6>&- 8>&- 9>&- &

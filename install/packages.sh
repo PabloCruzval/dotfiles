@@ -48,6 +48,10 @@ PKGS=(
     syncthing
     obsidian
     librewolf
+    sioyek
+    python-pyqt6
+    rclone
+    qrencode
 )
 
 AUR=(

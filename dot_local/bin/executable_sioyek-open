@@ -1,0 +1,205 @@
+#!/usr/bin/env python3
+"""
+sioyek-open: Open PDF documents and sioyek:// URIs in Sioyek.
+
+Handles URIs formatted like:
+  sioyek:///home/nyx/Documents/GPdf/1997_Automata%20and%20Computability%20%28Updated%20OCR%29.pdf#page=78
+  sioyek:///path/to/document.pdf#page=42
+  sioyek:///path/to/document.pdf#42
+  file:///path/to/document.pdf#page=10
+  /path/to/document.pdf
+
+Decodes percent-encoded characters, extracts target page/focus arguments,
+and launches or delegates to sioyek-sync (preserving Cloudflare R2 / Drive sync).
+"""
+
+import os
+import sys
+import re
+import shutil
+import subprocess
+import urllib.parse
+
+
+def notify_error(title: str, message: str) -> None:
+    """Send desktop notification and print error."""
+    sys.stderr.write(f"Error [{title}]: {message}\n")
+    if shutil.which("notify-send"):
+        try:
+            subprocess.run(
+                ["notify-send", "-u", "critical", "-a", "sioyek-open", title, message],
+                check=False,
+            )
+        except Exception:
+            pass
+
+
+def parse_uri(raw_arg: str):
+    """
+    Parse a file path or URI into (clean_path, page_num, focus_text).
+    """
+    s = raw_arg.strip()
+
+    # Strip supported schemes
+    for prefix in ("sioyek://", "sioyek:", "file://"):
+        if s.startswith(prefix):
+            s = s[len(prefix):]
+            break
+
+    page = None
+    focus_text = None
+    fragment = ""
+    query = ""
+
+    if "#" in s:
+        s, fragment = s.split("#", 1)
+    if "?" in s:
+        s, query = s.split("?", 1)
+
+    meta = fragment + ("&" if fragment and query else "") + query
+
+    # Extract page number (#page=78, #page:78, #p=78, #78, etc.)
+    m_page = re.search(r"(?:^|[?&#;])(?:page|p)[=:-]?(\d+)", meta, re.IGNORECASE)
+    if m_page:
+        page = m_page.group(1)
+    elif re.fullmatch(r"\d+", fragment):
+        page = fragment
+
+    # Extract focus / search text (#focus=keyword, #search=keyword, #text=keyword)
+    m_focus = re.search(r"(?:^|[?&#;])(?:focus|search|text)=([^&#;]+)", meta, re.IGNORECASE)
+    if m_focus:
+        focus_text = urllib.parse.unquote(m_focus.group(1))
+
+    # URL-decode path
+    path = urllib.parse.unquote(s)
+
+    # Expand ~
+    if path.startswith("~"):
+        path = os.path.expanduser(path)
+    elif not path.startswith("/"):
+        # If relative or missing leading slash
+        if os.path.exists("/" + path):
+            path = "/" + path
+        else:
+            path = os.path.abspath(path)
+    else:
+        path = os.path.normpath(path)
+
+    # Search fallback in default PDF / Obsidian directories if not found
+    if not os.path.exists(path):
+        filename = os.path.basename(path)
+        common_dirs = [
+            os.path.expanduser("~/Documents/GPdf"),
+            os.path.expanduser("~/Documents/Obsidian"),
+        ]
+        for d in common_dirs:
+            candidate = os.path.join(d, filename)
+            if os.path.exists(candidate):
+                path = candidate
+                break
+
+    return path, page, focus_text
+
+
+def ensure_document_hash(file_path: str) -> None:
+    """Pre-compute MD5 and ensure local.db maps path -> hash before Sioyek loads.
+
+    Fixes Sioyek's design bug where DocumentView::load_document uses
+    get_checksum_fast(), which only checks the local.db cache. If uncached,
+    Sioyek bypasses shared.db and defaults to page 1 on first open.
+    """
+    try:
+        import hashlib
+        import sqlite3
+
+        local_db_path = os.path.expanduser("~/.local/share/sioyek/local.db")
+        os.makedirs(os.path.dirname(local_db_path), exist_ok=True)
+
+        canonical = os.path.realpath(file_path)
+        with sqlite3.connect(local_db_path, timeout=5.0) as conn:
+            c = conn.cursor()
+            c.execute(
+                "CREATE TABLE IF NOT EXISTS document_hash ("
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT, hash TEXT, UNIQUE(path, hash));"
+            )
+            c.execute("SELECT hash FROM document_hash WHERE path = ? LIMIT 1;", (canonical,))
+            if not c.fetchone():
+                with open(canonical, "rb") as f:
+                    md5_hash = hashlib.md5(f.read()).hexdigest()
+                c.execute(
+                    "INSERT OR IGNORE INTO document_hash (path, hash) VALUES (?, ?);",
+                    (canonical, md5_hash),
+                )
+                conn.commit()
+    except Exception:
+        pass
+
+
+def main() -> None:
+    if len(sys.argv) < 2 or sys.argv[1] in ("-h", "--help"):
+        print("Uso: sioyek-open <archivo_o_uri_sioyek> [opciones_adicionales_sioyek]")
+        print("\nEjemplo de URI:")
+        print("  sioyek:///home/nyx/Documents/GPdf/archivo.pdf#page=78")
+        sys.exit(0)
+
+    # Separate options and positional arguments/URIs
+    options = []
+    uris = []
+
+    for arg in sys.argv[1:]:
+        if arg.startswith("-") and not (arg.startswith("sioyek:") or arg.startswith("file:")):
+            options.append(arg)
+        else:
+            uris.append(arg)
+
+    if not uris:
+        notify_error("Sioyek", "No se especificó ninguna ruta o URI para abrir.")
+        sys.exit(1)
+
+    # Resolve sioyek binary or sync wrapper
+    sioyek_sync = os.path.expanduser("~/.local/bin/sioyek-sync")
+    if os.path.isfile(sioyek_sync) and os.access(sioyek_sync, os.X_OK):
+        launcher = sioyek_sync
+    else:
+        launcher = shutil.which("sioyek") or "/usr/bin/sioyek"
+
+    # Default to reusing window when opening links
+    if "--reuse-window" not in options and "--new-window" not in options:
+        options.append("--reuse-window")
+
+    # Process each URI (typically one from desktop / xdg-open)
+    for raw_uri in uris:
+        path, page, focus_text = parse_uri(raw_uri)
+
+        if not os.path.exists(path):
+            notify_error("Sioyek", f"El archivo no existe:\n{path}")
+            continue
+
+        # Prime local.db so Sioyek's get_checksum_fast finds it immediately
+        ensure_document_hash(path)
+
+        cmd = [launcher] + options
+
+        if page:
+            cmd.extend(["--page", str(page)])
+        if focus_text:
+            cmd.extend(["--focus-text", focus_text])
+
+        cmd.append(path)
+
+        # If opening only one document, replace process directly
+        if len(uris) == 1:
+            try:
+                os.execvp(cmd[0], cmd)
+            except Exception as e:
+                notify_error("Sioyek", f"Error al ejecutar {launcher}: {e}")
+                sys.exit(1)
+        else:
+            try:
+                subprocess.Popen(cmd)
+            except Exception as e:
+                notify_error("Sioyek", f"Error al abrir {path}: {e}")
+
+
+if __name__ == "__main__":
+    main()
