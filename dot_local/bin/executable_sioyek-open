@@ -136,8 +136,8 @@ def ensure_document_hash(file_path: str) -> None:
 
 
 def main() -> None:
-    if len(sys.argv) < 2 or sys.argv[1] in ("-h", "--help"):
-        print("Uso: sioyek-open <archivo_o_uri_sioyek> [opciones_adicionales_sioyek]")
+    if len(sys.argv) > 1 and sys.argv[1] in ("-h", "--help"):
+        print("Uso: sioyek-open [archivo_o_uri_sioyek] [opciones_adicionales_sioyek]")
         print("\nEjemplo de URI:")
         print("  sioyek:///home/nyx/Documents/GPdf/archivo.pdf#page=78")
         sys.exit(0)
@@ -152,10 +152,6 @@ def main() -> None:
         else:
             uris.append(arg)
 
-    if not uris:
-        notify_error("Sioyek", "No se especificó ninguna ruta o URI para abrir.")
-        sys.exit(1)
-
     # Resolve sioyek binary or sync wrapper
     sioyek_sync = os.path.expanduser("~/.local/bin/sioyek-sync")
     if os.path.isfile(sioyek_sync) and os.access(sioyek_sync, os.X_OK):
@@ -166,6 +162,15 @@ def main() -> None:
     # Default to reusing window when opening links
     if "--reuse-window" not in options and "--new-window" not in options:
         options.append("--reuse-window")
+
+    # If launched without documents (e.g. from app launcher or shortcut), launch reader directly
+    if not uris:
+        cmd = [launcher] + options
+        try:
+            os.execvp(cmd[0], cmd)
+        except Exception as e:
+            notify_error("Sioyek", f"Error al ejecutar {launcher}: {e}")
+            sys.exit(1)
 
     # Process each URI (typically one from desktop / xdg-open)
     for raw_uri in uris:

@@ -3,7 +3,7 @@ FILE_MANAGER = "dolphin"
 BROWSER      = "librewolf"
 EDITOR       = "gnome-text-editor --new-window"
 CALCULATOR   = "gnome-calculator"
-PDFREADER    = "sioyek"
+PDFREADER    = "sioyek-open"
 
 -- Monitors (desktop: t-nyx)
 MONITOR1 = "DP-1"

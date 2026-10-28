@@ -933,7 +933,6 @@ case "$MODE" in
         fi
 
         # Pre-poblar hashes en local.db de cualquier archivo PDF pasado como argumento
-        local doc_arg
         for doc_arg in "${SIOYEK_ARGS[@]:-}"; do
             if [[ -f "$doc_arg" && "$doc_arg" == *.pdf ]]; then
                 prime_document_hash "$doc_arg"
