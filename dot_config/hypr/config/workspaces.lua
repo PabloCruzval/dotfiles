@@ -29,6 +29,11 @@ end
 hl.workspace_rule({ workspace = "name:gaming", monitor = PRIMARY_MONITOR })
 hl.workspace_rule({ workspace = "3", layout = "scrolling" })
 
+-- Smart borders: sin borde cuando solo hay una ventana en mosaico visible o maximizada
+hl.workspace_rule({ workspace = "w[tv1]", no_border = true })
+hl.workspace_rule({ workspace = "f[1]", no_border = true })
+
+
 -- Re-evaluate the secondary monitor groups when a display is connected.
 hl.on("monitor.added", function()
 	hl.exec_cmd("hyprctl reload")
