@@ -54,7 +54,10 @@ vim.api.nvim_create_user_command("WordCount", function()
     vim.notify(msg, level, { title = title })
 end, {})
 
+local group = vim.api.nvim_create_augroup("WordCount", { clear = true })
+
 vim.api.nvim_create_autocmd("BufWritePost", {
+    group = group,
     pattern = { TYPST_PATTERN },
     callback = function()
         local msg, _ = typst_count()
@@ -65,6 +68,7 @@ vim.api.nvim_create_autocmd("BufWritePost", {
 })
 
 vim.api.nvim_create_autocmd("BufWritePost", {
+    group = group,
     pattern = PROSE_PATTERNS,
     callback = function()
         local msg = prose_count()

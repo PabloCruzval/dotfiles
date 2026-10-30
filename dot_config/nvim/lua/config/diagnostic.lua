@@ -36,6 +36,7 @@ end
 
 set_virtual_text_highlights()
 vim.api.nvim_create_autocmd("ColorScheme", {
+  group = vim.api.nvim_create_augroup("DiagnosticHighlights", { clear = true }),
   callback = set_virtual_text_highlights,
 })
 

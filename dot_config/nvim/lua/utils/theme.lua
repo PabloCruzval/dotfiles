@@ -215,28 +215,23 @@ local function restore_kitty()
     last_kitty_state = nil
 end
 
+-- módulo (package.loaded) -> función de opciones en config.plugins
+local theme_setups = {
+    catppuccin = "catppuccin",
+    ["rose-pine"] = "rose_pine",
+    tokyonight = "tokyonight",
+    kanagawa = "kanagawa",
+    vesper = "vesper",
+    cyberdream = "cyberdream",
+    onedarkpro = "onedarkpro",
+}
+
 local function reconfigure_loaded_themes()
     local cfg = require("config.plugins")
-    if package.loaded["catppuccin"] then
-        require("catppuccin").setup(cfg.catppuccin())
-    end
-    if package.loaded["rose-pine"] then
-        require("rose-pine").setup(cfg.rose_pine())
-    end
-    if package.loaded["tokyonight"] then
-        require("tokyonight").setup(cfg.tokyonight())
-    end
-    if package.loaded["kanagawa"] then
-        require("kanagawa").setup(cfg.kanagawa())
-    end
-    if package.loaded["vesper"] then
-        require("vesper").setup(cfg.vesper())
-    end
-    if package.loaded["cyberdream"] then
-        require("cyberdream").setup(cfg.cyberdream())
-    end
-    if package.loaded["onedarkpro"] then
-        require("onedarkpro").setup(cfg.onedarkpro())
+    for module, opts_fn in pairs(theme_setups) do
+        if package.loaded[module] then
+            require(module).setup(cfg[opts_fn]())
+        end
     end
     if vim.g.gruvbox_material_background ~= nil then
         cfg.gruvbox_material()

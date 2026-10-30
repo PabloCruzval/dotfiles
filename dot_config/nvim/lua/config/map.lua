@@ -62,59 +62,17 @@ vim.keymap.set('n', '<leader>tb', function()
     require("utils.theme").toggle_transparency()
 end, { desc = "Alternar fondo transparente/opaco" })
 
-local lsp_picker_patched = false
-local function patch_lsp_buf_picker()
-    if lsp_picker_patched then
-        return
-    end
-    lsp_picker_patched = true
-
-    local orig_references = vim.lsp.buf.references
-    vim.lsp.buf.references = function(context, options)
-        if _G.Snacks and Snacks.picker then
-            local opts = type(options) == "table" and vim.deepcopy(options) or {}
-            if type(context) == "table" and context.includeDeclaration ~= nil then
-                opts.include_declaration = context.includeDeclaration
-            end
-            Snacks.picker.lsp_references(opts)
-        else
-            orig_references(context, options)
-        end
-    end
-
-    local orig_definition = vim.lsp.buf.definition
-    vim.lsp.buf.definition = function(options)
-        if _G.Snacks and Snacks.picker then
-            Snacks.picker.lsp_definitions(type(options) == "table" and options or nil)
-        else
-            orig_definition(options)
-        end
-    end
-
-    local orig_implementation = vim.lsp.buf.implementation
-    vim.lsp.buf.implementation = function(options)
-        if _G.Snacks and Snacks.picker then
-            Snacks.picker.lsp_implementations(type(options) == "table" and options or nil)
-        else
-            orig_implementation(options)
-        end
-    end
-
-    local orig_type_definition = vim.lsp.buf.type_definition
-    vim.lsp.buf.type_definition = function(options)
-        if _G.Snacks and Snacks.picker then
-            Snacks.picker.lsp_type_definitions(type(options) == "table" and options or nil)
-        else
-            orig_type_definition(options)
-        end
-    end
-end
+-- Navegación LSP con pickers de Snacks (sin parchear vim.lsp.buf)
+local lsp_nav = {
+    definition = function() Snacks.picker.lsp_definitions() end,
+    references = function() Snacks.picker.lsp_references() end,
+    implementation = function() Snacks.picker.lsp_implementations() end,
+    type_definition = function() Snacks.picker.lsp_type_definitions() end,
+}
 
 vim.api.nvim_create_autocmd("LspAttach", {
     group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
     callback = function(args)
-        patch_lsp_buf_picker()
-
         local client = vim.lsp.get_client_by_id(args.data.client_id)
         if not client then
             return
@@ -180,20 +138,20 @@ vim.api.nvim_create_autocmd("LspAttach", {
             end, "Referencia anterior")
         end
         if client:supports_method("textDocument/definition") then
-            lsp_map("<leader>ld", vim.lsp.buf.definition, "Ir a definición")
-            lsp_map("gd", vim.lsp.buf.definition, "Ir a definición")
+            lsp_map("<leader>ld", lsp_nav.definition, "Ir a definición")
+            lsp_map("gd", lsp_nav.definition, "Ir a definición")
         end
         if client:supports_method("textDocument/references") then
-            lsp_map("<leader>lR", vim.lsp.buf.references, "Buscar referencias")
-            lsp_map("gr", vim.lsp.buf.references, "Buscar referencias")
+            lsp_map("<leader>lR", lsp_nav.references, "Buscar referencias")
+            lsp_map("gr", lsp_nav.references, "Buscar referencias")
         end
         if client:supports_method("textDocument/implementation") then
-            lsp_map("<leader>li", vim.lsp.buf.implementation, "Ir a implementación")
-            lsp_map("gi", vim.lsp.buf.implementation, "Ir a implementación")
+            lsp_map("<leader>li", lsp_nav.implementation, "Ir a implementación")
+            lsp_map("gi", lsp_nav.implementation, "Ir a implementación")
         end
         if client:supports_method("textDocument/typeDefinition") then
-            lsp_map("<leader>ly", vim.lsp.buf.type_definition, "Ir a definición de tipo")
-            lsp_map("gy", vim.lsp.buf.type_definition, "Ir a definición de tipo")
+            lsp_map("<leader>ly", lsp_nav.type_definition, "Ir a definición de tipo")
+            lsp_map("gy", lsp_nav.type_definition, "Ir a definición de tipo")
         end
         if client:supports_method("textDocument/rename") then
             lsp_map("<leader>lr", vim.lsp.buf.rename, "Renombrar símbolo")
