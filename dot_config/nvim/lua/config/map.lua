@@ -10,9 +10,18 @@ map({ 'n', 'i' }, "<A-k>", '<cmd>m -2<CR>', { desc = "Mover línea arriba" })
 map({ 'n', 'i' }, "<A-j>", '<cmd>m +1<CR>', { desc = "Mover línea abajo" })
 map('x', "<A-k>", ":m '<-2<CR>gv=gv", { desc = "Mover selección arriba" })
 map('x', "<A-j>", ":m '>+1<CR>gv=gv", { desc = "Mover selección abajo" })
-map({ 'n', 't' }, '<leader>ts', function()
-    Snacks.terminal.toggle()
-end, { desc = "Abrir/cerrar terminal" })
+local function toggle_terminal()
+    local visible = vim.iter(Snacks.terminal.list()):find(function(t)
+        return t:valid()
+    end)
+    if visible then
+        return visible:hide()
+    end
+
+    Snacks.terminal.toggle(nil, { cwd = require("utils.oil").visible_dir() })
+end
+
+map({ 'n', 't' }, '<leader>tt', toggle_terminal, { desc = "Abrir/cerrar terminal" })
 
 -- Comment
 map('n', '<leader>/', "gcc", { remap = true, desc = "Comentar línea" })

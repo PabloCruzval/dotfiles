@@ -1,5 +1,7 @@
 local o = vim.opt
 
+vim.g.root_cwd = vim.fn.getcwd()
+
 o.wrap = true
 o.linebreak = true
 o.tabstop = 4

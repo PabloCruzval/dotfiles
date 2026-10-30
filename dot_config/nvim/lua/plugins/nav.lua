@@ -13,6 +13,8 @@ return {
         opts = require("config.plugins").oil,
         keys = {
             { "<leader>e", require("config.keys").oil_open, desc = "Explorador de archivos" },
+            { "<leader>or", require("config.keys").oil_open_root, desc = "Oil: Abrir en directorio raíz (root CWD)" },
+            { "<leader>oR", require("config.keys").oil_set_root, desc = "Oil: Fijar directorio actual como root CWD" },
         },
     },
     {

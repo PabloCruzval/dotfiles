@@ -275,6 +275,19 @@ function M.oil()
             ["<C-h>"] = false,
             ["<C-l>"] = false,
             ["<S-h>"] = "actions.toggle_hidden",
+            ["<leader>cd"] = { "actions.cd", desc = "Cambiar CWD a este directorio" },
+            ["<leader>or"] = {
+                function()
+                    require("config.keys").oil_open_root()
+                end,
+                desc = "Abrir en directorio raíz (root CWD)",
+            },
+            ["<leader>oR"] = {
+                function()
+                    require("config.keys").oil_set_root()
+                end,
+                desc = "Fijar este directorio como root CWD",
+            },
         },
     }
 end

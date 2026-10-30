@@ -59,6 +59,30 @@ M.oil_open = function()
     require("oil").open()
 end
 
+M.oil_open_root = function()
+    local root = vim.g.root_cwd or vim.fn.getcwd()
+    vim.cmd({ cmd = "cd", args = { root } })
+    require("oil").open(root)
+    vim.notify(string.format("CWD: %s", root), vim.log.levels.INFO)
+end
+
+M.oil_set_root = function()
+    local ok, oil = pcall(require, "oil")
+    local dir = ok and oil.get_current_dir()
+    if not dir or dir == "" then
+        local bufname = vim.api.nvim_buf_get_name(0)
+        if bufname and bufname ~= "" then
+            dir = vim.fs.dirname(bufname)
+        else
+            dir = vim.fn.getcwd()
+        end
+    end
+    dir = vim.fs.normalize(dir)
+    vim.g.root_cwd = dir
+    vim.cmd({ cmd = "cd", args = { dir } })
+    vim.notify(string.format("Root CWD: %s", dir), vim.log.levels.INFO)
+end
+
 -- Snacks picker
 M.snacks_files = function()
     Snacks.picker.files()

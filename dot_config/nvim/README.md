@@ -331,7 +331,7 @@ Installed automatically via Mason. Configured in [`after/lsp/`](after/lsp/):
 
 | Key | Action |
 |-----|--------|
-| `<leader>ts` | Toggle terminal |
+| `<leader>tt` | Toggle terminal |
 
 </details>
 
@@ -511,7 +511,7 @@ Then restart Neovim to reinstall everything.
 - **Find files**: `<leader>pf` uses Snacks with fuzzy matching
 - **Stage hunks**: Select lines visually, then `<leader>gs`
 - **Preview git changes**: `<leader>gh` shows hunk diff inline
-- **Toggle terminal**: `<leader>ts` opens a persistent split terminal
+- **Toggle terminal**: `<leader>tt` opens a persistent split terminal
 - **Config editing**: Changes to `init.lua` or any config file — use `<leader>so` to source
 - **JSON validation**: Opening `package.json` or `tsconfig.json` auto-loads the correct schema
 - **Typst preview**: `<leader>tp` toggles live PDF preview
