@@ -2,7 +2,28 @@
 
 local map = vim.keymap.set
 
-map('t', '<ESC>', "<C-\\><C-n>", { remap = true, desc = "Salir del modo terminal" })
+local last_terminal_esc = 0
+local function terminal_esc()
+    local now = vim.uv.hrtime() / 1e6
+    local diff = now - last_terminal_esc
+    last_terminal_esc = now
+
+    -- Mantener presionado (auto-repeat de Hyprland ~600ms) o doble toque rápido pasa a modo normal
+    if diff > 0 and diff < 700 then
+        last_terminal_esc = 0
+        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<C-\\><C-n>", true, false, true), "n", false)
+        return
+    end
+
+    local job_id = vim.b.terminal_job_id
+    if job_id then
+        vim.api.nvim_chan_send(job_id, "\27")
+    else
+        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
+    end
+end
+
+map('t', '<ESC>', terminal_esc, { nowait = true, desc = "ESC a terminal (mantener o doble toque para modo normal)" })
 
 -- Core
 map('n', '<leader>so', '<cmd>update<CR><cmd>source<CR>', { desc = "Guardar y recargar archivo" })
@@ -21,7 +42,7 @@ local function toggle_terminal()
     Snacks.terminal.toggle(nil, { cwd = require("utils.oil").visible_dir() })
 end
 
-map({ 'n', 't' }, '<leader>tt', toggle_terminal, { desc = "Abrir/cerrar terminal" })
+map('n', '<leader>tt', toggle_terminal, { desc = "Abrir/cerrar terminal" })
 
 -- Comment
 map('n', '<leader>/', "gcc", { remap = true, desc = "Comentar línea" })
