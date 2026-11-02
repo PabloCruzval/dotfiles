@@ -97,6 +97,22 @@ hl.bind(mainMod .. " + SHIFT + P",   hl.dsp.exec_cmd("hyprpicker -a"))
 hl.bind(mainMod .. " + SHIFT + S",   hl.dsp.exec_cmd(noctCall .. "screenshot-region"))
 hl.bind(mainMod .. " + SHIFT + F",   hl.dsp.exec_cmd(noctCall .. "screenshot-fullscreen"))
 
+-- macOS Zoom Plugin
+if hl.plugin and hl.plugin.macos_zoom ~= nil then
+	hl.bind("CTRL + SHIFT + mouse:274", function()
+		return hl.plugin.macos_zoom.adjust("reset")
+	end)
+	hl.bind("CTRL + mouse:274", function()
+		return hl.plugin.macos_zoom.adjust("reset")
+	end)
+	hl.bind("CTRL + ALT + Z", function()
+		return hl.plugin.macos_zoom.adjust("toggle")
+	end)
+	hl.bind("CTRL + ALT + 0", function()
+		return hl.plugin.macos_zoom.adjust("reset")
+	end)
+end
+
 -----------------------
 ---- MASTER LAYOUT ----
 -----------------------

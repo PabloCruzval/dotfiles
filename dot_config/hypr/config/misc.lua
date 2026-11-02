@@ -21,7 +21,30 @@ hl.config({
         no_update_news = true,
         no_donation_nag = true,
     },
+    cursor = {
+        zoom_detached_camera = false,
+        zoom_rigid = false,
+    },
 })
+
+if hl.plugin and hl.plugin.macos_zoom ~= nil then
+    hl.config({
+        plugin = {
+            macos_zoom = {
+                raw_scroll = true,
+                modifier = "CTRL + SHIFT",
+                sensitivity = 0.01,
+                consume_scroll = true,
+                step = 1.20,
+                min_factor = 1.0,
+                max_factor = 10.0,
+                snap_threshold = 1.05,
+                toggle_factor = 2.0,
+                independent_displays = true,
+            },
+        },
+    })
+end
 
 hl.device({
     name = "epic-mouse-v1",

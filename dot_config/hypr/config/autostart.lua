@@ -1,7 +1,12 @@
 hl.on("hyprland.start", function ()
+    hl.exec_cmd("hyprctl plugin load " .. os.getenv("HOME") .. "/.local/lib/hyprland/macos-zoom.so")
     hl.exec_cmd("dbus-update-activation-environment --systemd --all")
     hl.exec_cmd("noctalia")
     hl.exec_cmd("xhost +SI:localuser:root")
     hl.exec_cmd("fcitx5 -d")
     hl.exec_cmd("syncthing --no-browser")
+end)
+
+hl.on("config.reloaded", function ()
+    hl.exec_cmd("hyprctl plugin load " .. os.getenv("HOME") .. "/.local/lib/hyprland/macos-zoom.so")
 end)
