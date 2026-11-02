@@ -52,6 +52,7 @@ PKGS=(
     python-pyqt6
     rclone
     qrencode
+    xdg-desktop-portal-kde
 )
 
 AUR=(

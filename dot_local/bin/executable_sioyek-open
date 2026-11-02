@@ -152,6 +152,8 @@ def main() -> None:
         else:
             uris.append(arg)
 
+    os.environ.setdefault("QT_QPA_PLATFORMTHEME", "kde")
+
     # Resolve sioyek binary or sync wrapper
     sioyek_sync = os.path.expanduser("~/.local/bin/sioyek-sync")
     if os.path.isfile(sioyek_sync) and os.access(sioyek_sync, os.X_OK):

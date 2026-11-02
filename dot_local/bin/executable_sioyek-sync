@@ -901,6 +901,7 @@ case "$MODE" in
         ;;
     wrapper)
         export QT_QPA_PLATFORM="${SIOYEK_QT_QPA_PLATFORM:-xcb}"
+        export QT_QPA_PLATFORMTHEME="${SIOYEK_QT_QPA_PLATFORMTHEME:-kde}"
         # Adquirir lock de sesión para el ciclo abrir -> esperar -> subir.
         # Si otro wrapper ya tiene el lock (incluso si aún está en medio del pull inicial),
         # esperamos a que libere TRANSFER_LOCK y entregamos el PDF a la instancia activa.
