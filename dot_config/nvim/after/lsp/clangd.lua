@@ -1,0 +1,9 @@
+return {
+    cmd = {
+        "clangd",
+        "--background-index",
+        "--clang-tidy",
+        "--header-insertion=iwyu",
+        "--function-arg-placeholders=1",
+    },
+}

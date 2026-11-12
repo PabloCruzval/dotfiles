@@ -1,0 +1,5 @@
+[".local/share/fonts"]
+    type = "archive"
+    format = "zip"
+    url = "https://gwfh.mranftl.com/api/fonts/funnel-display?download=zip&subsets=latin&variants=300,500,600,700,800,regular&formats=ttf"
+    refreshPeriod = "720h"

@@ -1,0 +1,22 @@
+import = ["~/.config/sesh/local.toml"]
+
+[default_session]
+startup_command = "fish"
+
+[[window]]
+name = "code"
+startup_script = "nvim"
+
+[[window]]
+name = "git"
+startup_script = "lazygit"
+
+[[window]]
+name = "curl"
+startup_script = "lazycurl"
+
+[[session]]
+name = "dot"
+path = "~/.local/share/chezmoi"
+startup_command = "tmux rename-window shell"
+windows = ["code", "git"]

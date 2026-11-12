@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if ! command -v qrencode >/dev/null 2>&1; then
+    echo "qrencode not installed" >&2
+    exit 1
+fi
+
+copy_img=false
+show_term=false
+outfile=""
+text=""
+
+while getopts ":o:cCtnh" opt; do
+    case "$opt" in
+        o) outfile="$OPTARG" ;;
+        c) text="$(wl-paste 2>/dev/null || true)" ;;
+        C) copy_img=true ;;
+        t) show_term=true ;;
+        n) no_notify=true ;;
+        h)
+            echo "usage: qr [-c] [-C] [-t] [-n] [-o file.png] [text]"
+            exit 0
+            ;;
+        *)
+            echo "unknown option: -$OPTARG" >&2
+            exit 1
+            ;;
+    esac
+done
+shift $((OPTIND - 1))
+
+text="${text:-$*}"
+if [[ -z "$text" && ! -t 0 ]]; then
+    text="$(cat)"
+fi
+
+if [[ -z "$text" ]]; then
+    echo "no input provided" >&2
+    exit 1
+fi
+
+pic_dir="${XDG_PICTURES_DIR:-$HOME/Pictures}"
+mkdir -p "$pic_dir"
+target="${outfile:-$pic_dir/qr_$(date +%Y%m%d_%H%M%S).png}"
+[[ "$target" != *.png ]] && target="${target}.png"
+
+qrencode -s 10 -m 4 -l M -t PNG -o "$target" "$text"
+
+if [[ "$copy_img" = true ]] && command -v wl-copy >/dev/null 2>&1; then
+    wl-copy -t image/png < "$target"
+fi
+
+if [[ "$show_term" = true ]]; then
+    qrencode -t UTF8 -m 2 -l M "$text"
+fi
+
+if [[ "${no_notify:-false}" != true ]] && command -v notify-send >/dev/null 2>&1; then
+    notify-send -a "QR" -i "$target" "QR code saved" "$target" 2>/dev/null || true
+fi
+
+echo "$target"

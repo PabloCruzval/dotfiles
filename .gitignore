@@ -1,0 +1,8 @@
+.ArchConf/
+.backup/
+.vscode/
+.env
+.tmp/
+
+dot_config/noctalia/colors.json
+dot_config/hypr/noctalia.lua

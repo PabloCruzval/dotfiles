@@ -1,0 +1,19 @@
+{{- $chassis := "desktop" -}}
+{{- if eq .chezmoi.os "linux" -}}
+{{-   $detected := output "hostnamectl" "chassis" | trim -}}
+{{-   if or (eq $detected "laptop") (eq $detected "notebook") (eq $detected "convertible") -}}
+{{-     $chassis = "laptop" -}}
+{{-   end -}}
+{{- end -}}
+
+{{- $gitName := promptStringOnce . "git.name" "Git username" -}}
+{{- $gitEmail := promptStringOnce . "git.email" "Git email" -}}
+{{- $location := promptStringOnce . "location" "City / location (for Noctalia weather)" -}}
+
+[data]
+    chassis = {{ $chassis | quote }}
+    location = {{ $location | quote }}
+
+[data.git]
+    name = {{ $gitName | quote }}
+    email = {{ $gitEmail | quote }}

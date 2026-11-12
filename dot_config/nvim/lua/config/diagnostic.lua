@@ -1,0 +1,53 @@
+local virtual_text = {
+  prefix = "●",
+  source = "if_many",
+  spacing = 4,
+}
+
+vim.diagnostic.config({
+  virtual_text = virtual_text,
+  signs = {
+    text = {
+      [vim.diagnostic.severity.ERROR] = " ",
+      [vim.diagnostic.severity.WARN] = " ",
+      [vim.diagnostic.severity.HINT] = " ",
+      [vim.diagnostic.severity.INFO] = " ",
+    },
+  },
+  underline = true,
+  update_in_insert = false,
+  severity_sort = true,
+  float = {
+    border = "rounded",
+    source = "always",
+    header = "",
+    prefix = "",
+  },
+})
+
+local function set_virtual_text_highlights()
+  for _, severity in ipairs({ "Error", "Warn", "Info", "Hint" }) do
+    vim.api.nvim_set_hl(0, "DiagnosticVirtualText" .. severity, {
+      fg = vim.api.nvim_get_hl(0, { name = "Diagnostic" .. severity }).fg,
+      bg = nil,
+    })
+  end
+end
+
+set_virtual_text_highlights()
+vim.api.nvim_create_autocmd("ColorScheme", {
+  group = vim.api.nvim_create_augroup("DiagnosticHighlights", { clear = true }),
+  callback = set_virtual_text_highlights,
+})
+
+local virtual_text_enabled = true
+
+local function toggle_virtual_text()
+  virtual_text_enabled = not virtual_text_enabled
+  vim.diagnostic.config({ virtual_text = virtual_text_enabled and virtual_text or false })
+  vim.notify("Diagnostic virtual text: " .. (virtual_text_enabled and "enabled" or "disabled"))
+end
+
+vim.keymap.set("n", "<leader>lt", toggle_virtual_text, {
+  desc = "LSP: Toggle diagnostic virtual text",
+})

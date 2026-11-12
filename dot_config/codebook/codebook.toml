@@ -1,0 +1,6 @@
+dictionaries = ["en_us", "es"]
+words = []
+flag_words = []
+ignore_paths = []
+min_word_length = 3
+

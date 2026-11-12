@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+url=$(git remote get-url origin 2>/dev/null)
+if [[ $url =~ github\.com ]]; then
+    echo "$url" | sed 's|.*[/:]||; s|\.git$||'
+else
+    basename "$PWD"
+fi

@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+git_icon=""
+branch_icon=""
+in_sync="✓"
+ahead_icon="↑"
+behind_icon="↓"
+diverged_icon="⇅"
+
+branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+[[ -z "$branch" || "$branch" == "HEAD" ]] && exit 0
+
+if ! git rev-parse --abbrev-ref HEAD@{upstream} &>/dev/null; then
+    printf "%s %s" "$branch_icon" "$branch"
+    exit 0
+fi
+
+ahead=$(git rev-list --count @{u}..HEAD 2>/dev/null || echo 0)
+behind=$(git rev-list --count HEAD..@{u} 2>/dev/null || echo 0)
+
+if [[ $ahead -eq 0 && $behind -eq 0 ]]; then
+    sync=$in_sync
+elif [[ $behind -eq 0 ]]; then
+    sync="$ahead_icon$ahead"
+elif [[ $ahead -eq 0 ]]; then
+    sync="$behind_icon$behind"
+else
+    sync="$diverged_icon$ahead$behind"
+fi
+
+icon=$branch_icon
+[[ $(git remote get-url origin 2>/dev/null) =~ github\.com ]] && icon=$git_icon
+printf "%s %s %s" "$icon" "$branch" "$sync"

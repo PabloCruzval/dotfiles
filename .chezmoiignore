@@ -1,0 +1,13 @@
+./troubleshoot.md
+./dot_zshrc
+./LICENSE
+./README.md
+./DesktopImage.png
+./dot_config/codebook/
+.config/hypr/noctalia.lua
+dot_config/hypr/noctalia.lua
+./dot_config/fish/fish_variables
+./dot_config/fcitx5/conf/cached_layouts
+
+# Documentation files are kept in the chezmoi source repo only
+**/*.md
